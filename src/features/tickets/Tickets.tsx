@@ -56,7 +56,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
         newTickets.push({...ticket,matched,unmatched});
       }catch(err){
         console.error('Error PDF:',err);
-        alert('No se pudo leer: '+file.name);
+        alert(`No se pudo leer "${file.name}".\n\n${err?.message||'Formato no reconocido.'}\n\nPrueba con la foto del ticket (Ultra Chef).`);
       }
     }
 
@@ -229,7 +229,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
         <div className="mt-3">
           <button onClick={()=>cameraRef.current?.click()} disabled={loading}
             className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 font-bold text-sm transition-all active:scale-95
-              ${loading?'bg-gray-100 text-gray-400 cursor-not-allowed':'text-white'}`}
+              ${loading?'bg-gray-200 text-gray-500 cursor-not-allowed':'text-white'}`}
             style={loading?{}:{background:'linear-gradient(135deg,rgba(109,40,217,0.9),rgba(88,28,135,0.95))',boxShadow:'0 4px 16px rgba(109,40,217,0.35)'}}>
             {loading && ocrProgress!==null ? (
               <>

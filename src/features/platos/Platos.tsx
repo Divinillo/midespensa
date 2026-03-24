@@ -7,6 +7,15 @@ import { CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES, FREE_DISH_LIMIT, ING_EMOJI } f
 import { RECIPE_DB } from '../../data/recipes';
 import type { Ingredient, Dish } from '../../data/types';
 
+const DIET_SETS = [
+  { id: 'omnivora',    icon: '🍽️', label: 'Omnívora',    desc: 'Todo tipo de alimentos' },
+  { id: 'vegetariano', icon: '🥗',  label: 'Vegetariana', desc: 'Sin carne ni pescado' },
+  { id: 'vegano',      icon: '🌱',  label: 'Vegana',      desc: 'Sin productos animales' },
+  { id: 'saludable',   icon: '💪',  label: 'Saludable',   desc: 'Baja en grasas y azúcar' },
+  { id: 'paleolitica', icon: '🥩',  label: 'Paleo',       desc: 'Sin cereales ni lácteos' },
+  { id: 'foodie',      icon: '👨‍🍳', label: 'Foodie',      desc: 'Recetas elaboradas' },
+];
+
 function matchRecipeIng(recipeIng, catalogIngs) {
   const r=recipeIng.toLowerCase();
   return catalogIngs.find(ci=>{
@@ -87,7 +96,9 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                 {DIET_SETS.map(ds=>(
                   <button key={ds.id} type="button" onClick={()=>setDiet(ds.id)}
                     className={`py-2 px-2.5 rounded-xl border-2 text-left transition-all
-                      ${diet===ds.id?'border-purple-400 bg-purple-50':'border-gray-100 bg-gray-50 hover:border-purple-200'}`}>
+                      ${diet===ds.id?'border-purple-400 bg-purple-50':'border-gray-200 bg-white hover:border-purple-200'}`}
+                    style={{boxShadow: diet===ds.id?'0 3px 10px rgba(139,92,246,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
+                    <div className="text-base mb-0.5">{ds.icon}</div>
                     <div className={`text-xs font-bold ${diet===ds.id?'text-purple-700':'text-gray-600'}`}>{ds.label}</div>
                     <div className={`text-[10px] ${diet===ds.id?'text-purple-500':'text-gray-400'}`}>{ds.desc}</div>
                   </button>
@@ -110,7 +121,8 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
               {[1,2,3,4,5].map(n=>(
                 <button key={n} type="button" onClick={()=>setQty(n)}
                   className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all
-                    ${qty===n?'border-green-500 bg-green-50 text-green-700':'border-gray-100 bg-gray-50 text-gray-500 hover:border-green-200'}`}>
+                    ${qty===n?'border-green-500 bg-green-50 text-green-700':'border-gray-200 bg-white text-gray-500 hover:border-green-200'}`}
+                  style={{boxShadow: qty===n?'0 3px 10px rgba(22,163,74,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
                   {n}
                 </button>
               ))}
@@ -140,8 +152,12 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
               const barColor=pctVal===100?'bg-green-500':pctVal>=60?'bg-amber-400':'bg-red-300';
               return (
                 <button key={s.recipe.id} type="button" onClick={()=>toggleSel(s.recipe.id)}
-                  className={`w-full text-left rounded-2xl border-2 p-3 transition-all
-                    ${isSel?'border-green-400 bg-green-50':'border-gray-100 bg-white hover:border-green-200'}`}>
+                  className="w-full text-left rounded-2xl border-2 p-3 transition-all"
+                  style={{
+                    borderColor: isSel ? '#4ade80' : '#e2e8f0',
+                    background: isSel ? '#f0fdf4' : '#fff',
+                    boxShadow: isSel ? '0 3px 12px rgba(22,163,74,.15)' : '0 2px 8px rgba(0,0,0,.07)',
+                  }}>
                   <div className="flex items-start gap-2">
                     <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all
                       ${isSel?'border-green-500 bg-green-500':'border-gray-300'}`}>
@@ -193,8 +209,13 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
             })}
           </div>
           <button onClick={addSelected} disabled={selCount===0}
-            className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all
-              ${selCount===0?'bg-gray-100 text-gray-300 cursor-not-allowed':'bg-green-600 text-white hover:bg-green-700 shadow-sm active:scale-95'}`}>
+            className="w-full py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
+            style={{
+              background: selCount===0 ? '#e5e7eb' : '#16a34a',
+              color: selCount===0 ? '#6b7280' : '#fff',
+              boxShadow: selCount===0 ? 'none' : '0 3px 12px rgba(22,163,74,.35)',
+              cursor: selCount===0 ? 'not-allowed' : 'pointer',
+            }}>
             ➕ Añadir {selCount>0?`${selCount} plato${selCount!==1?'s':''}`:' platos seleccionados'}
           </button>
         </div>
@@ -329,9 +350,9 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
         {dishes.map(dish=>(
           <div key={dish.id} className="bg-white rounded-2xl p-4"
             style={{
-              border: dish.example ? '1px solid #fde68a' : '1px solid #f1f5f9',
+              border: dish.example ? '1px solid #fde68a' : '1px solid #e8edf2',
               background: dish.example ? '#fffbeb' : '#fff',
-              boxShadow: '0 1px 4px rgba(0,0,0,.05)',
+              boxShadow: dish.example ? '0 2px 8px rgba(217,119,6,.1)' : '0 2px 8px rgba(0,0,0,.08)',
             }}>
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">

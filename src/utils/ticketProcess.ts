@@ -1,11 +1,18 @@
 // @ts-nocheck
-import { normalizeName } from './helpers';
+import { normalizeName, uid } from './helpers';
 
 // CDN globals
 declare const window: any;
 
 async function extractRowsFromPdf(arrayBuffer) {
-  const pdf = await window.pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  const pdf = await window.pdfjsLib.getDocument({
+    data: arrayBuffer,
+    disableRange: true,
+    disableStream: true,
+    disableAutoFetch: true,
+    cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
+    cMapPacked: true,
+  }).promise;
   const allRows = [];
   for (let p=1; p<=pdf.numPages; p++) {
     const page = await pdf.getPage(p);
@@ -106,6 +113,58 @@ function parseMercadonaOnline(rows) {
     }
   }
 
+  return {products, total, date};
+}
+
+// Detecta si es un ticket online/app de Consum (formato web)
+function isConsumOnline(rows) {
+  const text = rows.slice(0, 30).join('\n');
+  return /consum/i.test(text) && (
+    /Ref\.|Referencia|N[uú]mero de pedido|factura simplificada/i.test(text) ||
+    rows.some(r => /^\d{2}\/\d{2}\/\d{4}/.test(r) && /€/.test(r))
+  );
+}
+
+// Parser para tickets online/app Consum
+// Formato: "Nombre    Uds    Precio unitario    Importe"
+function parseConsumOnline(rows) {
+  const products = [];
+  let total = null, date = null;
+
+  for (const row of rows.slice(0, 20)) {
+    const dm = row.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (dm) { date = `${dm[3]}-${dm[2]}-${dm[1]}`; break; }
+  }
+  for (const row of rows) {
+    const tm = row.match(/[Tt]otal[:\s]+([\d]+[,\.]\d{2})\s*€/);
+    if (tm) { total = parseFloat(tm[1].replace(',','.')); break; }
+  }
+
+  const SKIP = /^\s*$|^(Descripci[oó]n|Unidades|Importe|Precio|Ref\.|IVA|Total|TOTAL|Subtotal|Factura|Pedido|Estimado|Socio|Gracias|Consum)/i;
+
+  for (const row of rows) {
+    const t = row.trim();
+    if (!t || SKIP.test(t)) continue;
+    // Línea: "Nombre del producto    X    X,XX €    X,XX €"
+    const m = t.match(/^(.+?)\s{2,}\d+\s{2,}[\d,\.]+\s*€?\s{1,}([\d]+[,\.]\d{2})\s*€?\s*$/);
+    if (m) {
+      const name = m[1].trim();
+      const price = parseFloat(m[2].replace(',','.'));
+      if (name.length > 1 && price > 0 && price < 500) {
+        products.push({id:uid(), rawName:name, price, normalizedName:normalizeName(name)});
+      }
+      continue;
+    }
+    // Línea simple: "Nombre    X,XX €"
+    const m2 = t.match(/^(.+?)\s{2,}([\d]+[,\.]\d{2})\s*€\s*$/);
+    if (m2) {
+      const name = m2[1].trim();
+      const price = parseFloat(m2[2].replace(',','.'));
+      if (name.length > 1 && price > 0 && price < 500 && !/total|iva|subtotal/i.test(name)) {
+        products.push({id:uid(), rawName:name, price, normalizedName:normalizeName(name)});
+      }
+    }
+  }
   return {products, total, date};
 }
 
@@ -352,12 +411,21 @@ export async function processImageTicket(file, onProgress) {
 ═══════════════════════════════════════ */
 export async function processPdf(file) {
   const buf = await file.arrayBuffer();
-  const rows = await extractRowsFromPdf(buf);
+  let rows;
+  try {
+    rows = await extractRowsFromPdf(buf);
+  } catch(e) {
+    console.error('PDF.js error:', e);
+    throw new Error(`No se pudo extraer texto del PDF: ${e?.message||e}`);
+  }
+  if (!rows || rows.length === 0) throw new Error('El PDF no contiene texto legible. Puede ser una imagen escaneada.');
   const parsed = isMercadonaOnline(rows) ? parseMercadonaOnline(rows)
+              : isConsumOnline(rows)     ? parseConsumOnline(rows)
               : isConsum(rows)           ? parseConsumReceipt(rows)
               :                            parseTraditionalReceipt(rows);
+  if (!parsed.products) throw new Error('No se reconoció el formato del ticket.');
   const totalProds = parsed.total || parsed.products.reduce((s,p)=>s+(p.price||0),0);
-  const storeType2 = isMercadonaOnline(rows)?'Mercadona':isConsum(rows)?'Consum':'Otro';
+  const storeType2 = isMercadonaOnline(rows)?'Mercadona':isConsum(rows)||isConsumOnline(rows)?'Consum':'Otro';
   return {
     id: 'tk'+uid(),
     filename: file.name,

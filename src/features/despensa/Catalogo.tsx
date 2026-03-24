@@ -132,8 +132,8 @@ export function Catalogo({ingredients,setIngredients,isUltra}) {
                     className="relative w-full flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl transition-all active:scale-95"
                     style={{
                       background: ing.available ? '#f0fdf4' : '#fff',
-                      border: ing.available ? '2px solid #86efac' : '1px solid #f1f5f9',
-                      boxShadow: ing.available ? '0 2px 8px rgba(22,163,74,.15)' : '0 1px 4px rgba(0,0,0,.04)',
+                      border: ing.available ? '2px solid #86efac' : '1px solid #e8edf2',
+                      boxShadow: ing.available ? '0 3px 10px rgba(22,163,74,.18)' : '0 2px 8px rgba(0,0,0,.08)',
                     }}>
                     {ing.available && (
                       <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"

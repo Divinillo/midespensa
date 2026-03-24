@@ -150,7 +150,7 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
         {/* Botón acción */}
         <button onClick={doClear} disabled={selCount===0}
           className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all
-            ${selCount===0?'bg-gray-100 text-gray-300 cursor-not-allowed':'bg-red-500 text-white hover:bg-red-600 active:scale-95 shadow-sm'}`}>
+            ${selCount===0?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-red-500 text-white hover:bg-red-600 active:scale-95 shadow-sm'}`}>
           {selCount===0?'Selecciona días para borrar':`🗑️ Borrar ${selCount} día${selCount!==1?'s':''} ${withFoodSel>0?`(${withFoodSel} con comida)`:''}`}
         </button>
       </div>
@@ -274,7 +274,8 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
             <div className="grid grid-cols-2 gap-2 mb-2">
               {[['hoy','📅 Hoy','solo hoy'],['semana','🗓️ Semana','lun → dom'],['mes',`📆 Mes`,MONTH_NAMES[month]],['custom','🎯 Personalizado','elige días']].map(([r,label,sub])=>(
                 <button key={r} type="button" onClick={()=>setRange(r)}
-                  className={`py-2.5 px-1 rounded-xl border-2 text-center transition-all ${range===r?'border-green-500 bg-green-50':'border-gray-100 bg-gray-50 hover:border-green-200'}`}>
+                  className={`py-2.5 px-1 rounded-xl border-2 text-center transition-all ${range===r?'border-green-500 bg-green-50':'border-gray-200 bg-white hover:border-green-300'}`}
+                  style={{boxShadow: range===r?'0 3px 10px rgba(22,163,74,.15)':'0 2px 6px rgba(0,0,0,.07)'}}>
                   <div className={`text-sm font-bold ${range===r?'text-green-700':'text-gray-600'}`}>{label}</div>
                   <div className={`text-[10px] mt-0.5 ${range===r?'text-green-500':'text-gray-400'}`}>{sub}</div>
                 </button>
@@ -318,8 +319,14 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
           )}
 
           <button onClick={generate} disabled={!canGenerate}
-            className={`w-full py-3 rounded-xl font-bold text-sm transition-all shadow-sm
-              ${!canGenerate?'bg-gray-100 text-gray-300 cursor-not-allowed':'bg-green-600 text-white hover:bg-green-700 active:scale-95'}`}>
+            className={`w-full py-3 rounded-xl font-bold text-sm transition-all
+              ${!canGenerate?'cursor-not-allowed':'active:scale-95'}`}
+            style={{
+              background: !canGenerate ? '#e5e7eb' : '#16a34a',
+              color: !canGenerate ? '#6b7280' : '#fff',
+              boxShadow: !canGenerate ? 'none' : '0 4px 14px rgba(22,163,74,.35)',
+              border: !canGenerate ? '1px solid #d1d5db' : 'none',
+            }}>
             {range==='custom'&&customDays.length===0?'Selecciona días en el calendario':'🚀 Generar menú'}
           </button>
         </div>
@@ -342,7 +349,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-semibold text-gray-700">🛒 Te faltan {result.missing.length} ingredientes</p>
               </div>
-              <div className="max-h-56 overflow-y-auto space-y-1.5 pr-0.5">
+              <div className="max-h-44 overflow-y-auto space-y-1.5 pr-0.5">
                 {result.missing.map(({ing,dishNames},idx)=>(
                   <div key={ing?.id||idx} className="flex items-start gap-2.5 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
                     <span className="text-lg leading-none mt-0.5">{CAT_EMOJI[ing?.category]||'🥗'}</span>
@@ -358,7 +365,8 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
                   const ids=new Set(result.missing.map(m=>m.ing?.id).filter(Boolean));
                   setIngredients(prev=>prev.map(i=>ids.has(i.id)?{...i,needed:true,available:false}:i));
                 }}
-                  className="mt-2.5 w-full bg-amber-500 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-amber-600 active:scale-95 transition-all">
+                  className="mt-2.5 w-full rounded-xl py-2.5 text-sm font-semibold active:scale-95 transition-all"
+                  style={{background:'#f59e0b',color:'#fff',boxShadow:'0 3px 10px rgba(245,158,11,.35)'}}>
                   🛒 Agregar a lista de la compra
                 </button>
               )}
@@ -464,7 +472,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
           <DayPicker year={year} month={month} plan={plan} selected={selected} setSelected={setSelected}/>
           <button onClick={()=>setShowReport(true)} disabled={selected.length===0}
             className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all
-              ${selected.length===0?'bg-gray-100 text-gray-300 cursor-not-allowed':'bg-purple-600 text-white hover:bg-purple-700 active:scale-95 shadow-sm'}`}>
+              ${selected.length===0?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-purple-600 text-white hover:bg-purple-700 active:scale-95 shadow-sm'}`}>
             {selected.length===0?'Selecciona días':'📊 Generar informe'}
           </button>
         </div>
@@ -778,14 +786,6 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               </div>
 
               {/* Warnings */}
-              {sameDayDup && (
-                <div style={{borderRadius:12,padding:'10px 14px',background:'#fef2f2',border:'1px solid #fecaca',display:'flex',alignItems:'flex-start',gap:8}}>
-                  <span style={{fontSize:'1rem',flexShrink:0}}>⛔</span>
-                  <div style={{fontSize:'0.75rem',color:'#dc2626',fontWeight:600}}>
-                    No puedes poner el mismo plato a comer y cenar el mismo día.
-                  </div>
-                </div>
-              )}
               {!sameDayDup && repeatWarning && (
                 <div style={{borderRadius:12,padding:'10px 14px',background:'#fffbeb',border:'1px solid #fde68a',display:'flex',alignItems:'flex-start',gap:8}}>
                   <span style={{fontSize:'1rem',flexShrink:0}}>⚠️</span>
@@ -811,12 +811,13 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                     <select value={dayMeal[k]||''} onChange={e=>setDayMeal(m=>({...m,[k]:e.target.value}))}
                       style={{width:'100%',borderRadius:14,padding:'12px 14px',fontSize:'0.85rem',border:'1.5px solid #e2e8f0',background:'#f8fafc',outline:'none',appearance:'auto'}}>
                       <option value="">— Sin asignar —</option>
-                      {dishes.map(d=>{
-                        const isDup = k==='lunch' ? (dayMeal.dinner===d.id) : (dayMeal.lunch===d.id);
-                        const isRepeat = usedInMonth[d.id]>0;
-                        const prefix = isDup ? '⛔ ' : isRepeat ? '⚠️ ' : '';
-                        return <option key={d.id} value={d.id}>{prefix}{d.name}</option>;
-                      })}
+                      {dishes
+                        .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : d.id!==dayMeal.lunch)
+                        .map(d=>{
+                          const isRepeat = usedInMonth[d.id]>0;
+                          return <option key={d.id} value={d.id}>{isRepeat?'⚠️ ':''}{d.name}</option>;
+                        })
+                      }
                     </select>
                     {macros && (
                       <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
@@ -831,6 +832,12 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                   </div>
                 );
               })}
+
+              {dishes.length < 2 && (
+                <p style={{fontSize:'0.72rem',color:'#94a3b8',textAlign:'center',marginTop:2}}>
+                  💡 Añade al menos dos platos diferentes para poder asignar comida y cena.
+                </p>
+              )}
 
               {/* Action buttons */}
               <div style={{display:'flex',gap:10,paddingTop:4}}>
