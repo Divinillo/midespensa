@@ -1,0 +1,256 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from './data/categories';
+import { Header } from './components/layout/Header';
+import { Nav } from './components/layout/Nav';
+import { Modal } from './components/ui/Modal';
+import { PlanMensual } from './features/plan/PlanMensual';
+import { Platos } from './features/platos/Platos';
+import { Catalogo } from './features/despensa/Catalogo';
+import { Tickets } from './features/tickets/Tickets';
+import { ListaCompra } from './features/lista/ListaCompra';
+import { ResumenGasto } from './features/gastos/ResumenGasto';
+import { UpgradeModal } from './features/onboarding/OnboardingCard';
+import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
+import { useLS } from './hooks/useLS';
+import { scheduleSyncToCloud, loadFromCloud } from './utils/cloud';
+import { validateLicenseRemote } from './utils/licenseApi';
+import { INIT_INGS } from './data/ingredients';
+import type { Ingredient, Dish, Plan, Ticket, PriceHistory, Section } from './data/types';
+
+const INIT_DISHES: Dish[] = [
+  { id: 'd12', name: 'Salmón con espárragos', ingredients: ['i3', 'i24'], example: true },
+];
+
+
+const TITLES: Record<Section, string> = {
+  plan: 'Plan mensual', platos: 'Platos habituales', cat: 'Catálogo de ingredientes',
+  ticket: 'Tickets del supermercado', lista: 'Lista de la compra', gastos: 'Resumen de gasto',
+};
+
+export function App() {
+  const [section, setSection] = useLS<Section>('despensa_section_v1', 'plan');
+  const [ingredients, setIngredients] = useLS<Ingredient[]>('despensa_ings_v4', INIT_INGS);
+  const [dishes, setDishes] = useLS<Dish[]>('despensa_dishes_v4', INIT_DISHES);
+  const [plan, setPlan] = useLS<Plan>('despensa_plan_v4', {});
+  const [tickets, setTickets] = useLS<Ticket[]>('despensa_tickets_v4', []);
+  const [priceHistory, setPriceHistory] = useLS<PriceHistory>('despensa_prices_v4', {});
+  const [isPro, setIsPro] = useLS<boolean>('despensa_pro_v1', false);
+  const [isUltra, setIsUltra] = useLS<boolean>('despensa_ultra_v1', false);
+  const [wizardDone, setWizardDone] = useLS<boolean>('despensa_wizard_v1', false);
+  const [userEmail, setUserEmail] = useLS<string>('despensa_email_v1', '');
+  const [syncStatus, setSyncStatus] = useState('');
+  const [recoverEmail, setRecoverEmail] = useState('');
+  const [recoverMsg, setRecoverMsg] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
+  const [importError, setImportError] = useState('');
+  const [upgradeModal, setUpgradeModal] = useState<string | null>(null);
+  const importRef = useRef<HTMLInputElement>(null);
+
+  // Stripe activation + cloud load on mount
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('activated') === '1') {
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+    const savedEmail = JSON.parse(localStorage.getItem('despensa_email_v1') || '""');
+    if (savedEmail) {
+      loadFromCloud(savedEmail).then(cloud => {
+        if (!cloud) return;
+        const localTs = parseInt(localStorage.getItem('despensa_local_ts') || '0');
+        const cloudTs = cloud.updated_at || 0;
+        if (cloudTs <= localTs) {
+          if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
+          else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
+          return;
+        }
+        if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
+        if (cloud.ingredients?.length > 0) setIngredients(cloud.ingredients);
+        if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
+        if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
+        if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
+        if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
+        else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
+        setSyncStatus('☁️ Sincronizado');
+        setTimeout(() => setSyncStatus(''), 3000);
+      });
+    }
+  }, []);
+
+  // Migrate: add new INIT_INGS not yet in localStorage
+  useEffect(() => {
+    const existingIds = new Set(ingredients.map(i => i.id));
+    const missing = INIT_INGS.filter(i => !existingIds.has(i.id));
+    const needsMigration = ingredients.some(i => i.needed === undefined);
+    if (missing.length > 0 || needsMigration) {
+      setIngredients(prev => [
+        ...prev.map(i => i.needed === undefined ? { ...i, needed: false } : i),
+        ...missing.map(i => ({ ...i, needed: false })),
+      ]);
+    }
+  }, []);
+
+  // Auto-sync to cloud on data change
+  useEffect(() => {
+    if (!userEmail) return;
+    const ts = Date.now();
+    try { localStorage.setItem('despensa_local_ts', String(ts)); } catch {}
+    scheduleSyncToCloud(userEmail, () => ({ dishes, ingredients, tickets, price_history: priceHistory, plan, updated_at: ts }));
+  }, [dishes, ingredients, tickets, priceHistory, plan, userEmail]);
+
+  const neededCount = ingredients.filter(i => i.needed).length;
+  const pendingCount = tickets.filter(t => (t.unmatched || []).length > 0).length;
+
+  const exportData = () => {
+    const data = { version: 1, exportedAt: new Date().toISOString(), ingredients, dishes, plan, tickets, priceHistory };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `despensa-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target?.result as string);
+        if (!data.ingredients || !data.dishes) throw new Error('Fichero no válido');
+        if (data.ingredients) setIngredients(data.ingredients);
+        if (data.dishes) setDishes(data.dishes);
+        if (data.plan) setPlan(data.plan);
+        if (data.tickets) setTickets(data.tickets);
+        if (data.priceHistory) setPriceHistory(data.priceHistory);
+        setImportError(''); setShowSettings(false);
+        alert('✅ Datos importados correctamente');
+      } catch { setImportError('Error al leer el fichero. Asegúrate de que es un backup válido.'); }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const resetWizard = () => { setWizardDone(false); setShowSettings(false); };
+
+  // ── Show wizard for first-time users ──────────────────────────
+  if (!wizardDone) {
+    return (
+      <OnboardingWizard
+        ingredients={ingredients}
+        setIngredients={setIngredients}
+        dishes={dishes}
+        setDishes={setDishes}
+        tickets={tickets}
+        setTickets={setTickets}
+        priceHistory={priceHistory}
+        setPriceHistory={setPriceHistory}
+        onComplete={() => {
+          setWizardDone(true);
+          setSection('plan');
+        }}
+      />
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
+      <Header
+        section={section} isPro={isPro} neededCount={neededCount}
+        pendingCount={pendingCount} syncStatus={syncStatus}
+        onSettings={() => setShowSettings(true)} onNavigate={setSection}
+      />
+
+      {/* Settings Modal */}
+      <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title="⚙️ Ajustes y datos">
+        <div className="space-y-4">
+          {userEmail ? (
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+              <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Cuenta vinculada</h3>
+              <p className="text-xs text-blue-600">Datos sincronizados con <strong>{userEmail}</strong></p>
+              {syncStatus && <p className="text-xs text-green-600 mt-1">{syncStatus}</p>}
+            </div>
+          ) : (
+            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+              <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Recuperar cuenta en otro dispositivo</h3>
+              <p className="text-xs text-blue-600 mb-3">Si ya tienes una suscripción activa, introduce tu email para recuperar todos tus datos.</p>
+              <input value={recoverEmail} onChange={e => setRecoverEmail(e.target.value)}
+                placeholder="tu@email.com" type="email"
+                className="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+              {recoverMsg && <p className={`text-xs mb-2 ${recoverMsg.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{recoverMsg}</p>}
+              <button onClick={async () => {
+                if (!recoverEmail) { setRecoverMsg('Introduce tu email.'); return; }
+                setRecoverMsg('Buscando...');
+                const cloud = await loadFromCloud(recoverEmail);
+                if (!cloud) { setRecoverMsg('❌ No se encontraron datos. Comprueba tu email.'); return; }
+                if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
+                if (cloud.ingredients?.length > 0) setIngredients(cloud.ingredients);
+                if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
+                if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
+                if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
+                if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); } else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
+                try { localStorage.setItem('despensa_local_ts', String(cloud.updated_at || Date.now())); } catch {}
+                setUserEmail(recoverEmail); setRecoverMsg('✅ Datos recuperados correctamente.');
+              }} className="w-full bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700">
+                Recuperar mis datos
+              </button>
+            </div>
+          )}
+          {/* Storage warning */}
+          <div style={{borderRadius:12,padding:'12px 14px',background:'#fffbeb',border:'1px solid #fde68a',display:'flex',gap:10,alignItems:'flex-start'}}>
+            <span style={{fontSize:'1.1rem',flexShrink:0}}>⚠️</span>
+            <div>
+              <div style={{fontWeight:700,fontSize:'0.78rem',color:'#92400e',marginBottom:2}}>Datos guardados solo en este dispositivo</div>
+              <div style={{fontSize:'0.7rem',color:'#b45309',lineHeight:1.5}}>Si limpias el caché del navegador o cambias de dispositivo perderás tus datos. Haz un backup periódico con el botón de abajo.</div>
+            </div>
+          </div>
+          <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+            <h3 className="font-bold text-green-800 text-sm mb-1">📤 Exportar datos</h3>
+            <p className="text-xs text-green-600 mb-3">Descarga todos tus datos como copia de seguridad.</p>
+            <button onClick={exportData} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#16a34a',color:'#fff'}}>Descargar backup .json</button>
+          </div>
+          <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+            <h3 className="font-bold text-emerald-800 text-sm mb-1">📥 Importar datos</h3>
+            <p className="text-xs text-emerald-600 mb-3">Carga un backup. <strong>Reemplazará todos los datos actuales.</strong></p>
+            <button onClick={() => importRef.current?.click()} className="w-full bg-emerald-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-emerald-700">Cargar fichero .json</button>
+            <input ref={importRef} type="file" accept=".json" onChange={importData} className="hidden" />
+            {importError && <p className="text-xs text-red-500 mt-2">{importError}</p>}
+          </div>
+          <div className="bg-sky-50 rounded-xl p-4 border border-sky-100 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-sky-800 text-sm">🚀 Repetir configuración inicial</h3>
+              <p className="text-xs text-sky-600 mt-0.5">Vuelve a ver el wizard de bienvenida</p>
+            </div>
+            <button onClick={resetWizard} className="text-xs bg-sky-600 text-white px-3 py-2 rounded-xl font-semibold hover:bg-sky-700 shrink-0">Reiniciar</button>
+          </div>
+          <div className={`rounded-xl p-4 border ${isPro ? 'bg-violet-50 border-violet-100' : 'bg-green-50 border-green-100'}`}>
+            <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-violet-800' : 'text-green-800'}`}>{isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito'}</h3>
+            {isPro ? (
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-violet-600">Todas las funciones desbloqueadas</p>
+                <button onClick={() => { if (window.confirm('¿Desactivar la licencia Pro en este dispositivo?')) setIsPro(false); }} className="text-xs text-gray-400 hover:text-red-500 underline ml-2">Desactivar</button>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-green-600 mb-2">Platos: {dishes.length}/{FREE_DISH_LIMIT} · Tickets: {tickets.length}/{FREE_TICKET_LIMIT}</p>
+                <button onClick={() => { setShowSettings(false); setUpgradeModal('reports'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#16a34a',color:'#fff'}}>Desbloquear versión Pro →</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </Modal>
+
+      <UpgradeModal open={!!upgradeModal} reason={upgradeModal || 'reports'} onClose={() => setUpgradeModal(null)}
+        onUnlockPro={() => setIsPro(true)} onUnlockUltra={() => { setIsPro(true); setIsUltra(true); }} />
+
+      <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-28" style={{ paddingTop: 20 }}>
+        {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'platos' && <Platos dishes={dishes} setDishes={setDishes} ingredients={ingredients} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'cat' && <Catalogo ingredients={ingredients} setIngredients={setIngredients} isUltra={isUltra} />}
+        {section === 'ticket' && <Tickets tickets={tickets} setTickets={setTickets} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} setPriceHistory={setPriceHistory} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'lista' && <ListaCompra plan={plan} dishes={dishes} ingredients={ingredients} priceHistory={priceHistory} />}
+        {section === 'gastos' && <ResumenGasto tickets={tickets} ingredients={ingredients} priceHistory={priceHistory} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+      </main>
+
+      <Nav section={section} neededCount={neededCount} pendingCount={pendingCount} isPro={isPro} onNavigate={setSection} />
+    </div>
+  );
+}

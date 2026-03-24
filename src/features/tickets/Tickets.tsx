@@ -1,0 +1,498 @@
+// @ts-nocheck
+import React, { useState, useRef, useEffect } from 'react';
+import { Modal } from '../../components/ui/Modal';
+import { Confirm } from '../../components/ui/Confirm';
+import { uid, fmt2 } from '../../utils/helpers';
+import { FREE_TICKET_LIMIT, CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES } from '../../data/categories';
+import { processImageTicket, processPdf, applyTicket } from '../../utils/ticketProcess';
+import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
+
+// CDN globals
+declare const window: any;
+
+export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHistory,setPriceHistory,isPro,isUltra,onUpgrade}) {
+  const [pdfjsReady,setPdfjsReady]=useState(false);
+  const [loading,setLoading]=useState(false);
+  const [ocrProgress,setOcrProgress]=useState(null); // null | -1 (cargando) | 0-100
+  const [detail,setDetail]=useState(null);
+  const [mapModal,setMapModal]=useState(null);
+  const [mapTarget,setMapTarget]=useState('');
+  const [mapSearch,setMapSearch]=useState('');
+  const [addModal,setAddModal]=useState(null);
+  const [addForm,setAddForm]=useState({name:'',category:'verduras'});
+  const [confirm,setConfirm]=useState(null);
+  const fileRef=useRef();
+  const cameraRef=useRef();
+
+  // Cargar pdf.js dinámicamente
+  useEffect(()=>{
+    if(window.pdfjsLib){window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';setPdfjsReady(true);return;}
+    const s=document.createElement('script');
+    s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+    s.onload=()=>{window.pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';setPdfjsReady(true);};
+    document.head.appendChild(s);
+  },[]);
+
+  const handleFiles=async(files)=>{
+    if(!pdfjsReady){alert('El lector PDF aún carga. Espera un momento.');return;}
+    if(!isPro && tickets.length >= FREE_TICKET_LIMIT){ onUpgrade('tickets'); return; }
+    setLoading(true);
+    let currentIngs=[...ingredients];
+    let currentHistory={...priceHistory};
+    const newTickets=[];
+
+    for(const file of files){
+      if(!file.name.toLowerCase().endsWith('.pdf')) continue;
+      try{
+        const ticket=await processPdf(file);
+        // Evitar duplicados por nombre de fichero
+        if(tickets.some(t=>t.filename===ticket.filename)){
+          alert(`Ya existe un ticket con el nombre: ${file.name}`);
+          continue;
+        }
+        const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory);
+        currentIngs=updatedIngs;
+        currentHistory=newHistory;
+        newTickets.push({...ticket,matched,unmatched});
+      }catch(err){
+        console.error('Error PDF:',err);
+        alert('No se pudo leer: '+file.name);
+      }
+    }
+
+    if(newTickets.length){
+      setIngredients(currentIngs);
+      setPriceHistory(currentHistory);
+      setTickets(ts=>[...ts,...newTickets]);
+    }
+    setLoading(false);
+  };
+
+  const onFileChange=e=>{if(e.target.files.length)handleFiles(Array.from(e.target.files));e.target.value='';};
+  const onDrop=e=>{e.preventDefault();handleFiles(Array.from(e.dataTransfer.files));};
+
+  // ── Procesar foto de ticket con OCR (Ultra) ──
+  const handleCameraFiles=async(files)=>{
+    if(!isUltra){ onUpgrade('ultra'); return; }
+    if(!isPro && tickets.length >= FREE_TICKET_LIMIT){ onUpgrade('tickets'); return; }
+    setLoading(true);
+    setOcrProgress(-1);
+    let currentIngs=[...ingredients];
+    let currentHistory={...priceHistory};
+    const newTickets=[];
+
+    for(const file of files){
+      if(!file.type.startsWith('image/')){ alert('Solo se admiten imágenes (JPG, PNG, WEBP).'); continue; }
+      try{
+        const ticket=await processImageTicket(file, pct=>setOcrProgress(pct));
+        if(tickets.some(t=>t.filename===ticket.filename)){
+          // Si el nombre coincide (misma foto), generar uno distinto
+          ticket.filename='foto-ticket-'+Date.now()+'.jpg';
+        }
+        const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory);
+        currentIngs=updatedIngs;
+        currentHistory=newHistory;
+        newTickets.push({...ticket,matched,unmatched});
+      }catch(err){
+        console.error('Error OCR:',err);
+        const msg=err&&err.message?err.message:(typeof err==='string'?err:JSON.stringify(err)||'Error desconocido');
+        console.error('OCR error completo:',err);
+        alert('No se pudo procesar la foto.\n\nDetalle: '+msg+'\n\nComprueba la conexión a internet e inténtalo de nuevo.');
+      }
+    }
+
+    if(newTickets.length){
+      setIngredients(currentIngs);
+      setPriceHistory(currentHistory);
+      setTickets(ts=>[...ts,...newTickets]);
+    }
+    setLoading(false);
+    setOcrProgress(null);
+  };
+
+  const onCameraChange=e=>{if(e.target.files.length)handleCameraFiles(Array.from(e.target.files));e.target.value='';};
+
+  const deleteTicket=id=>{
+    if(id==='__all__'){
+      setTickets([]);
+      setPriceHistory({});
+    } else {
+      setTickets(ts=>ts.filter(t=>t.id!==id));
+      // Limpiar entradas de priceHistory asociadas a este ticket
+      setPriceHistory(ph=>{
+        const updated={};
+        Object.entries(ph).forEach(([ingId,recs])=>{
+          const kept=recs.filter(r=>r.ticketId!==id);
+          if(kept.length>0) updated[ingId]=kept;
+        });
+        return updated;
+      });
+    }
+    setConfirm(null);
+  };
+
+  // Mapear manualmente un producto no reconocido a un ingrediente
+  const applyManualMap=()=>{
+    if(!mapModal||!mapTarget) return;
+    const {ticketId,productId}=mapModal;
+    const ticket=tickets.find(t=>t.id===ticketId);
+    const product=ticket?.unmatched?.find(p=>p.id===productId);
+    if(!product) return;
+    const ing=ingredients.find(i=>i.name===mapTarget);
+    if(!ing) return;
+
+    // Actualizar historial y disponibilidad
+    setPriceHistory(ph=>{
+      const nh={...ph};
+      if(!nh[ing.id])nh[ing.id]=[];
+      nh[ing.id].push({date:ticket.date,price:product.price,rawName:product.rawName,ticketId});
+      return nh;
+    });
+    setIngredients(ings=>ings.map(i=>i.id===ing.id?{...i,available:true}:i));
+
+    // Mover de unmatched a matched en el ticket
+    setTickets(ts=>ts.map(t=>{
+      if(t.id!==ticketId) return t;
+      return {
+        ...t,
+        matched:[...(t.matched||[]),{rawName:product.rawName,ingredientName:ing.name,price:product.price,category:ing.category}],
+        unmatched:(t.unmatched||[]).filter(p=>p.id!==productId)
+      };
+    }));
+    setMapModal(null);setMapTarget('');setMapSearch('');
+  };
+
+  // Añadir un producto no reconocido como NUEVO ingrediente al catálogo
+  const applyAddToCatalog=()=>{
+    if(!addModal||!addForm.name.trim()) return;
+    const {ticketId,productId}=addModal;
+    const ticket=tickets.find(t=>t.id===ticketId);
+    const product=ticket?.unmatched?.find(p=>p.id===productId);
+    if(!product) return;
+
+    // Crear nuevo ingrediente en el catálogo, ya marcado como disponible
+    const newIng={id:'i'+uid(), name:addForm.name.trim().toLowerCase(), category:addForm.category, available:true};
+    setIngredients(ings=>[...ings, newIng]);
+
+    // Guardar precio en historial
+    setPriceHistory(ph=>{
+      const nh={...ph};
+      if(!nh[newIng.id]) nh[newIng.id]=[];
+      nh[newIng.id].push({date:ticket.date, price:product.price, rawName:product.rawName, ticketId});
+      return nh;
+    });
+
+    // Mover de unmatched a matched en el ticket
+    setTickets(ts=>ts.map(t=>{
+      if(t.id!==ticketId) return t;
+      return {
+        ...t,
+        matched:[...(t.matched||[]),{rawName:product.rawName, ingredientName:newIng.name, price:product.price, category:newIng.category}],
+        unmatched:(t.unmatched||[]).filter(p=>p.id!==productId)
+      };
+    }));
+    setAddModal(null);
+    setAddForm({name:'',category:'verduras'});
+  };
+
+  const activeTicket=tickets.find(t=>t.id===detail);
+
+  const ticketAtLimit = !isPro && tickets.length >= FREE_TICKET_LIMIT;
+
+  return (
+    <div className="fade">
+      {!isPro&&<div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between">
+        <span className="text-xs text-amber-700 font-medium">🔒 Plan gratuito · {tickets.length}/{FREE_TICKET_LIMIT} ticket</span>
+        <button onClick={()=>onUpgrade('tickets')} className="text-xs font-bold text-green-600 hover:underline">Desbloquear Pro →</button>
+      </div>}
+      {/* Zona de arrastrar/subir PDF */}
+      <div onDrop={ticketAtLimit?undefined:onDrop} onDragOver={ticketAtLimit?undefined:e=>e.preventDefault()}
+        onClick={()=>ticketAtLimit?onUpgrade('tickets'):fileRef.current?.click()}
+        className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all relative overflow-hidden
+          ${ticketAtLimit?'border-gray-200 bg-gray-50':'border-green-200 hover:bg-green-50 hover:border-green-300'}`}>
+        {ticketAtLimit&&<div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center z-10">
+          <span className="text-4xl mb-2">🔒</span>
+          <p className="font-bold text-gray-700 text-sm">Límite alcanzado</p>
+          <p className="text-xs text-gray-400 mt-1">Actualiza a Pro para subir más tickets</p>
+          <button onClick={e=>{e.stopPropagation();onUpgrade('tickets');}} className="mt-3 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-700">✨ Desbloquear Pro</button>
+        </div>}
+        <div className="text-4xl mb-2">📤</div>
+        <p className="font-semibold text-gray-700 text-sm">Subir ticket en PDF</p>
+        <p className="text-xs text-gray-400 mt-1">Mercadona online y Consum · Arrastra o haz clic</p>
+        {!pdfjsReady&&<p className="text-xs text-amber-500 mt-1">⏳ Cargando lector PDF...</p>}
+        {loading&&ocrProgress===null&&<p className="text-xs text-green-500 mt-1 animate-pulse">🔄 Procesando ticket...</p>}
+        <input ref={fileRef} type="file" accept=".pdf" multiple onChange={onFileChange} className="hidden"/>
+      </div>
+
+      {/* Botón foto de ticket — Ultra Chef */}
+      {isUltra ? (
+        <div className="mt-3">
+          <button onClick={()=>cameraRef.current?.click()} disabled={loading}
+            className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 font-bold text-sm transition-all active:scale-95
+              ${loading?'bg-gray-100 text-gray-400 cursor-not-allowed':'text-white'}`}
+            style={loading?{}:{background:'linear-gradient(135deg,rgba(109,40,217,0.9),rgba(88,28,135,0.95))',boxShadow:'0 4px 16px rgba(109,40,217,0.35)'}}>
+            {loading && ocrProgress!==null ? (
+              <>
+                <span className="animate-spin">⏳</span>
+                {ocrProgress===-1
+                  ? 'Cargando OCR…'
+                  : `Reconociendo texto… ${ocrProgress}%`}
+              </>
+            ) : (
+              <><span style={{fontSize:'1.4rem'}}>📷</span> Foto de ticket · Ultra Chef</>
+            )}
+          </button>
+
+          {/* Barra de progreso OCR */}
+          {ocrProgress!==null && ocrProgress>=0 && (
+            <div className="mt-2 bg-purple-100 rounded-full overflow-hidden h-1.5">
+              <div className="h-full bg-purple-500 transition-all duration-300 rounded-full"
+                style={{width:`${ocrProgress}%`}}/>
+            </div>
+          )}
+
+          <p className="text-[10px] text-purple-400 text-center mt-1.5 font-medium">
+            📱 Abre la cámara y enfoca el ticket — el OCR reconocerá los productos automáticamente
+          </p>
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onCameraChange} className="hidden"/>
+        </div>
+      ) : (
+        <button onClick={()=>onUpgrade('ultra')}
+          className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 border-2 border-dashed border-purple-200 text-purple-400 text-sm font-semibold hover:bg-purple-50 transition-all">
+          <span>📷</span> Foto de ticket
+          <span className="text-[10px] bg-purple-100 text-purple-500 px-2 py-0.5 rounded-full font-bold ml-1">Ultra Chef</span>
+        </button>
+      )}
+
+      <p className="text-xs text-green-500 font-medium text-center mt-3 mb-5">Los ingredientes se añaden a la despensa automáticamente</p>
+
+      {/* Lista de tickets procesados */}
+      {tickets.length>0&&(
+        <div className="flex justify-between items-center mb-3">
+          <p className="text-sm text-gray-400">{tickets.length} ticket{tickets.length>1?'s':''} subido{tickets.length>1?'s':''}</p>
+          <button onClick={()=>setConfirm('__all__')} className="text-xs text-rose-400 hover:text-rose-600 border border-rose-200 hover:border-rose-400 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 transition-all">
+            🗑️ Limpiar todos
+          </button>
+        </div>
+      )}
+      {!tickets.length
+        ? <div className="text-center py-10 text-gray-300"><div className="text-5xl mb-3">🧾</div><p className="text-sm">Sin tickets subidos</p></div>
+        : <div className="space-y-3">
+            {[...tickets].reverse().map(tk=>{
+              const matchedCount=(tk.matched||[]).length;
+              const unmatchedCount=(tk.unmatched||[]).length;
+              return (
+                <div key={tk.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-semibold text-gray-800 truncate">🧾 {tk.filename}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{tk.date} · {(tk.products||[]).length} líneas · <span className="font-medium text-gray-600">{tk.total?.toFixed(2)}€</span></p>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={()=>setDetail(tk.id)} className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-100 font-medium">Ver</button>
+                        <button onClick={()=>setConfirm(tk.id)} className="text-xs text-gray-300 hover:text-rose-400 px-2">✕</button>
+                      </div>
+                    </div>
+                    {/* Resumen de resultados */}
+                    <div className="flex gap-2 mt-3 flex-wrap">
+                      {matchedCount>0&&(
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium">
+                          ✓ {matchedCount} ingrediente{matchedCount>1?'s':''} añadido{matchedCount>1?'s':''}
+                        </span>
+                      )}
+                      {unmatchedCount>0&&(
+                        <button onClick={()=>setDetail(tk.id)} className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium hover:bg-amber-200">
+                          ⚠ {unmatchedCount} sin identificar
+                        </button>
+                      )}
+                      {matchedCount===0&&unmatchedCount===0&&(
+                        <span className="text-xs text-gray-300">Sin productos detectados</span>
+                      )}
+                    </div>
+                  </div>
+                  {/* Ingredientes añadidos - lista compacta */}
+                  {matchedCount>0&&(
+                    <div className="border-t border-gray-50 px-4 py-3 bg-emerald-50">
+                      <div className="flex flex-wrap gap-1">
+                        {(tk.matched||[]).map((m,i)=>(
+                          <span key={i} className={`text-xs px-2 py-0.5 rounded-full ${CAT_BG[m.category]} ${CAT_TEXT[m.category]}`}>{m.ingredientName}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>}
+
+      {/* Modal de detalle del ticket */}
+      <Modal open={!!activeTicket} onClose={()=>setDetail(null)} title={activeTicket?.filename||''} wide>
+        {activeTicket&&(
+          <div className="space-y-4">
+            <div className="flex justify-between text-sm font-medium text-gray-700 bg-gray-50 rounded-xl p-3">
+              <span>📅 {activeTicket.date}</span>
+              <span>💶 {activeTicket.total?.toFixed(2)}€</span>
+            </div>
+
+            {/* Productos reconocidos */}
+            {(activeTicket.matched||[]).length>0&&(
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-2">✅ Añadidos a la despensa ({activeTicket.matched.length})</h3>
+                <div className="space-y-1 max-h-52 overflow-y-auto">
+                  {(activeTicket.matched||[]).map((m,i)=>(
+                    <div key={i} className="flex items-center justify-between bg-emerald-50 rounded-lg px-3 py-2 border border-emerald-100">
+                      <div>
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${CAT_BG[m.category]} ${CAT_TEXT[m.category]}`}>{m.ingredientName}</span>
+                        <span className="text-xs text-gray-400 ml-2">← {m.rawName}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-gray-600">{m.price?.toFixed(2)}€</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Productos no reconocidos */}
+            {(activeTicket.unmatched||[]).length>0&&(
+              <div>
+                <h3 className="text-sm font-bold text-gray-700 mb-1">⚠️ Sin identificar ({activeTicket.unmatched.length})</h3>
+                <p className="text-xs text-gray-400 mb-2">
+                  <strong>➕ Nuevo</strong> para crear el ingrediente en tu despensa ·
+                  <strong> Asignar</strong> para vincularlo a uno ya existente
+                </p>
+                <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                  {(activeTicket.unmatched||[]).map(prod=>(
+                    <div key={prod.id} className="bg-amber-50 rounded-xl px-3 py-2.5 border border-amber-100">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-gray-700 truncate">{prod.rawName}</p>
+                          <p className="text-xs text-gray-400">{prod.price?.toFixed(2)}€</p>
+                        </div>
+                        <div className="flex gap-1 shrink-0">
+                          <button
+                            onClick={()=>{
+                              const suggested=(prod.normalizedName||prod.rawName).toLowerCase().trim();
+                              setAddForm({name:suggested, category:'verduras'});
+                              setAddModal({ticketId:activeTicket.id, productId:prod.id});
+                            }}
+                            className="text-xs bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-emerald-600 font-semibold">
+                            ➕ Nuevo
+                          </button>
+                          <button
+                            onClick={()=>{setMapModal({ticketId:activeTicket.id,productId:prod.id});setMapTarget('');}}
+                            className="text-xs bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-amber-600 font-semibold">
+                            Asignar
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </Modal>
+
+      {/* Modal: añadir nuevo ingrediente al catálogo */}
+      <Modal open={!!addModal} onClose={()=>setAddModal(null)} title="➕ Añadir al catálogo">
+        <div className="space-y-4">
+          {addModal&&(()=>{
+            const tk=tickets.find(t=>t.id===addModal.ticketId);
+            const prod=tk?.unmatched?.find(p=>p.id===addModal.productId);
+            return prod?(<>
+              <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+                <p className="text-xs text-gray-400 mb-0.5">Producto del ticket</p>
+                <p className="text-sm font-semibold text-gray-800">{prod.rawName}</p>
+                <p className="text-xs text-gray-400">{prod.price?.toFixed(2)}€ · {tk.date}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">¿Cómo se llama en tu despensa?</label>
+                <input
+                  value={addForm.name}
+                  onChange={e=>setAddForm(f=>({...f,name:e.target.value}))}
+                  placeholder="ej: calabacín, atún, pasta..."
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  onKeyDown={e=>e.key==='Enter'&&applyAddToCatalog()}
+                  autoFocus
+                />
+                <p className="text-xs text-gray-400 mt-1">Usa un nombre genérico para que el ticket lo reconozca en el futuro</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Categoría</label>
+                <select value={addForm.category} onChange={e=>setAddForm(f=>({...f,category:e.target.value}))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200">
+                  {CATEGORIES.map(c=><option key={c} value={c}>{CAT_EMOJI[c]} {c}</option>)}
+                </select>
+              </div>
+              <button onClick={applyAddToCatalog} disabled={!addForm.name.trim()}
+                className={`w-full rounded-xl py-3 text-sm font-bold transition-all
+                  ${addForm.name.trim()?'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm':'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+                ✓ Añadir a la despensa y marcar disponible
+              </button>
+              <p className="text-xs text-gray-300 text-center">El precio ({prod.price?.toFixed(2)}€) se guardará en el historial automáticamente</p>
+            </>):null;
+          })()}
+        </div>
+      </Modal>
+
+      {/* Modal mapeo manual — con buscador */}
+      <Modal open={!!mapModal} onClose={()=>{setMapModal(null);setMapTarget('');setMapSearch('');}} title="Asignar a ingrediente">
+        <div className="space-y-3">
+          {mapModal&&(()=>{
+            const tk=tickets.find(t=>t.id===mapModal.ticketId);
+            const prod=tk?.unmatched?.find(p=>p.id===mapModal.productId);
+            const filtered=ingredients
+              .filter(i=>!mapSearch||i.name.includes(mapSearch.toLowerCase().trim()))
+              .sort((a,b)=>a.name.localeCompare(b.name,'es'));
+            return prod?(<>
+              <div className="bg-gray-50 rounded-xl p-3 text-sm">
+                <p className="text-xs text-gray-400 mb-0.5">Producto del ticket</p>
+                <span className="font-semibold text-gray-800">{prod.rawName}</span>
+                <span className="text-gray-400 text-xs ml-2">{prod.price?.toFixed(2)}€</span>
+              </div>
+              {/* Buscador */}
+              <input
+                value={mapSearch}
+                onChange={e=>{setMapSearch(e.target.value);setMapTarget('');}}
+                placeholder="🔍 Buscar ingrediente..."
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
+                autoFocus
+              />
+              {/* Lista filtrada */}
+              <div className="border border-gray-100 rounded-xl overflow-hidden">
+                <div className="max-h-56 overflow-y-auto">
+                  {filtered.length===0
+                    ?<p className="text-center text-gray-300 text-sm py-6">Sin resultados para "{mapSearch}"</p>
+                    :filtered.map(ing=>(
+                      <button key={ing.id} onClick={()=>setMapTarget(ing.name)}
+                        className={`w-full text-left px-4 py-2.5 flex items-center gap-2.5 transition-all border-b border-gray-50 last:border-0
+                          ${mapTarget===ing.name?'bg-green-600 text-white':'hover:bg-gray-50 text-gray-700'}`}>
+                        <span className={`text-sm shrink-0 ${mapTarget===ing.name?'opacity-80':''}`}>{CAT_EMOJI[ing.category]}</span>
+                        <span className="text-sm font-medium">{ing.name}</span>
+                        {mapTarget===ing.name&&<span className="ml-auto text-xs opacity-80">✓ seleccionado</span>}
+                      </button>
+                    ))
+                  }
+                </div>
+              </div>
+              <button onClick={applyManualMap} disabled={!mapTarget}
+                className={`w-full rounded-xl py-2.5 text-sm font-semibold transition-all
+                  ${mapTarget?'bg-green-600 text-white hover:bg-green-700':'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+                {mapTarget?`Asignar a "${mapTarget}"` :'Selecciona un ingrediente'}
+              </button>
+            </>):null;
+          })()}
+        </div>
+      </Modal>
+
+      <Confirm open={!!confirm} msg={confirm==='__all__'?'¿Eliminar todos los tickets? El historial de precios se mantendrá.':'¿Eliminar este ticket? El historial de precios asociado se mantendrá.'} onOk={()=>deleteTicket(confirm)} onCancel={()=>setConfirm(null)}/>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   LISTA DE LA COMPRA
+═══════════════════════════════════════ */
+
