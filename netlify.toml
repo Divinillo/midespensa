@@ -18,6 +18,11 @@
   status = 200
 
 [[redirects]]
+  from = "/api/webhook"
+  to = "/.netlify/functions/stripe-webhook"
+  status = 200
+
+[[redirects]]
   from = "/api/get-license"
   to = "/.netlify/functions/get-license"
   status = 200
