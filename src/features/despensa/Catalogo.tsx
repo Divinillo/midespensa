@@ -2,10 +2,9 @@
 import React, { useState, useMemo } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Confirm } from '../../components/ui/Confirm';
-import { NutritionLabelModal } from '../../components/ui/NutritionLabelModal';
 import { uid } from '../../utils/helpers';
 import { CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES, getIngEmoji } from '../../data/categories';
-import type { Ingredient, NutriPer100 } from '../../data/types';
+import type { Ingredient } from '../../data/types';
 
 export function Catalogo({ingredients,setIngredients,isUltra}) {
   const [catFilter,setCatFilter] = useState('todos');
@@ -14,7 +13,6 @@ export function Catalogo({ingredients,setIngredients,isUltra}) {
   const [addModal,setAddModal] = useState(false);
   const [newIng,setNewIng] = useState({name:'',category:'verduras'});
   const [confirm,setConfirm] = useState(null);
-  const [nutriModal,setNutriModal] = useState<string|null>(null); // ingredient id
 
   const toggle = id => setIngredients(ings => ings.map(i =>
     i.id===id ? {...i, available:!i.available, needed:i.available?false:i.needed} : i
@@ -165,23 +163,6 @@ export function Catalogo({ingredients,setIngredients,isUltra}) {
                     🛒
                   </button>
 
-                  {/* Nutrition label button (Ultra) */}
-                  {isUltra && (
-                    <button onClick={e=>{e.stopPropagation();setNutriModal(ing.id);}}
-                      title="Leer etiqueta nutricional"
-                      className="absolute -bottom-1.5 right-6 w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-all hover:scale-110"
-                      style={{background: ing.nutri ? '#dcfce7' : '#fff', border:`1px solid ${ing.nutri?'#86efac':'#e2e8f0'}`, fontSize:'0.55rem'}}>
-                      📊
-                    </button>
-                  )}
-
-                  {/* Nutri mini badge */}
-                  {ing.nutri && (
-                    <div style={{position:'absolute',bottom:-6,left:'50%',transform:'translateX(-50%)',background:'#16a34a',color:'#fff',fontSize:'0.48rem',fontWeight:800,padding:'1px 5px',borderRadius:6,whiteSpace:'nowrap',pointerEvents:'none'}}>
-                      {ing.nutri.kcal}kcal
-                    </div>
-                  )}
-
                   {/* Delete */}
                   <button onClick={e=>{e.stopPropagation();setConfirm(ing.id);}}
                     className="absolute -bottom-1.5 -left-1.5 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm transition-all hover:bg-red-50"
@@ -224,22 +205,6 @@ export function Catalogo({ingredients,setIngredients,isUltra}) {
       <Confirm open={!!confirm} msg="¿Eliminar este ingrediente del catálogo?"
         onOk={()=>{setIngredients(ings=>ings.filter(i=>i.id!==confirm));setConfirm(null);}}
         onCancel={()=>setConfirm(null)}/>
-
-      {nutriModal && (()=>{
-        const ing=ingredients.find(i=>i.id===nutriModal);
-        if(!ing) return null;
-        return (
-          <NutritionLabelModal
-            ingName={ing.name}
-            existing={ing.nutri}
-            onSave={(nutri:NutriPer100|null)=>{
-              setIngredients(ings=>ings.map(i=>i.id===nutriModal?{...i,nutri:nutri??undefined}:i));
-              setNutriModal(null);
-            }}
-            onClose={()=>setNutriModal(null)}
-          />
-        );
-      })()}
     </div>
   );
 }

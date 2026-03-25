@@ -131,6 +131,14 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
     setConfirm(null);
   };
 
+  // Quitar un producto de la lista de no reconocidos (p.ej. productos de limpieza)
+  const dismissUnmatched=(ticketId,productId)=>{
+    setTickets(ts=>ts.map(t=>{
+      if(t.id!==ticketId) return t;
+      return {...t, unmatched:(t.unmatched||[]).filter(p=>p.id!==productId)};
+    }));
+  };
+
   // Mapear manualmente un producto no reconocido a un ingrediente
   const applyManualMap=()=>{
     if(!mapModal||!mapTarget) return;
@@ -338,15 +346,15 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             {/* Productos reconocidos */}
             {(activeTicket.matched||[]).length>0&&(
               <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-2">✅ Añadidos a la despensa ({activeTicket.matched.length})</h3>
-                <div className="space-y-1 max-h-52 overflow-y-auto">
+                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:8}}>✅ Añadidos a la despensa ({activeTicket.matched.length})</h3>
+                <div style={{display:'flex',flexDirection:'column',gap:4}}>
                   {(activeTicket.matched||[]).map((m,i)=>(
-                    <div key={i} className="flex items-center justify-between bg-emerald-50 rounded-lg px-3 py-2 border border-emerald-100">
+                    <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f0fdf4',borderRadius:10,padding:'8px 12px',border:'1px solid #bbf7d0'}}>
                       <div>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${CAT_BG[m.category]} ${CAT_TEXT[m.category]}`}>{m.ingredientName}</span>
-                        <span className="text-xs text-gray-400 ml-2">← {m.rawName}</span>
+                        <span style={{fontSize:'0.7rem',color:'#94a3b8',marginLeft:6}}>← {m.rawName}</span>
                       </div>
-                      <span className="text-xs font-semibold text-gray-600">{m.price?.toFixed(2)}€</span>
+                      <span style={{fontSize:'0.75rem',fontWeight:600,color:'#374151'}}>{m.price?.toFixed(2)}€</span>
                     </div>
                   ))}
                 </div>
@@ -356,35 +364,41 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             {/* Productos no reconocidos */}
             {(activeTicket.unmatched||[]).length>0&&(
               <div>
-                <h3 className="text-sm font-bold text-gray-700 mb-1">⚠️ Sin identificar ({activeTicket.unmatched.length})</h3>
-                <p className="text-xs text-gray-400 mb-2">
-                  <strong>➕ Nuevo</strong> para crear el ingrediente en tu despensa ·
-                  <strong> Asignar</strong> para vincularlo a uno ya existente
+                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:4}}>⚠️ Sin identificar ({activeTicket.unmatched.length})</h3>
+                <p style={{fontSize:'0.7rem',color:'#94a3b8',marginBottom:10,lineHeight:1.5}}>
+                  <strong style={{color:'#374151'}}>➕ Nuevo</strong> crea el ingrediente ·
+                  <strong style={{color:'#374151'}}> Asignar</strong> vincula a uno existente ·
+                  <strong style={{color:'#374151'}}> Quitar</strong> descarta el producto (limpieza, etc.)
                 </p>
-                <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {(activeTicket.unmatched||[]).map(prod=>(
-                    <div key={prod.id} className="bg-amber-50 rounded-xl px-3 py-2.5 border border-amber-100">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-gray-700 truncate">{prod.rawName}</p>
-                          <p className="text-xs text-gray-400">{prod.price?.toFixed(2)}€</p>
-                        </div>
-                        <div className="flex gap-1 shrink-0">
-                          <button
-                            onClick={()=>{
-                              const suggested=(prod.normalizedName||prod.rawName).toLowerCase().trim();
-                              setAddForm({name:suggested, category:'verduras'});
-                              setAddModal({ticketId:activeTicket.id, productId:prod.id});
-                            }}
-                            className="text-xs bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-emerald-600 font-semibold">
-                            ➕ Nuevo
-                          </button>
-                          <button
-                            onClick={()=>{setMapModal({ticketId:activeTicket.id,productId:prod.id});setMapTarget('');}}
-                            className="text-xs bg-amber-500 text-white px-2.5 py-1.5 rounded-lg hover:bg-amber-600 font-semibold">
-                            Asignar
-                          </button>
-                        </div>
+                    <div key={prod.id} style={{background:'#fffbeb',borderRadius:14,padding:'10px 12px',border:'1px solid #fde68a'}}>
+                      {/* Nombre + precio */}
+                      <div style={{marginBottom:8}}>
+                        <p style={{fontSize:'0.82rem',fontWeight:600,color:'#374151',marginBottom:1}}>{prod.rawName}</p>
+                        <p style={{fontSize:'0.7rem',color:'#94a3b8'}}>{prod.price?.toFixed(2)}€</p>
+                      </div>
+                      {/* Botones en fila */}
+                      <div style={{display:'flex',gap:6}}>
+                        <button
+                          onClick={()=>{
+                            const suggested=(prod.normalizedName||prod.rawName).toLowerCase().trim();
+                            setAddForm({name:suggested, category:'verduras'});
+                            setAddModal({ticketId:activeTicket.id, productId:prod.id});
+                          }}
+                          style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'none',cursor:'pointer',background:'#10b981',color:'#fff'}}>
+                          ➕ Nuevo
+                        </button>
+                        <button
+                          onClick={()=>{setMapModal({ticketId:activeTicket.id,productId:prod.id});setMapTarget('');}}
+                          style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'none',cursor:'pointer',background:'#f59e0b',color:'#fff'}}>
+                          🔗 Asignar
+                        </button>
+                        <button
+                          onClick={()=>dismissUnmatched(activeTicket.id,prod.id)}
+                          style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'1px solid #e2e8f0',cursor:'pointer',background:'#f8fafc',color:'#64748b'}}>
+                          ✕ Quitar
+                        </button>
                       </div>
                     </div>
                   ))}
@@ -427,8 +441,10 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 </select>
               </div>
               <button onClick={applyAddToCatalog} disabled={!addForm.name.trim()}
-                className={`w-full rounded-xl py-3 text-sm font-bold transition-all
-                  ${addForm.name.trim()?'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm':'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+                className="w-full rounded-xl py-3 text-sm font-bold transition-all"
+                style={addForm.name.trim()
+                  ? {background:'#16a34a',color:'#fff',boxShadow:'0 2px 8px rgba(22,163,74,.25)'}
+                  : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
                 ✓ Añadir a la despensa y marcar disponible
               </button>
               <p className="text-xs text-gray-300 text-center">El precio ({prod.price?.toFixed(2)}€) se guardará en el historial automáticamente</p>
@@ -478,8 +494,10 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 </div>
               </div>
               <button onClick={applyManualMap} disabled={!mapTarget}
-                className={`w-full rounded-xl py-2.5 text-sm font-semibold transition-all
-                  ${mapTarget?'bg-green-600 text-white hover:bg-green-700':'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+                className="w-full rounded-xl py-2.5 text-sm font-semibold transition-all"
+                style={mapTarget
+                  ? {background:'#16a34a',color:'#fff'}
+                  : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
                 {mapTarget?`Asignar a "${mapTarget}"` :'Selecciona un ingrediente'}
               </button>
             </>):null;

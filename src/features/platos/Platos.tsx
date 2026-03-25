@@ -1,5 +1,25 @@
 // @ts-nocheck
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+
+/* ── Redimensionar imagen a max 600px y devolver base64 ─────── */
+function resizeImage(file: File, maxPx = 600): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+      const w = Math.round(img.width * scale);
+      const h = Math.round(img.height * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
 import { Modal } from '../../components/ui/Modal';
 import { Confirm } from '../../components/ui/Confirm';
 import { uid } from '../../utils/helpers';
@@ -230,8 +250,55 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
 function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
   const [openCats,setOpenCats]=useState({});
   const toggleCat=cat=>setOpenCats(o=>({...o,[cat]:!o[cat]}));
+  const photoRef=useRef(null);
+  const cameraRef=useRef(null);
+
+  const handleFile=async(file)=>{
+    if(!file) return;
+    try { const b64=await resizeImage(file); setForm(f=>({...f,photo:b64})); } catch {}
+  };
+
   return (
     <div className="space-y-4">
+      {/* ── Foto del plato ── */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Foto del plato</label>
+        <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
+          {/* Preview */}
+          <div style={{
+            width:80,height:80,borderRadius:16,overflow:'hidden',flexShrink:0,
+            background:'#f1f5f9',border:'2px dashed #cbd5e1',
+            display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2rem',
+          }}>
+            {form.photo
+              ? <img src={form.photo} alt="foto" style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+              : '🍳'}
+          </div>
+          {/* Botones */}
+          <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
+            <button type="button" onClick={()=>cameraRef.current?.click()}
+              style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#fff',background:'#16a34a',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+              📷 Hacer foto
+            </button>
+            <button type="button" onClick={()=>photoRef.current?.click()}
+              style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#16a34a',background:'#f0fdf4',border:'1.5px solid #86efac',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+              🖼️ Subir imagen
+            </button>
+            {form.photo && (
+              <button type="button" onClick={()=>setForm(f=>({...f,photo:''}))}
+                style={{borderRadius:12,padding:'6px 12px',fontWeight:600,fontSize:'0.72rem',color:'#ef4444',background:'none',border:'none',cursor:'pointer',textAlign:'left'}}>
+                ✕ Quitar foto
+              </button>
+            )}
+          </div>
+        </div>
+        {/* Inputs ocultos */}
+        <input ref={cameraRef} type="file" accept="image/*" capture="environment" style={{display:'none'}}
+          onChange={e=>{handleFile(e.target.files?.[0]);e.target.value='';}}/>
+        <input ref={photoRef} type="file" accept="image/*" style={{display:'none'}}
+          onChange={e=>{handleFile(e.target.files?.[0]);e.target.value='';}}/>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Nombre</label>
         <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Nombre del plato..."
@@ -290,14 +357,14 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
 
   const openAdd=()=>{
     if(!isPro && dishes.length >= FREE_DISH_LIMIT){ onUpgrade('dishes'); return; }
-    setForm({name:'',ingredients:[]});setModal('add');
+    setForm({name:'',ingredients:[],photo:''});setModal('add');
   };
-  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients]});setModal(d.id);};
+  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients],photo:d.photo||''});setModal(d.id);};
   const toggleIng=id=>setForm(f=>({...f,ingredients:f.ingredients.includes(id)?f.ingredients.filter(x=>x!==id):[...f.ingredients,id]}));
   const save=()=>{
     if(!form.name.trim()) return;
-    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients}]);
-    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim()}:d));
+    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients,photo:form.photo||undefined}]);
+    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim(),photo:form.photo||undefined}:d));
     setModal(null);
   };
   const atLimit = !isPro && dishes.length >= FREE_DISH_LIMIT;
@@ -357,8 +424,11 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center text-lg shrink-0"
-                    style={{background:'#f0fdf4'}}>🍳</div>
+                  <div className="shrink-0" style={{width:40,height:40,borderRadius:12,overflow:'hidden',background:'#f0fdf4',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.3rem'}}>
+                    {dish.photo
+                      ? <img src={dish.photo} alt={dish.name} style={{width:'100%',height:'100%',objectFit:'cover'}}/>
+                      : '🍳'}
+                  </div>
                   <div>
                     <h3 className="font-bold text-gray-900 text-sm leading-tight">{dish.name}</h3>
                     {dish.example&&<span className="text-[10px] font-bold uppercase tracking-wide" style={{color:'#d97706'}}>ejemplo</span>}

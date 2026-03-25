@@ -25,6 +25,7 @@ export interface Dish {
   example?: boolean;
   diet?: string;
   notes?: string;
+  photo?: string; // base64 data URL
 }
 
 export interface Recipe {
@@ -41,10 +42,15 @@ export interface Recipe {
 }
 
 export interface TicketItem {
-  name: string;
+  name?: string;
+  rawName?: string;
+  ingredientName?: string;
+  normalizedName?: string;
   price?: number;
   qty?: number;
+  category?: string;
   ing?: Ingredient;
+  id?: string;
 }
 
 export interface Ticket {
@@ -66,4 +72,4 @@ export interface PlanDay {
 export type Plan = Record<string, PlanDay>;
 export type PriceHistory = Record<string, { price: number; date: string; store?: string }[]>;
 
-export type Section = 'plan' | 'platos' | 'cat' | 'ticket' | 'lista' | 'gastos';
+export type Section = 'plan' | 'platos' | 'cat' | 'ticket' | 'lista' | 'nutri' | 'gastos';

@@ -7,6 +7,7 @@ const NAV: { id: Section; label: string; emoji: string; activeEmoji: string }[] 
   { id: 'cat',    label: 'Despensa', emoji: '🧺',  activeEmoji: '🧺'  },
   { id: 'ticket', label: 'Tickets',  emoji: '🧾',  activeEmoji: '🧾'  },
   { id: 'lista',  label: 'Compra',   emoji: '🛒',  activeEmoji: '🛒'  },
+  { id: 'nutri',  label: 'Nutrición',emoji: '🔬',  activeEmoji: '🔬'  },
   { id: 'gastos', label: 'Gastos',   emoji: '💰',  activeEmoji: '💰'  },
 ];
 
@@ -48,7 +49,7 @@ export function Nav({ section, neededCount, pendingCount, isPro, onNavigate }: N
                 />
               )}
 
-              {/* Emoji in a little circle when active */}
+              {/* Icono */}
               <div
                 style={{
                   position: 'relative',
@@ -67,7 +68,24 @@ export function Nav({ section, neededCount, pendingCount, isPro, onNavigate }: N
                   filter: active ? 'drop-shadow(0 2px 4px rgba(0,0,0,.2))' : 'none',
                 }}
               >
-                {s.emoji}
+                {s.id === 'nutri' ? (
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    {/* Esquinas del marco */}
+                    <path d="M2 7V3h4"   stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" strokeOpacity={active?1:0.6}/>
+                    <path d="M22 7V3h-4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" strokeOpacity={active?1:0.6}/>
+                    <path d="M2 17v4h4"  stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" strokeOpacity={active?1:0.6}/>
+                    <path d="M22 17v4h-4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" strokeOpacity={active?1:0.6}/>
+                    {/* Barras del código */}
+                    <rect x="4"  y="7" width="1.5" height="10" rx="0.4" fill="white" fillOpacity={active?1:0.6}/>
+                    <rect x="7"  y="7" width="1"   height="10" rx="0.4" fill="white" fillOpacity={active?1:0.6}/>
+                    <rect x="9.5" y="7" width="2"  height="10" rx="0.4" fill="white" fillOpacity={active?1:0.6}/>
+                    <rect x="13" y="7" width="1"   height="10" rx="0.4" fill="white" fillOpacity={active?1:0.6}/>
+                    <rect x="15.5" y="7" width="1.5" height="10" rx="0.4" fill="white" fillOpacity={active?1:0.6}/>
+                    <rect x="18" y="7" width="1"   height="10" rx="0.4" fill="white" fillOpacity={active?1:0.6}/>
+                    {/* Línea de escaneo naranja */}
+                    <line x1="2" y1="12.5" x2="22" y2="12.5" stroke="#fb923c" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                ) : s.emoji}
               </div>
 
               {/* Label */}

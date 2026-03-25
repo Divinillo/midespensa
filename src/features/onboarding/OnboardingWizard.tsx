@@ -104,7 +104,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       setIngredients(() => updatedIngs);
       setPriceHistory(() => newHistory);
       setTickets(ts => [...ts, { ...ticket, matched, unmatched: [] }]);
-      setTicketMatched(matched);
+      setTicketMatched(matched.length);
       setTicketStatus('done');
     } catch (e) {
       console.error(e);

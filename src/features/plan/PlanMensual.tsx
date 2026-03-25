@@ -198,11 +198,11 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     const getKcal=dish=>{
       if(dish.kcal) return dish.kcal;
       const rec=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
-      return rec?rec.kcal:300; // 300 por defecto
+      return rec?rec.kcal:300;
     };
 
     // Puntuar platos: 1=todos disponibles, 0=ninguno
-    let scored=dishes.map(dish=>{
+    const scored=dishes.map(dish=>{
       const total=dish.ingredients.length;
       if(total===0) return {dish,score:0.5,missing:[],kcal:getKcal(dish)};
       const avail=dish.ingredients.filter(id=>availIds.has(id)).length;
@@ -224,37 +224,87 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     const shuffled=shuffleGroup(scored);
 
     // Separar en comidas (más calóricas) y cenas (más ligeras)
-    // Ordenar por kcal desc para comidas, asc para cenas, manteniendo prioridad de score
     const lunchPool=[...shuffled].sort((a,b)=>b.score-a.score||(b.kcal-a.kcal));
     const dinnerPool=[...shuffled].sort((a,b)=>b.score-a.score||(a.kcal-b.kcal));
 
-    const nl=lunchPool.length, nd=dinnerPool.length;
     const daysArr=getDaysArr();
     const newPlan={...plan};
     const missingMap={};
-    let lIdx=0, dIdx=0, filled=0;
+    let filled=0;
+
+    // Ventana de los últimos 2 días: [[lunchId|null, dinnerId|null], ...]
+    // Se usa para garantizar que un plato no se repite en días consecutivos
+    // (mínimo 2 días de separación → puede volver al 3er día)
+    const recentWindow: Array<[string|null, string|null]> = [];
+
+    // Inicializar la ventana con los días anteriores al primero seleccionado (si existen en el plan)
+    if(daysArr.length>0){
+      const firstDay=daysArr[0];
+      for(let d=Math.max(1,firstDay-2);d<firstDay;d++){
+        const k=dateKey(year,month,d);
+        const dp=newPlan[k]||{};
+        recentWindow.push([dp.lunch||null, dp.dinner||null]);
+      }
+    }
+
+    // Offsets de rotación independientes por pool
+    const lunchOff={v:0}, dinnerOff={v:0};
+
+    // Selecciona el mejor plato del pool que no esté en recentIds
+    // Si todos son recientes, elige el primero del pool (fallback)
+    function pickFrom(pool, recentIds, off){
+      const n=pool.length;
+      for(let attempt=0;attempt<n;attempt++){
+        const s=pool[(off.v+attempt)%n];
+        if(!recentIds.has(s.dish.id)){
+          off.v=(off.v+attempt+1)%n;
+          return s;
+        }
+      }
+      // Fallback: todos recientes, devuelve el siguiente en rotación
+      const s=pool[off.v%n];
+      off.v=(off.v+1)%n;
+      return s;
+    }
 
     for(const day of daysArr){
       const k=dateKey(year,month,day);
-      const ex=plan[k]||{};
+      const ex=newPlan[k]||{};
+      let dayLunchId=ex.lunch||null;
+      let dayDinnerId=ex.dinner||null;
+
+      // IDs usados en los últimos 2 días (cualquier franja)
+      const recentIds=new Set(recentWindow.flatMap(([l,d])=>[l,d]).filter(Boolean));
+
       if(overwrite||!ex.lunch){
-        const s=lunchPool[lIdx%nl]; lIdx++;
+        const s=pickFrom(lunchPool, recentIds, lunchOff);
         newPlan[k]={...(newPlan[k]||{}),lunch:s.dish.id};
+        dayLunchId=s.dish.id;
         s.missing.forEach(id=>{
           if(!missingMap[id])missingMap[id]={ing:ingMap[id],dishNames:[]};
           if(!missingMap[id].dishNames.includes(s.dish.name))missingMap[id].dishNames.push(s.dish.name);
         });
         filled++;
       }
+
       if(overwrite||!ex.dinner){
-        const s=dinnerPool[dIdx%nd]; dIdx++;
+        // Excluir además el plato ya asignado como comida del mismo día
+        const recentWithLunch=new Set([...recentIds, dayLunchId].filter(Boolean));
+        const s=pickFrom(dinnerPool, recentWithLunch, dinnerOff);
         newPlan[k]={...(newPlan[k]||{}),dinner:s.dish.id};
+        dayDinnerId=s.dish.id;
         s.missing.forEach(id=>{
           if(!missingMap[id])missingMap[id]={ing:ingMap[id],dishNames:[]};
           if(!missingMap[id].dishNames.includes(s.dish.name))missingMap[id].dishNames.push(s.dish.name);
         });
         filled++;
       }
+
+      // Avanzar ventana (siempre registra lo que queda asignado en el día, sea nuevo o existente)
+      const actualLunch=newPlan[k]?.lunch||null;
+      const actualDinner=newPlan[k]?.dinner||null;
+      recentWindow.push([actualLunch, actualDinner]);
+      if(recentWindow.length>2) recentWindow.shift();
     }
 
     setPlan(newPlan);
@@ -262,7 +312,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
   }
 
   const handleClose=()=>{setResult(null);onClose();};
-  const canGenerate=dishes.length>0&&(range!=='custom'||customDays.length>0);
+  const canGenerate=dishes.length>=2&&(range!=='custom'||customDays.length>0);
 
   return (
     <Modal open={open} onClose={handleClose} title="✨ Menú automático">
@@ -317,6 +367,15 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
               ⚠️ No tienes platos guardados. Añade platos en la pestaña <strong>Platos</strong> primero.
             </p>
           )}
+          {dishes.length===1&&(
+            <div style={{borderRadius:12,padding:'12px 14px',background:'#fef3c7',border:'1px solid #fde68a',display:'flex',gap:10,alignItems:'flex-start'}}>
+              <span style={{fontSize:'1.2rem',flexShrink:0}}>🍽️</span>
+              <div>
+                <div style={{fontSize:'0.8rem',fontWeight:700,color:'#92400e',marginBottom:3}}>Solo tienes 1 plato</div>
+                <div style={{fontSize:'0.72rem',color:'#b45309',lineHeight:1.5}}>Con un único plato, comida y cena serían siempre lo mismo. Añade al menos otro plato en la pestaña <strong>Platos</strong> para tener variedad.</div>
+              </div>
+            </div>
+          )}
 
           <button onClick={generate} disabled={!canGenerate}
             className={`w-full py-3 rounded-xl font-bold text-sm transition-all
@@ -327,7 +386,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
               boxShadow: !canGenerate ? 'none' : '0 4px 14px rgba(22,163,74,.35)',
               border: !canGenerate ? '1px solid #d1d5db' : 'none',
             }}>
-            {range==='custom'&&customDays.length===0?'Selecciona días en el calendario':'🚀 Generar menú'}
+            {dishes.length===0?'Añade platos primero':dishes.length===1?'Añade al menos 2 platos':range==='custom'&&customDays.length===0?'Selecciona días en el calendario':'🚀 Generar menú'}
           </button>
         </div>
       ):(
@@ -463,16 +522,17 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
       {!showReport?(
         <div className="space-y-4">
           <p className="text-xs text-gray-500">Selecciona los días para generar el informe con estimación de macronutrientes.</p>
-          <div className="flex flex-wrap gap-2">
-            <button onClick={()=>setSelected(daysWithFood)} className="text-xs px-3 py-1.5 rounded-xl bg-green-50 text-green-700 font-semibold border border-green-200">🍽️ Con comida ({daysWithFood.length})</button>
-            <button onClick={()=>setSelected(Array.from({length:days},(_,i)=>i+1))} className="text-xs px-3 py-1.5 rounded-xl bg-gray-50 text-gray-600 font-semibold border border-gray-200">Todos</button>
-            <button onClick={()=>setSelected([])} className="text-xs px-3 py-1.5 rounded-xl bg-gray-50 text-gray-400 font-semibold border border-gray-200">Limpiar</button>
+          <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+            <button onClick={()=>setSelected(daysWithFood)} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f0fdf4',color:'#15803d',fontWeight:600,border:'1px solid #bbf7d0',cursor:'pointer'}}>🍽️ Con comida ({daysWithFood.length})</button>
+            <button onClick={()=>setSelected(Array.from({length:days},(_,i)=>i+1))} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#475569',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>Todos</button>
+            <button onClick={()=>setSelected([])} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#94a3b8',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>Limpiar</button>
           </div>
-          <p className="text-xs text-gray-400">Toca o arrastra para seleccionar días · <span className="font-semibold text-purple-600">{selected.length} días</span></p>
+          <p style={{fontSize:'0.75rem',color:'#94a3b8'}}>Toca o arrastra para seleccionar días · <span style={{fontWeight:700,color:'#7c3aed'}}>{selected.length} días</span></p>
           <DayPicker year={year} month={month} plan={plan} selected={selected} setSelected={setSelected}/>
           <button onClick={()=>setShowReport(true)} disabled={selected.length===0}
-            className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all
-              ${selected.length===0?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-purple-600 text-white hover:bg-purple-700 active:scale-95 shadow-sm'}`}>
+            style={{width:'100%',padding:'10px',borderRadius:12,fontWeight:700,fontSize:'0.875rem',border:'none',cursor:selected.length===0?'not-allowed':'pointer',
+              background:selected.length===0?'#e2e8f0':'#7c3aed',color:selected.length===0?'#94a3b8':'#fff',
+              boxShadow:selected.length===0?'none':'0 2px 8px rgba(124,58,237,.3)'}}>
             {selected.length===0?'Selecciona días':'📊 Generar informe'}
           </button>
         </div>
@@ -521,17 +581,19 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
           <p className="text-[10px] text-gray-300 text-center">* Estimaciones orientativas por ración. No sustituyen asesoramiento nutricional.</p>
 
           {/* Botones acción */}
-          <div className="flex gap-2">
+          <div style={{display:'flex',gap:8}}>
             <button onClick={()=>handleDownloadPDF(report)} disabled={pdfLoading}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-bold transition-all active:scale-95
-                ${pdfLoading?'bg-purple-200 text-purple-400 cursor-not-allowed':'bg-purple-600 text-white hover:bg-purple-700 shadow-sm'}`}
-              style={pdfLoading?{}:{boxShadow:'0 2px 12px rgba(109,40,217,0.35)'}}>
+              style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:700,border:'none',
+                cursor:pdfLoading?'not-allowed':'pointer',
+                background:pdfLoading?'#ede9fe':'#7c3aed',
+                color:pdfLoading?'#a78bfa':'#fff',
+                boxShadow:pdfLoading?'none':'0 2px 12px rgba(109,40,217,0.35)'}}>
               {pdfLoading
-                ? <><span className="animate-spin inline-block">⏳</span> Generando…</>
+                ? <><span style={{display:'inline-block',animation:'spin 1s linear infinite'}}>⏳</span> Generando…</>
                 : <><span>📄</span> Descargar PDF</>}
             </button>
             <button onClick={onClose}
-              className="flex-1 bg-gray-100 text-gray-600 rounded-xl py-2.5 text-sm font-semibold hover:bg-gray-200 transition-all">
+              style={{flex:1,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:600,border:'1px solid #e2e8f0',background:'#f8fafc',color:'#475569',cursor:'pointer'}}>
               Cerrar
             </button>
           </div>
@@ -723,8 +785,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         )}
         {isUltra?(
           <button onClick={()=>setNutriModal(true)}
-            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm text-white"
-            style={{background:'#7c3aed',boxShadow:'0 2px 8px rgba(124,58,237,.25)'}}>
+            className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm"
+            style={{background:'#7c3aed',color:'#fff',boxShadow:'0 2px 8px rgba(124,58,237,.25)'}}>
             📊 Nutrición
           </button>
         ):(

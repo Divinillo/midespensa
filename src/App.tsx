@@ -9,6 +9,7 @@ import { Catalogo } from './features/despensa/Catalogo';
 import { Tickets } from './features/tickets/Tickets';
 import { ListaCompra } from './features/lista/ListaCompra';
 import { ResumenGasto } from './features/gastos/ResumenGasto';
+import { Nutricion } from './features/nutricion/Nutricion';
 import { UpgradeModal } from './features/onboarding/OnboardingCard';
 import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
 import { useLS } from './hooks/useLS';
@@ -17,6 +18,26 @@ import { validateLicenseRemote } from './utils/licenseApi';
 import { INIT_INGS } from './data/ingredients';
 import type { Ingredient, Dish, Plan, Ticket, PriceHistory, Section } from './data/types';
 
+/** Marca como disponibles los ingredientes que aparecen como matched en los tickets. */
+function reconcileAvailability(ingredients: Ingredient[], tickets: Ticket[]): Ingredient[] {
+  const matchedNames = new Set<string>();
+  for (const t of tickets) {
+    for (const item of (t.matched || [])) {
+      // Los matched items se guardan como { ingredientName: string, ... }
+      if (item.ingredientName) matchedNames.add(item.ingredientName.toLowerCase());
+      // Compatibilidad con formato antiguo { ing: { id } }
+      if (item.ing?.id) {
+        const ing = ingredients.find(i => i.id === item.ing.id);
+        if (ing) matchedNames.add(ing.name.toLowerCase());
+      }
+    }
+  }
+  if (!matchedNames.size) return ingredients;
+  return ingredients.map(i =>
+    matchedNames.has(i.name.toLowerCase()) && !i.available ? { ...i, available: true } : i
+  );
+}
+
 const INIT_DISHES: Dish[] = [
   { id: 'd12', name: 'Salmón con espárragos', ingredients: ['i3', 'i24'], example: true },
 ];
@@ -24,7 +45,8 @@ const INIT_DISHES: Dish[] = [
 
 const TITLES: Record<Section, string> = {
   plan: 'Plan mensual', platos: 'Platos habituales', cat: 'Catálogo de ingredientes',
-  ticket: 'Tickets del supermercado', lista: 'Lista de la compra', gastos: 'Resumen de gasto',
+  ticket: 'Tickets del supermercado', lista: 'Lista de la compra',
+  nutri: 'Valor nutricional', gastos: 'Resumen de gasto',
 };
 
 export function App() {
@@ -64,8 +86,11 @@ export function App() {
           return;
         }
         if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
-        if (cloud.ingredients?.length > 0) setIngredients(cloud.ingredients);
         if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
+        if (cloud.ingredients?.length > 0) {
+          const ings = reconcileAvailability(cloud.ingredients, cloud.tickets || []);
+          setIngredients(ings);
+        }
         if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
         if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
         if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
@@ -154,7 +179,7 @@ export function App() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
       <Header
-        section={section} isPro={isPro} neededCount={neededCount}
+        section={section} isPro={isPro} isUltra={isUltra} neededCount={neededCount}
         pendingCount={pendingCount} syncStatus={syncStatus}
         onSettings={() => setShowSettings(true)} onNavigate={setSection}
       />
@@ -182,14 +207,17 @@ export function App() {
                 const cloud = await loadFromCloud(recoverEmail);
                 if (!cloud) { setRecoverMsg('❌ No se encontraron datos. Comprueba tu email.'); return; }
                 if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
-                if (cloud.ingredients?.length > 0) setIngredients(cloud.ingredients);
                 if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
+                if (cloud.ingredients?.length > 0) {
+                  const ings = reconcileAvailability(cloud.ingredients, cloud.tickets || []);
+                  setIngredients(ings);
+                }
                 if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
                 if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
                 if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); } else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
                 try { localStorage.setItem('despensa_local_ts', String(cloud.updated_at || Date.now())); } catch {}
                 setUserEmail(recoverEmail); setRecoverMsg('✅ Datos recuperados correctamente.');
-              }} className="w-full bg-blue-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-blue-700">
+              }} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#2563eb',color:'#fff'}}>
                 Recuperar mis datos
               </button>
             </div>
@@ -210,7 +238,7 @@ export function App() {
           <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
             <h3 className="font-bold text-emerald-800 text-sm mb-1">📥 Importar datos</h3>
             <p className="text-xs text-emerald-600 mb-3">Carga un backup. <strong>Reemplazará todos los datos actuales.</strong></p>
-            <button onClick={() => importRef.current?.click()} className="w-full bg-emerald-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-emerald-700">Cargar fichero .json</button>
+            <button onClick={() => importRef.current?.click()} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#059669',color:'#fff'}}>Cargar fichero .json</button>
             <input ref={importRef} type="file" accept=".json" onChange={importData} className="hidden" />
             {importError && <p className="text-xs text-red-500 mt-2">{importError}</p>}
           </div>
@@ -219,7 +247,7 @@ export function App() {
               <h3 className="font-semibold text-sky-800 text-sm">🚀 Repetir configuración inicial</h3>
               <p className="text-xs text-sky-600 mt-0.5">Vuelve a ver el wizard de bienvenida</p>
             </div>
-            <button onClick={resetWizard} className="text-xs bg-sky-600 text-white px-3 py-2 rounded-xl font-semibold hover:bg-sky-700 shrink-0">Reiniciar</button>
+            <button onClick={resetWizard} className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0" style={{background:'#0284c7',color:'#fff'}}>Reiniciar</button>
           </div>
           <div className={`rounded-xl p-4 border ${isPro ? 'bg-violet-50 border-violet-100' : 'bg-green-50 border-green-100'}`}>
             <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-violet-800' : 'text-green-800'}`}>{isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito'}</h3>
@@ -247,6 +275,7 @@ export function App() {
         {section === 'cat' && <Catalogo ingredients={ingredients} setIngredients={setIngredients} isUltra={isUltra} />}
         {section === 'ticket' && <Tickets tickets={tickets} setTickets={setTickets} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} setPriceHistory={setPriceHistory} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
         {section === 'lista' && <ListaCompra plan={plan} dishes={dishes} ingredients={ingredients} priceHistory={priceHistory} />}
+        {section === 'nutri' && <Nutricion />}
         {section === 'gastos' && <ResumenGasto tickets={tickets} ingredients={ingredients} priceHistory={priceHistory} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
       </main>
 
