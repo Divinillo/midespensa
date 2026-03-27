@@ -4,6 +4,7 @@ interface Env {
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
+  try {
   const { request, env } = context;
 
   const sbHeaders = {
@@ -60,6 +61,12 @@ export const onRequest: PagesFunction<Env> = async (context) => {
   }
 
   return new Response('Method Not Allowed', { status: 405 });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: 'Worker exception', detail: err?.message, stack: err?.stack }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 };
 
 function json(data: unknown, status = 200): Response {
