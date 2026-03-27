@@ -27,7 +27,8 @@ export const handler: Handler = async (event) => {
 
   // ── GET: load data + tier ─────────────────────────────────────
   if (event.httpMethod === 'GET') {
-    const email = event.queryStringParameters?.email;
+    const email    = event.queryStringParameters?.email;
+    const pinHash  = event.queryStringParameters?.pin_hash;
     if (!email) return { statusCode: 400, body: JSON.stringify({ error: 'Missing email' }) };
 
     const [dataRes, licRes] = await Promise.all([
@@ -43,6 +44,19 @@ export const handler: Handler = async (event) => {
     }
 
     const { data: appData, updated_at } = dataRows[0];
+
+    // ── Verificación de PIN (si el usuario tiene uno configurado) ──
+    const storedPinHash = appData?.recovery_pin_hash;
+    if (storedPinHash) {
+      if (!pinHash) {
+        // Indico que existe PIN pero no lo han enviado
+        return { statusCode: 401, body: JSON.stringify({ error: 'PIN_REQUIRED' }) };
+      }
+      if (pinHash !== storedPinHash) {
+        return { statusCode: 403, body: JSON.stringify({ error: 'PIN_INVALID' }) };
+      }
+    }
+
     const tier = Array.isArray(licRows) && licRows[0]?.tier ? licRows[0].tier : null;
 
     return {

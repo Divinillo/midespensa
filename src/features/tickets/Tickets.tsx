@@ -5,12 +5,13 @@ import { Confirm } from '../../components/ui/Confirm';
 import { uid, fmt2 } from '../../utils/helpers';
 import { FREE_TICKET_LIMIT, CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES } from '../../data/categories';
 import { processImageTicket, processPdf, applyTicket } from '../../utils/ticketProcess';
+import { normalizeName } from '../../utils/helpers';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
 
 // CDN globals
 declare const window: any;
 
-export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHistory,setPriceHistory,isPro,isUltra,onUpgrade}) {
+export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHistory,setPriceHistory,learnedMappings={},setLearnedMappings,isPro,isUltra,onUpgrade}) {
   const [pdfjsReady,setPdfjsReady]=useState(false);
   const [loading,setLoading]=useState(false);
   const [ocrProgress,setOcrProgress]=useState(null); // null | -1 (cargando) | 0-100
@@ -50,7 +51,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
           alert(`Ya existe un ticket con el nombre: ${file.name}`);
           continue;
         }
-        const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory);
+        const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory,learnedMappings);
         currentIngs=updatedIngs;
         currentHistory=newHistory;
         newTickets.push({...ticket,matched,unmatched});
@@ -89,7 +90,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
           // Si el nombre coincide (misma foto), generar uno distinto
           ticket.filename='foto-ticket-'+Date.now()+'.jpg';
         }
-        const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory);
+        const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory,learnedMappings);
         currentIngs=updatedIngs;
         currentHistory=newHistory;
         newTickets.push({...ticket,matched,unmatched});
@@ -158,6 +159,16 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
     });
     setIngredients(ings=>ings.map(i=>i.id===ing.id?{...i,available:true}:i));
 
+    // Guardar mapeo aprendido para futuros tickets
+    // CLAVE: rawName en minúsculas (normalizedName puede ser null para productos sin identificar)
+    if(setLearnedMappings && product.rawName) {
+      setLearnedMappings(lm => {
+        const upd = { ...lm, [(product.rawName||'').trim().toLowerCase()]: ing.name };
+        if(product.normalizedName) upd[product.normalizedName.toLowerCase()] = ing.name;
+        return upd;
+      });
+    }
+
     // Mover de unmatched a matched en el ticket
     setTickets(ts=>ts.map(t=>{
       if(t.id!==ticketId) return t;
@@ -189,6 +200,16 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       nh[newIng.id].push({date:ticket.date, price:product.price, rawName:product.rawName, ticketId});
       return nh;
     });
+
+    // Guardar mapeo aprendido para futuros tickets
+    // CLAVE: rawName en minúsculas (normalizedName puede ser null para productos sin identificar)
+    if(setLearnedMappings && product.rawName) {
+      setLearnedMappings(lm => {
+        const upd = { ...lm, [(product.rawName||'').trim().toLowerCase()]: newIng.name };
+        if(product.normalizedName) upd[product.normalizedName.toLowerCase()] = newIng.name;
+        return upd;
+      });
+    }
 
     // Mover de unmatched a matched en el ticket
     setTickets(ts=>ts.map(t=>{
@@ -427,7 +448,8 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                   value={addForm.name}
                   onChange={e=>setAddForm(f=>({...f,name:e.target.value}))}
                   placeholder="ej: calabacín, atún, pasta..."
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                  style={{fontSize:'16px'}}
                   onKeyDown={e=>e.key==='Enter'&&applyAddToCatalog()}
                   autoFocus
                 />
@@ -473,7 +495,8 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 value={mapSearch}
                 onChange={e=>{setMapSearch(e.target.value);setMapTarget('');}}
                 placeholder="🔍 Buscar ingrediente..."
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-200"
+                style={{fontSize:'16px'}}
                 autoFocus
               />
               {/* Lista filtrada */}

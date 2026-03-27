@@ -1,0 +1,5 @@
+name = "midespensa"
+compatibility_date = "2024-09-23"
+# nodejs_compat permite usar módulos Node.js en los Workers (necesario para Stripe SDK)
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"

@@ -437,7 +437,8 @@ export async function processPdf(file) {
 }
 
 // Aplica un ticket al catálogo: devuelve ingredientes actualizados + historial + resumen
-export function applyTicket(ticket, ingredients, priceHistory) {
+// learnedMappings: { [normalizedRawName]: ingredientName } — mapeos guardados manualmente
+export function applyTicket(ticket, ingredients, priceHistory, learnedMappings = {}) {
   const ingsByName = Object.fromEntries(ingredients.map(i=>[i.name.toLowerCase(),i]));
   const newHistory = JSON.parse(JSON.stringify(priceHistory));
   let updatedIngs = ingredients.map(i=>({...i}));
@@ -449,8 +450,23 @@ export function applyTicket(ticket, ingredients, priceHistory) {
   for (const prod of ticket.products) {
     if (JUNK_PAT.test(prod.rawName||'')) continue;   // ignorar basura silenciosamente
     const normName = prod.normalizedName;
-    if (!normName) { unmatched.push(prod); continue; }
-    const ing = ingsByName[normName.toLowerCase()];
+
+    let ing = null;
+
+    // 1. Coincidencia directa por nombre normalizado (si existe)
+    if (normName) {
+      ing = ingsByName[normName.toLowerCase()];
+    }
+
+    // 2. Mapeo aprendido manualmente — clave = rawName en minúsculas
+    //    (funciona incluso cuando normalizedName es null)
+    if (!ing) {
+      const rawKey = (prod.rawName||'').trim().toLowerCase();
+      const learnedName = learnedMappings[rawKey]
+        || (normName ? learnedMappings[normName.toLowerCase()] : null);
+      if (learnedName) ing = ingsByName[learnedName.toLowerCase()];
+    }
+
     if (!ing) { unmatched.push(prod); continue; }
 
     if (!newHistory[ing.id]) newHistory[ing.id]=[];

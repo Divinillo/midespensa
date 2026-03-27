@@ -38,7 +38,7 @@ interface ScannedProduct {
   scannedAt: string;
 }
 
-export function Nutricion() {
+export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boolean; onUpgrade?: (reason: string) => void }) {
   const [history, setHistory] = useLS<ScannedProduct[]>('scanner_history_v1', []);
 
   // idle | scanning | loading | result | error | manual
@@ -46,9 +46,14 @@ export function Nutricion() {
   const [product, setProduct] = useState<ScannedProduct | null>(null);
   const [errMsg, setErrMsg]   = useState('');
   const [manualCode, setManualCode] = useState('');
+  const [torchOn, setTorchOn]       = useState(false);
+  const [torchAvail, setTorchAvail] = useState(false);
+  const [zoom, setZoom]             = useState(1);
+  const [zoomMax, setZoomMax]       = useState(1);
 
   const videoRef    = useRef<HTMLVideoElement>(null);
   const controlsRef = useRef<any>(null);
+  const streamRef   = useRef<MediaStream | null>(null);
 
   // Limpiar escáner al desmontar
   useEffect(() => () => stopScanner(), []);
@@ -57,12 +62,43 @@ export function Nutricion() {
   const stopScanner = () => {
     try { controlsRef.current?.stop(); } catch {}
     controlsRef.current = null;
+    try { streamRef.current?.getTracks().forEach(t => t.stop()); } catch {}
+    streamRef.current = null;
+    setTorchOn(false);
+    setZoom(1);
+  };
+
+  /* ── Toggle antorcha ────────────────────────────────────────── */
+  const toggleTorch = async () => {
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (!track) return;
+    const next = !torchOn;
+    try {
+      await track.applyConstraints({ advanced: [{ torch: next } as any] });
+      setTorchOn(next);
+    } catch {}
+  };
+
+  /* ── Cambiar zoom ───────────────────────────────────────────── */
+  const applyZoom = async (val: number) => {
+    const track = streamRef.current?.getVideoTracks()[0];
+    if (!track) return;
+    try {
+      await track.applyConstraints({ advanced: [{ zoom: val } as any] });
+      setZoom(val);
+    } catch {
+      // Fallback: zoom CSS en el vídeo
+      if (videoRef.current) videoRef.current.style.transform = `scale(${val})`;
+      setZoom(val);
+    }
   };
 
   /* ── Iniciar escáner live ─────────────────────────────────── */
   const startScanner = async () => {
     setMode('scanning');
     setErrMsg('');
+    setTorchOn(false);
+    setZoom(1);
 
     const hints = new Map();
     hints.set(DecodeHintType.POSSIBLE_FORMATS, [
@@ -72,20 +108,53 @@ export function Nutricion() {
     ]);
     hints.set(DecodeHintType.TRY_HARDER, true);
 
-    const reader = new BrowserMultiFormatReader(hints);
+    // Escanear más frecuentemente para mayor responsividad
+    const reader = new BrowserMultiFormatReader(hints, { delayBetweenScanAttempts: 100 } as any);
 
     try {
-      // Solicitar cámara trasera
-      const devices = await BrowserMultiFormatReader.listVideoInputDevices();
-      const backCam = devices.find(d =>
-        /back|rear|environment/i.test(d.label)
-      );
-      const deviceId = backCam?.deviceId ?? (devices[devices.length - 1]?.deviceId);
+      // Alta resolución + cámara trasera + autofocus continuo
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' },
+          width:  { ideal: 1920, min: 640 },
+          height: { ideal: 1080, min: 480 },
+        },
+      });
+      streamRef.current = stream;
 
-      const controls = await reader.decodeFromVideoDevice(
-        deviceId,
+      // Aplicar autofocus continuo y detectar capacidades
+      const track = stream.getVideoTracks()[0];
+      if (track) {
+        const caps = (track as any).getCapabilities?.() || {};
+
+        const advanced: any = {};
+        // Autofocus continuo
+        if (caps.focusMode?.includes('continuous')) {
+          advanced.focusMode = 'continuous';
+        }
+        // Distancia de enfoque cercano si disponible
+        if (caps.focusDistance) {
+          advanced.focusMode = 'manual';
+          // 0.15m – distancia típica para barcode
+          advanced.focusDistance = Math.max(caps.focusDistance.min ?? 0, 0.15);
+        }
+        if (Object.keys(advanced).length > 0) {
+          await track.applyConstraints({ advanced: [advanced] }).catch(() => {});
+        }
+
+        // Detectar soporte de antorcha
+        if (caps.torch) setTorchAvail(true);
+
+        // Detectar soporte de zoom nativo
+        if (caps.zoom?.max > 1) {
+          setZoomMax(Math.min(caps.zoom.max, 4));
+        }
+      }
+
+      const controls = await reader.decodeFromStream(
+        stream,
         videoRef.current!,
-        (result, err, ctrl) => {
+        (result, _err, ctrl) => {
           if (result) {
             ctrl.stop();
             fetchProduct(result.getText());
@@ -144,6 +213,37 @@ export function Nutricion() {
     setErrMsg('');
     setManualCode('');
   };
+
+  /* ════════════════════════════════════════════════════════════
+     PAYWALL: solo Ultra
+  ════════════════════════════════════════════════════════════ */
+  if (!isUltra) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', textAlign: 'center', minHeight: '60vh' }}>
+        <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>🔬</div>
+        <h2 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#1e293b', marginBottom: 8 }}>
+          Escáner nutricional
+        </h2>
+        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 4, lineHeight: 1.5, maxWidth: 280 }}>
+          Escanea el código de barras de cualquier producto y consulta su Nutri-Score, Nova, calorías, macros y aditivos.
+        </p>
+        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 28, lineHeight: 1.5, maxWidth: 280 }}>
+          Esta función está disponible a partir de la versión <strong>ULTRA</strong>.
+        </p>
+        <button
+          onClick={() => onUpgrade && onUpgrade('ultra')}
+          style={{
+            padding: '14px 32px', borderRadius: 16, border: 'none', cursor: 'pointer',
+            background: 'linear-gradient(135deg,#f59e0b,#d97706)',
+            color: '#fff', fontWeight: 800, fontSize: '0.95rem',
+            boxShadow: '0 4px 20px rgba(245,158,11,.4)',
+          }}
+        >
+          👑 Activar ULTRA
+        </button>
+      </div>
+    );
+  }
 
   /* ════════════════════════════════════════════════════════════
      VISTA: resultado
@@ -322,13 +422,13 @@ export function Nutricion() {
         </div>
 
         {/* Visor de cámara */}
-        <div style={{ position:'relative', borderRadius:20, overflow:'hidden', background:'#000', aspectRatio:'4/3', marginBottom:14 }}>
+        <div style={{ position:'relative', borderRadius:20, overflow:'hidden', background:'#000', aspectRatio:'4/3', marginBottom:10 }}>
           <video ref={videoRef} playsInline muted autoPlay
-            style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} />
+            style={{ width:'100%', height:'100%', objectFit:'cover', display:'block', transformOrigin:'center' }} />
+
           {/* Marco de escaneo */}
           <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
-            <div style={{ width:'75%', height:'28%', position:'relative' }}>
-              {/* Esquinas del marco */}
+            <div style={{ width:'78%', height:'26%', position:'relative' }}>
               {[
                 { top:0, left:0, borderTop:'3px solid #4ade80', borderLeft:'3px solid #4ade80', borderRadius:'8px 0 0 0' },
                 { top:0, right:0, borderTop:'3px solid #4ade80', borderRight:'3px solid #4ade80', borderRadius:'0 8px 0 0' },
@@ -337,21 +437,60 @@ export function Nutricion() {
               ].map((s, i) => (
                 <div key={i} style={{ position:'absolute', width:22, height:22, ...s }} />
               ))}
-              {/* Línea de escaneo animada */}
               <div style={{
                 position:'absolute', left:0, right:0, height:2,
                 background:'linear-gradient(90deg,transparent,#4ade80,transparent)',
                 animation:'scanline 1.8s ease-in-out infinite',
               }} />
             </div>
-            {/* Oscurecer los bordes */}
             <div style={{ position:'absolute', inset:0, boxShadow:'inset 0 0 0 9999px rgba(0,0,0,.35)', pointerEvents:'none' }} />
           </div>
-          <div style={{ position:'absolute', bottom:14, left:0, right:0, textAlign:'center' }}>
-            <span style={{ fontSize:'0.75rem', color:'#fff', background:'rgba(0,0,0,.55)', padding:'4px 14px', borderRadius:20, fontWeight:600 }}>
-              🔍 Buscando código…
+
+          {/* Controles flotantes: antorcha */}
+          {torchAvail && (
+            <button onClick={toggleTorch} style={{
+              position:'absolute', top:10, right:10,
+              width:38, height:38, borderRadius:12,
+              background: torchOn ? '#fbbf24' : 'rgba(0,0,0,.55)',
+              border: torchOn ? '2px solid #f59e0b' : '2px solid rgba(255,255,255,.3)',
+              fontSize:'1.15rem', cursor:'pointer',
+              display:'flex', alignItems:'center', justifyContent:'center',
+            }}>
+              {torchOn ? '🔦' : '🔦'}
+            </button>
+          )}
+
+          <div style={{ position:'absolute', bottom:12, left:0, right:0, textAlign:'center' }}>
+            <span style={{ fontSize:'0.72rem', color:'#fff', background:'rgba(0,0,0,.55)', padding:'4px 14px', borderRadius:20, fontWeight:600 }}>
+              🔍 Mantén el código dentro del marco
             </span>
           </div>
+        </div>
+
+        {/* Control de zoom — solo si el dispositivo lo soporta */}
+        {zoomMax > 1 && (
+          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10, padding:'0 4px' }}>
+            <span style={{ fontSize:'0.7rem', color:'#64748b', fontWeight:700, minWidth:24 }}>1×</span>
+            <input
+              type="range" min={1} max={zoomMax} step={0.1} value={zoom}
+              onChange={e => applyZoom(Number(e.target.value))}
+              style={{ flex:1, accentColor:'#16a34a' }}
+            />
+            <span style={{ fontSize:'0.7rem', color:'#64748b', fontWeight:700, minWidth:30 }}>{zoomMax}×</span>
+          </div>
+        )}
+
+        {/* Consejos de uso */}
+        <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
+          {[
+            '📏 Acércate 10-20cm',
+            '💡 Buena luz',
+            '📐 Encuadra bien',
+          ].map(t => (
+            <span key={t} style={{ fontSize:'0.65rem', padding:'3px 9px', borderRadius:20, background:'#f1f5f9', color:'#64748b', fontWeight:600 }}>
+              {t}
+            </span>
+          ))}
         </div>
 
         <style>{`

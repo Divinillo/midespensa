@@ -219,12 +219,20 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
 
       {/* Explanation chips */}
       {ticketStatus === 'idle' && (
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-          {['PDF del email del super', 'App de Mercadona / Lidl', 'Factura digital'].map(t => (
-            <span key={t} style={{ fontSize: '0.68rem', fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: '#fff', border: '1px solid #e2e8f0', color: '#64748b' }}>
-              {t}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {['PDF del email del Super'].map(t => (
+              <span key={t} style={{ fontSize: '0.68rem', fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: '#fff', border: '1px solid #e2e8f0', color: '#64748b' }}>
+                {t}
+              </span>
+            ))}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 12, background: 'linear-gradient(135deg,#fef3c7,#fef9ee)', border: '1px solid #fcd34d' }}>
+            <span style={{ fontSize: '1rem' }}>👑</span>
+            <span style={{ fontSize: '0.68rem', color: '#92400e', fontWeight: 600, lineHeight: 1.4 }}>
+              Con la versión <strong>ULTRA</strong> podrás además hacerle fotos a tus tickets físicos
             </span>
-          ))}
+          </div>
         </div>
       )}
 

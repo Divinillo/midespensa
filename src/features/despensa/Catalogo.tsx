@@ -3,208 +3,471 @@ import React, { useState, useMemo } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Confirm } from '../../components/ui/Confirm';
 import { uid } from '../../utils/helpers';
-import { CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES, getIngEmoji } from '../../data/categories';
+import { CAT_EMOJI, CATEGORIES, getIngEmoji, CAT_BG, CAT_TEXT } from '../../data/categories';
+import { useLS } from '../../hooks/useLS';
 import type { Ingredient } from '../../data/types';
 
-export function Catalogo({ingredients,setIngredients,isUltra}) {
-  const [catFilter,setCatFilter] = useState('todos');
-  const [stateFilter,setStateFilter] = useState('todos');
-  const [search,setSearch] = useState('');
-  const [addModal,setAddModal] = useState(false);
-  const [newIng,setNewIng] = useState({name:'',category:'verduras'});
-  const [confirm,setConfirm] = useState(null);
+/* ── Paleta pastel por categoría ───────────────────────────────── */
+const CAT_PASTEL: Record<string, { bg: string; border: string; accent: string }> = {
+  'carnes':                { bg: '#fde8e5', border: '#f5b0a0', accent: '#b83025' },
+  'pescado':               { bg: '#e4f0fd', border: '#93c5ef', accent: '#1a5fa8' },
+  'verduras':              { bg: '#e5f7ea', border: '#86efac', accent: '#15803d' },
+  'legumbres':             { bg: '#fef3c7', border: '#fcd34d', accent: '#a16207' },
+  'lácteos':               { bg: '#f5e8fd', border: '#d8b4fe', accent: '#7e22ce' },
+  'pasta y harinas':       { bg: '#fff0e5', border: '#fbbf87', accent: '#c2510e' },
+  'conservas':             { bg: '#e8f5ee', border: '#a7d9b8', accent: '#166534' },
+  'fruta':                 { bg: '#fde8ed', border: '#f9a8c0', accent: '#be123c' },
+  'bebidas':               { bg: '#eaefff', border: '#a5b4fc', accent: '#3730a3' },
+  'congelados':            { bg: '#e4f5fd', border: '#7dd3fc', accent: '#0369a1' },
+  'bollería y dulces':     { bg: '#fefce8', border: '#fde047', accent: '#a16207' },
+  'snacks y aperitivos':   { bg: '#fef8e5', border: '#fcd98a', accent: '#b45309' },
+  'especias y condimentos':{ bg: '#f5f0eb', border: '#d4b896', accent: '#78350f' },
+};
+const DEFAULT_PASTEL = { bg: '#f1f5f9', border: '#cbd5e1', accent: '#475569' };
 
-  const toggle = id => setIngredients(ings => ings.map(i =>
-    i.id===id ? {...i, available:!i.available, needed:i.available?false:i.needed} : i
-  ));
-  const toggleNeeded = (e,id) => {
-    e.stopPropagation();
-    setIngredients(ings => ings.map(i =>
-      i.id===id ? {...i, needed:!i.needed, available:i.needed?i.available:false} : i
-    ));
-  };
-  const addIng = () => {
-    if(!newIng.name.trim()) return;
-    setIngredients(ings=>[...ings,{id:'i'+uid(),name:newIng.name.trim(),category:newIng.category,available:false,needed:false}]);
-    setNewIng({name:'',category:'verduras'}); setAddModal(false);
-  };
-  const markAll = v => setIngredients(ings=>ings.map(i=>({...i,available:v,needed:v?false:i.needed})));
+/* ════════════════════════════════════════════════════════════════
+   TARJETA DE INGREDIENTE
+   mode: 'catalog' | 'cart' | 'pantry' | 'recent'
+   - catalog → tap = añadir a la compra (needed)
+   - cart    → tap = comprado, pasa a despensa (available)
+   - pantry  → tap = retirar de despensa
+   - recent  → readOnly, sin borrar
+════════════════════════════════════════════════════════════════ */
+function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
+  const pal   = CAT_PASTEL[ing.category] || DEFAULT_PASTEL;
+  const emoji = getIngEmoji(ing.name, ing.category);
 
-  const avail = ingredients.filter(i=>i.available).length;
-  const miss  = ingredients.filter(i=>i.needed).length;
+  // Colores según sección
+  let bg     = pal.bg;
+  let border = '1.5px solid ' + pal.border;
+  let nameColor = pal.accent;
 
-  const filtered = useMemo(()=>ingredients.filter(i=>{
-    if(catFilter!=='todos' && i.category!==catFilter) return false;
-    if(stateFilter==='disponible' && !i.available) return false;
-    if(stateFilter==='falta' && !i.needed) return false;
-    if(search && !i.name.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  }),[ingredients,catFilter,stateFilter,search]);
+  if (mode === 'cart') {
+    bg = '#fffbeb'; border = '2px solid #f59e0b'; nameColor = '#b45309';
+  } else if (mode === 'pantry') {
+    bg = '#f0fdf4'; border = '1.5px solid #86efac'; nameColor = '#15803d';
+  }
 
-  const catsWithItems = ['todos', ...CATEGORIES.filter(c=>ingredients.some(i=>i.category===c))];
+  // Icono de indicación en esquina superior derecha según modo
+  const actionIcon = mode === 'catalog' ? '🛒'
+                   : mode === 'cart'    ? '✓'
+                   : mode === 'pantry'  ? '🧺'
+                   : null;
+
+  const actionBg = mode === 'catalog' ? '#fff'
+                 : mode === 'cart'    ? '#f59e0b'
+                 : mode === 'pantry'  ? '#16a34a'
+                 : null;
+
+  const actionBorder = mode === 'catalog' ? '#e2e8f0'
+                     : mode === 'cart'    ? '#fbbf24'
+                     : mode === 'pantry'  ? '#86efac'
+                     : null;
+
+  const actionColor = (mode === 'cart' || mode === 'pantry') ? '#fff' : '#94a3b8';
 
   return (
-    <div className="fade-in">
+    <div style={{ position: 'relative', userSelect: 'none' }}>
+      <button
+        onClick={() => onToggle(ing.id)}
+        style={{
+          width: '100%', aspectRatio: '1 / 1',
+          borderRadius: 16, border,
+          background: bg,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          cursor: 'pointer', padding: '8px 4px 7px',
+          boxShadow: '0 1px 4px rgba(0,0,0,.07)',
+          transition: 'transform .12s',
+          position: 'relative', overflow: 'hidden',
+        }}
+        onTouchStart={e => { e.currentTarget.style.transform = 'scale(.93)'; }}
+        onTouchEnd={e => { e.currentTarget.style.transform = 'scale(1)'; }}
+      >
+        {/* Emoji */}
+        <span style={{ fontSize: '2rem', lineHeight: 1, marginBottom: 5 }}>
+          {emoji}
+        </span>
 
-      {/* ── Header stats ── */}
-      <div className="mb-5">
-        <h1 className="text-2xl font-black text-gray-900 leading-none mb-1" style={{letterSpacing:'-0.02em'}}>
+        {/* Nombre */}
+        <span style={{
+          fontSize: '0.6rem', fontWeight: 700,
+          color: nameColor,
+          textAlign: 'center', lineHeight: 1.25,
+          overflow: 'hidden',
+          display: '-webkit-box',
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: 'vertical',
+          wordBreak: 'break-word',
+          padding: '0 3px',
+        }}>
+          {ing.name}
+        </span>
+      </button>
+
+      {/* Icono de acción — esquina superior derecha */}
+      {actionIcon && (
+        <div style={{
+          position: 'absolute', top: -7, right: -7,
+          width: 22, height: 22, borderRadius: '50%',
+          background: actionBg,
+          border: '2px solid ' + actionBorder,
+          boxShadow: '0 1px 4px rgba(0,0,0,.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: mode === 'cart' ? '0.65rem' : '0.58rem',
+          color: actionColor,
+          fontWeight: 900,
+          pointerEvents: 'none',
+          zIndex: 2,
+        }}>
+          {actionIcon}
+        </div>
+      )}
+
+      {/* ✕ Borrar — esquina inferior izquierda (solo en catalog y pantry) */}
+      {(mode === 'catalog' || mode === 'pantry') && (
+        <button
+          onClick={e => { e.stopPropagation(); onDelete(ing.id); }}
+          style={{
+            position: 'absolute', bottom: -6, left: -6,
+            width: 18, height: 18, borderRadius: '50%',
+            background: '#fff', border: '1px solid #e2e8f0',
+            boxShadow: '0 1px 3px rgba(0,0,0,.1)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.48rem', color: '#94a3b8', cursor: 'pointer', zIndex: 2,
+          }}
+        >✕</button>
+      )}
+    </div>
+  );
+}
+
+/* ── Cabecera de sección colapsable ────────────────────────────── */
+function SectionHeader({ label, count, isCollapsed, onToggle, badge }) {
+  return (
+    <button
+      onClick={onToggle}
+      style={{
+        width: '100%', display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '13px 2px', background: 'none', border: 'none',
+        borderBottom: '1.5px solid #f1f5f9', cursor: 'pointer',
+      }}
+    >
+      <span style={{ fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>{label}</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {badge}
+        <span style={{
+          fontSize: '1.1rem', color: '#cbd5e1', fontWeight: 300,
+          display: 'inline-block',
+          transform: isCollapsed ? 'rotate(0deg)' : 'rotate(90deg)',
+          transition: 'transform .2s', lineHeight: 1,
+        }}>›</span>
+      </div>
+    </button>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CATÁLOGO PRINCIPAL
+════════════════════════════════════════════════════════════════ */
+export function Catalogo({ ingredients, setIngredients, isUltra }) {
+  const [recentIds, setRecentIds] = useLS<string[]>('despensa_recent_v1', []);
+  const [search, setSearch]       = useState('');
+  const [addModal, setAddModal]   = useState(false);
+  const [newIng, setNewIng]       = useState({ name: '', category: 'verduras' });
+  const [confirm, setConfirm]     = useState(null);
+  // Secciones colapsadas: 'acomprar' | 'recientes' | cat name
+  // Categorías empiezan colapsadas (true), secciones especiales expandidas (false)
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = { recientes: false };
+    CATEGORIES.forEach(cat => { init[cat] = true; });
+    return init;
+  });
+
+  const toggleSection = (key: string) =>
+    setCollapsed(c => ({ ...c, [key]: !c[key] }));
+
+  /* ── Acciones (flujo Bring) ────────────────────────────────── */
+  // Catálogo → tap = añadir a la lista de la compra
+  const addToCart = (id: string) => {
+    setIngredients(ings => ings.map(i =>
+      i.id === id ? { ...i, needed: true, available: false } : i
+    ));
+    setRecentIds(ids => [id, ...ids.filter(x => x !== id)].slice(0, 20));
+  };
+
+  // "A comprar" → tap = comprado, pasa a despensa
+  const markBought = (id: string) => {
+    setIngredients(ings => ings.map(i =>
+      i.id === id ? { ...i, available: true, needed: false } : i
+    ));
+    setRecentIds(ids => [id, ...ids.filter(x => x !== id)].slice(0, 20));
+  };
+
+  // "En despensa" → tap = retirar (se ha usado / se ha acabado)
+  const removeFromPantry = (id: string) => {
+    setIngredients(ings => ings.map(i =>
+      i.id === id ? { ...i, available: false, needed: false } : i
+    ));
+  };
+
+  const addIng = () => {
+    if (!newIng.name.trim()) return;
+    setIngredients(ings => [...ings, {
+      id: 'i' + uid(),
+      name: newIng.name.trim().toLowerCase(),
+      category: newIng.category,
+      available: false, needed: false,
+    }]);
+    setNewIng({ name: '', category: 'verduras' });
+    setAddModal(false);
+  };
+
+  /* ── Datos derivados ───────────────────────────────────────── */
+  const searchActive = search.trim().length > 0;
+  const searchLower  = search.toLowerCase();
+
+  const neededIngs   = useMemo(() => ingredients.filter(i => i.needed),   [ingredients]);
+  const availableIngs = useMemo(() => ingredients.filter(i => i.available), [ingredients]);
+  // Registro permanente: orden histórico, sin filtrar por estado actual
+  const recentIngs  = useMemo(() =>
+    recentIds.map(id => ingredients.find(i => i.id === id)).filter(Boolean).slice(0, 20),
+    [recentIds, ingredients]
+  );
+  const byCategory  = useMemo(() =>
+    CATEGORIES
+      .filter(c => ingredients.some(i => i.category === c))
+      .map(cat => ({
+        cat,
+        items: ingredients.filter(i =>
+          i.category === cat &&
+          (!searchActive || i.name.toLowerCase().includes(searchLower))
+        ),
+      }))
+      .filter(({ items }) => items.length > 0),
+    [ingredients, searchActive, searchLower]
+  );
+
+  /* ── Render ────────────────────────────────────────────────── */
+  return (
+    <div style={{ paddingBottom: 32 }}>
+
+      {/* ── Header ── */}
+      <div style={{ marginBottom: 16 }}>
+        <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: '#1e293b', letterSpacing: '-0.02em', margin: '0 0 12px 0' }}>
           Mi despensa 🧺
         </h1>
-        <p className="text-sm text-gray-400">
-          <span className="font-bold text-green-600">{avail}</span> disponibles
-          {miss>0 && <> · <span className="font-bold text-amber-500">{miss}</span> por comprar</>}
-          {' '}· <span className="text-gray-400">{ingredients.length} total</span>
-        </p>
-        <div className="mt-3 h-2 rounded-full overflow-hidden" style={{background:'#e2e8f0'}}>
-          <div className="h-full rounded-full transition-all duration-500"
-            style={{width:ingredients.length?`${Math.round(avail/ingredients.length*100)}%`:'0%',
-            background:'linear-gradient(90deg,#16a34a,#86efac)'}}/>
-        </div>
-      </div>
-
-      {/* ── Search + add ── */}
-      <div className="flex gap-2 mb-4">
-        <div className="flex-1 relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-sm">🔍</span>
-          <input value={search} onChange={e=>setSearch(e.target.value)}
-            placeholder="Buscar ingrediente..."
-            className="w-full bg-white rounded-2xl pl-9 pr-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
-            style={{border:'1px solid #e2e8f0'}}/>
-        </div>
-        <button onClick={()=>setAddModal(true)}
-          className="flex items-center gap-1.5 px-4 py-3 rounded-2xl text-sm font-bold"
-          style={{background:'#16a34a',color:'#fff',boxShadow:'0 2px 8px rgba(22,163,74,.3)'}}>
-          ➕ Añadir
-        </button>
-      </div>
-
-      {/* ── State filter pills ── */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-1.5 p-1 rounded-2xl" style={{background:'#f1f5f9'}}>
-          {[['todos','Todos'],['disponible','✓ Tengo'],['falta','🛒 Falta']].map(([f,l])=>(
-            <button key={f} onClick={()=>setStateFilter(f)}
-              className="px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {/* Buscador */}
+          <div style={{ flex: 1, position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: '0.85rem', color: '#94a3b8', pointerEvents: 'none' }}>🔍</span>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar ingrediente…"
               style={{
-                background: stateFilter===f ? '#16a34a' : 'transparent',
-                color: stateFilter===f ? '#fff' : '#94a3b8',
-                boxShadow: stateFilter===f ? '0 1px 4px rgba(22,163,74,.25)' : 'none',
-              }}>
-              {l}
-            </button>
-          ))}
-        </div>
-        <div className="flex gap-1">
-          <button onClick={()=>markAll(true)} className="text-xs px-2.5 py-1.5 rounded-xl font-semibold"
-            style={{background:'#f0fdf4',color:'#16a34a',border:'1px solid #bbf7d0'}}>✓ Todo</button>
-          <button onClick={()=>markAll(false)} className="text-xs px-2.5 py-1.5 rounded-xl font-semibold"
-            style={{background:'#f8fafc',color:'#94a3b8',border:'1px solid #e2e8f0'}}>✗ Vacío</button>
-        </div>
-      </div>
-
-      {/* ── Category tabs ── */}
-      <div className="flex gap-2 mb-4 overflow-x-auto pb-1" style={{scrollbarWidth:'none'}}>
-        {catsWithItems.map(cat=>(
-          <button key={cat} onClick={()=>setCatFilter(cat)}
-            className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
-            style={{
-              background: catFilter===cat ? '#16a34a' : '#fff',
-              color: catFilter===cat ? '#fff' : '#64748b',
-              border: catFilter===cat ? 'none' : '1px solid #e2e8f0',
-              boxShadow: catFilter===cat ? '0 2px 8px rgba(22,163,74,.28)' : 'none',
-            }}>
-            {cat==='todos' ? '🌿 Todos' : `${CAT_EMOJI[cat]} ${cat}`}
-          </button>
-        ))}
-      </div>
-
-      {/* ── Ingredient chips ── */}
-      {!filtered.length
-        ? <div className="text-center text-gray-300 py-12 text-sm">Sin resultados</div>
-        : <div className="grid grid-cols-3 gap-2.5">
-            {filtered.map(ing=>{
-              const cat=ing.category;
-              return (
-                <div key={ing.id} className="relative" style={{userSelect:'none'}}>
-                  <button onClick={()=>toggle(ing.id)}
-                    className="relative w-full flex flex-col items-center justify-center py-3.5 px-2 rounded-2xl transition-all active:scale-95"
-                    style={{
-                      background: ing.available ? '#f0fdf4' : '#fff',
-                      border: ing.available ? '2px solid #86efac' : '1px solid #e8edf2',
-                      boxShadow: ing.available ? '0 3px 10px rgba(22,163,74,.18)' : '0 2px 8px rgba(0,0,0,.08)',
-                    }}>
-                    {ing.available && (
-                      <div className="absolute top-2 right-2 w-4 h-4 rounded-full flex items-center justify-center"
-                        style={{background:'#16a34a',fontSize:'0.5rem',color:'#fff',fontWeight:800}}>✓</div>
-                    )}
-                    <span style={{fontSize:'1.75rem',lineHeight:1,marginBottom:5}}>
-                      {getIngEmoji(ing.name,cat)}
-                    </span>
-                    <span className="text-center leading-tight font-semibold"
-                      style={{
-                        fontSize:'0.62rem',
-                        color: ing.available ? '#15803d' : '#94a3b8',
-                        wordBreak:'break-word',
-                        maxHeight:'2.4em',
-                        overflow:'hidden',
-                      }}>
-                      {ing.name}
-                    </span>
-                  </button>
-
-                  {/* Cart badge */}
-                  <button onClick={e=>toggleNeeded(e,ing.id)}
-                    title={ing.needed?'Quitar de la lista':'Añadir a la compra'}
-                    className="absolute -top-2 -right-2 w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow-md transition-all active:scale-90"
-                    style={{
-                      background: ing.needed ? '#f59e0b' : '#f1f5f9',
-                      fontSize:'0.75rem',
-                    }}>
-                    🛒
-                  </button>
-
-                  {/* Delete */}
-                  <button onClick={e=>{e.stopPropagation();setConfirm(ing.id);}}
-                    className="absolute -bottom-1.5 -left-1.5 w-5 h-5 rounded-full bg-white flex items-center justify-center shadow-sm transition-all hover:bg-red-50"
-                    style={{border:'1px solid #e2e8f0',fontSize:'0.6rem',color:'#cbd5e1'}}>
-                    ✕
-                  </button>
-                </div>
-              );
-            })}
+                width: '100%', boxSizing: 'border-box',
+                borderRadius: 12, border: '1.5px solid #e2e8f0',
+                background: '#f8fafc', padding: '9px 12px 9px 32px',
+                fontSize: '16px', outline: 'none', color: '#1e293b',
+              }}
+            />
+            {search && (
+              <button
+                onClick={() => setSearch('')}
+                style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#94a3b8', padding: 2 }}
+              >✕</button>
+            )}
           </div>
-      }
+          {/* Botón añadir */}
+          <button
+            onClick={() => setAddModal(true)}
+            style={{
+              width: 40, height: 40, borderRadius: 13, flexShrink: 0,
+              background: '#16a34a', color: '#fff', border: 'none',
+              fontSize: '1.6rem', lineHeight: 1,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', boxShadow: '0 2px 10px rgba(22,163,74,.35)',
+            }}
+          >+</button>
+        </div>
+      </div>
+
+      {/* ══ 1. A COMPRAR ═══════════════════════════════════════ */}
+      {!searchActive && neededIngs.length > 0 && (
+        <section style={{ marginBottom: 8 }}>
+          <SectionHeader
+            label="🛒 A comprar"
+            isCollapsed={collapsed['acomprar']}
+            onToggle={() => toggleSection('acomprar')}
+            badge={
+              <span style={{
+                fontSize: '0.65rem', fontWeight: 800,
+                background: '#fff7ed', color: '#c2510e',
+                border: '1px solid #fed7aa',
+                padding: '2px 8px', borderRadius: 20,
+              }}>
+                {neededIngs.length}
+              </span>
+            }
+          />
+          {!collapsed['acomprar'] && (
+            <>
+              <p style={{ fontSize: '0.65rem', color: '#94a3b8', margin: '4px 0 10px', fontStyle: 'italic' }}>
+                Toca cuando lo hayas comprado →
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, paddingBottom: 8 }}>
+                {neededIngs.map(ing => (
+                  <IngCard key={ing.id} ing={ing} onToggle={markBought} onDelete={setConfirm} mode="cart" />
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* ══ 2. UTILIZADOS RECIENTEMENTE ════════════════════════ */}
+      {!searchActive && recentIngs.length > 0 && (
+        <section style={{ marginBottom: 8 }}>
+          <SectionHeader
+            label="🕓 Utilizados recientemente"
+            isCollapsed={collapsed['recientes']}
+            onToggle={() => toggleSection('recientes')}
+            badge={null}
+          />
+          {!collapsed['recientes'] && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, paddingTop: 12, paddingBottom: 8 }}>
+              {recentIngs.map(ing => (
+                <IngCard key={ing.id} ing={ing} onToggle={addToCart} onDelete={setConfirm} mode="recent" />
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* ══ 3. EN DESPENSA ═════════════════════════════════════ */}
+      {!searchActive && availableIngs.length > 0 && (
+        <section style={{ marginBottom: 8 }}>
+          <SectionHeader
+            label="🧺 En despensa"
+            isCollapsed={collapsed['endespensa']}
+            onToggle={() => toggleSection('endespensa')}
+            badge={
+              <span style={{
+                fontSize: '0.65rem', fontWeight: 800,
+                background: '#f0fdf4', color: '#15803d',
+                border: '1px solid #bbf7d0',
+                padding: '2px 8px', borderRadius: 20,
+              }}>
+                {availableIngs.length}
+              </span>
+            }
+          />
+          {!collapsed['endespensa'] && (
+            <>
+              <p style={{ fontSize: '0.65rem', color: '#94a3b8', margin: '4px 0 10px', fontStyle: 'italic' }}>
+                Toca cuando lo hayas usado →
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, paddingBottom: 8 }}>
+                {availableIngs.map(ing => (
+                  <IngCard key={ing.id} ing={ing} onToggle={removeFromPantry} onDelete={setConfirm} mode="pantry" />
+                ))}
+              </div>
+            </>
+          )}
+        </section>
+      )}
+
+      {/* ══ 4. SECCIONES POR CATEGORÍA ═════════════════════════ */}
+      {byCategory.map(({ cat, items }) => {
+        const isCollapsed = collapsed[cat] !== false;
+        // Filtrar en catalog: no mostrar los que ya están en "A comprar" o "En despensa"
+        const catalogItems = items.filter(i => !i.needed && !i.available);
+        if (catalogItems.length === 0 && isCollapsed) return null;
+        return (
+          <section key={cat} style={{ marginBottom: 4 }}>
+            <SectionHeader
+              label={`${CAT_EMOJI[cat]} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
+              isCollapsed={isCollapsed}
+              onToggle={() => toggleSection(cat)}
+              badge={null}
+            />
+            {!isCollapsed && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, paddingTop: 12, paddingBottom: 8 }}>
+                {catalogItems.map(ing => (
+                  <IngCard key={ing.id} ing={ing} onToggle={addToCart} onDelete={setConfirm} mode="catalog" />
+                ))}
+                {catalogItems.length === 0 && (
+                  <p style={{ gridColumn: '1/-1', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center', padding: '8px 0' }}>
+                    Todos los productos de esta categoría están en la lista o en la despensa
+                  </p>
+                )}
+              </div>
+            )}
+          </section>
+        );
+      })}
+
+      {searchActive && byCategory.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🔍</div>
+          <p style={{ fontSize: '0.85rem' }}>Sin resultados para "<strong>{search}</strong>"</p>
+        </div>
+      )}
+
+      {!searchActive && ingredients.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '60px 20px', color: '#cbd5e1' }}>
+          <div style={{ fontSize: '3rem', marginBottom: 12 }}>🧺</div>
+          <p style={{ fontSize: '0.9rem' }}>Sin ingredientes aún.<br/>Pulsa <strong>+</strong> para añadir.</p>
+        </div>
+      )}
 
       {/* ── Modal añadir ── */}
-      <Modal open={addModal} onClose={()=>setAddModal(false)} title="🌿 Nuevo ingrediente">
+      <Modal open={addModal} onClose={() => setAddModal(false)} title="🌿 Nuevo ingrediente">
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Nombre</label>
-            <input value={newIng.name} onChange={e=>setNewIng(n=>({...n,name:e.target.value}))}
+            <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+              Nombre
+            </label>
+            <input
+              value={newIng.name}
+              onChange={e => setNewIng(n => ({ ...n, name: e.target.value }))}
               placeholder="ej: calabaza"
-              className="w-full rounded-2xl px-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-green-200"
-              style={{border:'2px solid #e2e8f0',background:'#f8fafc'}}
-              autoFocus onKeyDown={e=>e.key==='Enter'&&addIng()}/>
+              style={{ width: '100%', borderRadius: 14, padding: '12px 16px', fontSize: '16px', fontWeight: 500, border: '2px solid #e2e8f0', background: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
+              autoFocus
+              onKeyDown={e => e.key === 'Enter' && addIng()}
+            />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Categoría</label>
-            <select value={newIng.category} onChange={e=>setNewIng(n=>({...n,category:e.target.value}))}
-              className="w-full rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
-              style={{border:'2px solid #e2e8f0',background:'#f8fafc'}}>
-              {CATEGORIES.map(c=><option key={c} value={c}>{CAT_EMOJI[c]} {c}</option>)}
+            <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
+              Categoría
+            </label>
+            <select
+              value={newIng.category}
+              onChange={e => setNewIng(n => ({ ...n, category: e.target.value }))}
+              style={{ width: '100%', borderRadius: 14, padding: '12px 16px', fontSize: '16px', border: '2px solid #e2e8f0', background: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
+            >
+              {CATEGORIES.map(c => (
+                <option key={c} value={c}>{CAT_EMOJI[c]} {c}</option>
+              ))}
             </select>
           </div>
-          <button onClick={addIng}
-            className="w-full rounded-2xl py-4 text-sm font-bold"
-            style={{background:'#16a34a',color:'#fff',boxShadow:'0 4px 16px rgba(22,163,74,.35)'}}>
+          <button
+            onClick={addIng}
+            style={{ width: '100%', borderRadius: 14, padding: '14px', fontSize: '0.9rem', fontWeight: 800, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(22,163,74,.35)' }}
+          >
             Añadir a mi despensa →
           </button>
         </div>
       </Modal>
 
-      <Confirm open={!!confirm} msg="¿Eliminar este ingrediente del catálogo?"
-        onOk={()=>{setIngredients(ings=>ings.filter(i=>i.id!==confirm));setConfirm(null);}}
-        onCancel={()=>setConfirm(null)}/>
+      <Confirm
+        open={!!confirm}
+        msg="¿Eliminar este ingrediente del catálogo?"
+        onOk={() => { setIngredients(ings => ings.filter(i => i.id !== confirm)); setConfirm(null); }}
+        onCancel={() => setConfirm(null)}
+      />
     </div>
   );
 }
