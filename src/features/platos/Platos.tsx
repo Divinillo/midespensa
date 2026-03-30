@@ -30,13 +30,16 @@ import type { Ingredient, Dish } from '../../data/types';
 /* ═══════════════════════════════════════
    RECIPE MODAL — Ultra: pasos estáticos + YouTube
 ═══════════════════════════════════════ */
-function RecipeModal({ open, onClose, dishName, ings }) {
+function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='' }) {
   const recipeData = React.useMemo(() => {
     if (!dishName) return null;
     return RECIPE_DB.find(r => r.name.toLowerCase() === dishName.toLowerCase()) ?? null;
   }, [dishName]);
 
-  const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar ' + dishName)}`;
+  // Si el plato tiene enlace propio de YouTube, úsalo; si no, búsqueda genérica
+  const ytUrl = youtubeUrl?.trim()
+    ? youtubeUrl.trim()
+    : `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar ' + dishName)}`;
   const steps: string[] = recipeData?.steps ?? [];
   const tiempo: string = recipeData?.tiempo ?? '';
   const dificultad: string = recipeData?.dificultad ?? '';
@@ -414,6 +417,16 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"/>
       </div>
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">▶️ Enlace YouTube <span style={{fontWeight:400,color:'#9ca3af'}}>(opcional)</span></label>
+        <input value={form.youtubeUrl||''} onChange={e=>setForm(f=>({...f,youtubeUrl:e.target.value}))}
+          placeholder="https://youtube.com/watch?v=..."
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-100"
+          style={{fontFamily:'monospace',fontSize:'0.8rem'}}/>
+        {form.youtubeUrl?.trim() && !/youtu/.test(form.youtubeUrl) && (
+          <p style={{fontSize:'0.7rem',color:'#f97316',marginTop:4}}>⚠️ No parece un enlace de YouTube</p>
+        )}
+      </div>
+      <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Ingredientes ({form.ingredients.length} sel.)</label>
         <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
           {CATEGORIES.map(cat=>{
@@ -468,14 +481,15 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
 
   const openAdd=()=>{
     if(!isPro && dishes.length >= FREE_DISH_LIMIT){ onUpgrade('dishes'); return; }
-    setForm({name:'',ingredients:[],photo:''});setModal('add');
+    setForm({name:'',ingredients:[],photo:'',youtubeUrl:''});setModal('add');
   };
-  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients],photo:d.photo||''});setModal(d.id);};
+  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients],photo:d.photo||'',youtubeUrl:d.youtubeUrl||''});setModal(d.id);};
   const toggleIng=id=>setForm(f=>({...f,ingredients:f.ingredients.includes(id)?f.ingredients.filter(x=>x!==id):[...f.ingredients,id]}));
   const save=()=>{
     if(!form.name.trim()) return;
-    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients,photo:form.photo||undefined}]);
-    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim(),photo:form.photo||undefined}:d));
+    const yt=form.youtubeUrl?.trim()||undefined;
+    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients,photo:form.photo||undefined,youtubeUrl:yt}]);
+    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim(),photo:form.photo||undefined,youtubeUrl:yt}:d));
     setModal(null);
   };
   const atLimit = !isPro && dishes.length >= FREE_DISH_LIMIT;
@@ -566,7 +580,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                     const ingNames = recipeMatch
                       ? recipeMatch.ings
                       : dish.ingredients.map((iid:string)=>ingMap[iid]?.name).filter(Boolean);
-                    setRecipeModal({name:dish.name, ings:ingNames});
+                    setRecipeModal({name:dish.name, ings:ingNames, youtubeUrl:dish.youtubeUrl||''});
                   }}
                     className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                     style={{background:'#f0fdf4',border:'1px solid #bbf7d0'}}
@@ -608,6 +622,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
         onClose={()=>setRecipeModal(null)}
         dishName={recipeModal?.name ?? ''}
         ings={recipeModal?.ings ?? []}
+        youtubeUrl={recipeModal?.youtubeUrl ?? ''}
       />
     </div>
   );

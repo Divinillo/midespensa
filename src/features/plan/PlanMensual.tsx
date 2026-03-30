@@ -958,7 +958,9 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       {/* ── Recipe modal (Ultra) – zIndex:70 para quedar sobre el modal del día ── */}
       {recipeModal && (()=>{
         const rd=RECIPE_DB.find(r=>r.name.toLowerCase()===recipeModal.name.toLowerCase());
-        const ytUrl=`https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar '+recipeModal.name)}`;
+        const ytUrl=recipeModal.youtubeUrl?.trim()
+          ? recipeModal.youtubeUrl.trim()
+          : `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar '+recipeModal.name)}`;
         return (
           <div style={{position:'fixed',inset:0,zIndex:70,background:'rgba(0,0,0,.55)',backdropFilter:'blur(6px)',WebkitBackdropFilter:'blur(6px)',display:'flex',alignItems:'flex-end',justifyContent:'center',padding:'0'}}
             onClick={()=>setRecipeModal(null)}>
@@ -1059,7 +1061,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                             onClick={()=>{
                               const recipeMatch=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
                               const ingNames=recipeMatch?recipeMatch.ings:dish.ingredients||[];
-                              setRecipeModal({name:dish.name,ings:ingNames});
+                              setRecipeModal({name:dish.name,ings:ingNames,youtubeUrl:dish.youtubeUrl||''});
                             }}
                             style={{flexShrink:0,width:28,height:28,borderRadius:8,background:'#f0fdf4',border:'1px solid #bbf7d0',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'0.85rem'}}
                             title="Ver preparación">📖</button>
