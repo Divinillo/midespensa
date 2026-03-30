@@ -1,9 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import {
-  CalendarDays, UtensilsCrossed, ShoppingBasket,
-  Receipt, ShoppingCart, ScanBarcode, Wallet,
-  Settings2, ShoppingCart as CartIcon, AlertTriangle, X,
-} from 'lucide-react';
 import type { Section } from '../../data/types';
 
 const TITLES: Record<Section, string> = {
@@ -26,14 +21,14 @@ const SUBTITLES: Record<Section, string> = {
   gastos: 'Controla tu presupuesto',
 };
 
-const SECTION_ICON: Record<Section, any> = {
-  plan:   CalendarDays,
-  platos: UtensilsCrossed,
-  cat:    ShoppingBasket,
-  ticket: Receipt,
-  lista:  ShoppingCart,
-  nutri:  ScanBarcode,
-  gastos: Wallet,
+const SECTION_EMOJI: Record<Section, string> = {
+  plan:   '🗓️',
+  platos: '🍳',
+  cat:    '🧺',
+  ticket: '🧾',
+  lista:  '🛒',
+  nutri:  '🔬',
+  gastos: '💰',
 };
 
 interface HeaderProps {
@@ -52,6 +47,7 @@ export function Header({ section, isPro, isUltra, neededCount, pendingCount, syn
   const popoverRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
 
+  // Cerrar al tocar fuera
   useEffect(() => {
     if (!showWarning) return;
     const handler = (e: MouseEvent | TouchEvent) => {
@@ -68,38 +64,44 @@ export function Header({ section, isPro, isUltra, neededCount, pendingCount, syn
     };
   }, [showWarning]);
 
-  const SectionIcon = SECTION_ICON[section];
-
   return (
     <header
       className="sticky top-0 z-40"
       style={{
-        background: 'rgba(6,14,8,0.92)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        borderBottom: '1px solid rgba(74,222,128,0.1)',
-        boxShadow: '0 1px 0 rgba(0,0,0,0.1)',
+        background: 'linear-gradient(160deg, #15803d 0%, #16a34a 100%)',
+        boxShadow: '0 2px 16px rgba(22,163,74,.3)',
       }}
     >
-      <div className="max-w-lg mx-auto px-4" style={{ paddingTop: 13, paddingBottom: 13 }}>
+      <div className="max-w-lg mx-auto px-4" style={{ paddingTop: 14, paddingBottom: 14 }}>
         <div className="flex items-center justify-between">
 
           {/* Left: section identity */}
           <div className="flex items-center gap-3">
-            <div style={{
-              width: 38, height: 38, borderRadius: 11,
-              background: 'rgba(74,222,128,0.12)',
-              border: '1px solid rgba(74,222,128,0.2)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <SectionIcon size={18} strokeWidth={1.9} color="#4ade80" />
+            <div
+              className="flex items-center justify-center rounded-2xl"
+              style={{ width: 40, height: 40, background: 'rgba(255,255,255,.22)', fontSize: '1.45rem', flexShrink: 0 }}
+            >
+              {section === 'nutri' ? (
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 7V3h4"    stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M22 7V3h-4"  stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M2 17v4h4"   stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M22 17v4h-4" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  <rect x="4"    y="7" width="1.5" height="10" rx="0.4" fill="white"/>
+                  <rect x="7"    y="7" width="1"   height="10" rx="0.4" fill="white"/>
+                  <rect x="9.5"  y="7" width="2"   height="10" rx="0.4" fill="white"/>
+                  <rect x="13"   y="7" width="1"   height="10" rx="0.4" fill="white"/>
+                  <rect x="15.5" y="7" width="1.5" height="10" rx="0.4" fill="white"/>
+                  <rect x="18"   y="7" width="1"   height="10" rx="0.4" fill="white"/>
+                  <line x1="2" y1="12.5" x2="22" y2="12.5" stroke="#fb923c" strokeWidth="1.5" strokeLinecap="round"/>
+                </svg>
+              ) : SECTION_EMOJI[section]}
             </div>
             <div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#fff', lineHeight: 1.15, letterSpacing: '-0.025em' }}>
+              <div className="font-black text-white" style={{ fontSize: '1rem', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
                 {TITLES[section]}
               </div>
-              <div style={{ fontSize: '0.67rem', color: 'rgba(255,255,255,0.42)', fontWeight: 500, marginTop: 1, letterSpacing: '0.01em' }}>
+              <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,.7)', fontWeight: 500, marginTop: 1 }}>
                 {SUBTITLES[section]}
               </div>
             </div>
@@ -112,94 +114,83 @@ export function Header({ section, isPro, isUltra, neededCount, pendingCount, syn
             {isPro && (
               isUltra ? (
                 <span style={{
-                  fontSize: '0.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 7,
-                  background: 'linear-gradient(135deg,#92400e,#d97706)',
-                  color: '#fef3c7', letterSpacing: '.08em',
+                  fontSize: '0.6rem', fontWeight: 800, padding: '3px 7px', borderRadius: 8,
+                  background: 'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',
+                  color: '#fff', letterSpacing: '.06em',
                   display: 'flex', alignItems: 'center', gap: 3,
-                  boxShadow: '0 1px 8px rgba(217,119,6,.4)',
+                  boxShadow: '0 1px 6px rgba(217,119,6,.5)',
                 }}>
-                  👑 ULTRA
+                  <span style={{fontSize:'0.7rem', lineHeight:1}}>👑</span>
+                  ULTRA
                 </span>
               ) : (
                 <span style={{
-                  fontSize: '0.58rem', fontWeight: 800, padding: '3px 8px', borderRadius: 7,
-                  background: 'rgba(74,222,128,0.12)',
-                  color: '#4ade80', letterSpacing: '.08em',
-                  border: '1px solid rgba(74,222,128,0.25)',
+                  fontSize: '0.6rem', fontWeight: 800, padding: '3px 7px', borderRadius: 8,
+                  background: 'rgba(255,255,255,.15)',
+                  color: '#fff', letterSpacing: '.06em',
+                  border: '1px solid rgba(255,255,255,.35)',
                   display: 'flex', alignItems: 'center', gap: 3,
                 }}>
-                  💎 PRO
+                  <span style={{fontSize:'0.7rem', lineHeight:1}}>💎</span>
+                  PRO
                 </span>
               )
             )}
 
-            {/* Badge lista */}
+            {/* Badge lista necesita */}
             {neededCount > 0 && (
               <button
                 onClick={() => onNavigate('lista')}
-                style={{
-                  fontSize: '0.68rem', fontWeight: 700, padding: '4px 10px', borderRadius: 8,
-                  background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.75)',
-                  border: '1px solid rgba(255,255,255,0.1)',
-                  display: 'flex', alignItems: 'center', gap: 5,
-                }}
+                style={{ fontSize: '0.7rem', fontWeight: 600, padding: '3px 9px', borderRadius: 9999, background: 'rgba(255,255,255,.18)', color: '#fff', border: '1px solid rgba(255,255,255,.22)', display: 'flex', alignItems: 'center', gap: 4 }}
               >
-                <CartIcon size={11} strokeWidth={2} />
-                {neededCount}
+                🛒 {neededCount}
               </button>
             )}
 
-            {/* Badge tickets pendientes */}
+            {/* Badge tickets pendientes — con popover */}
             {pendingCount > 0 && (
               <div style={{ position: 'relative' }}>
                 <button
                   ref={btnRef}
                   onClick={() => setShowWarning(v => !v)}
-                  style={{
-                    fontSize: '0.68rem', fontWeight: 700, padding: '4px 10px', borderRadius: 8,
-                    background: 'rgba(251,191,36,0.12)', color: '#fbbf24',
-                    border: '1px solid rgba(251,191,36,0.25)',
-                    display: 'flex', alignItems: 'center', gap: 5,
-                  }}
+                  style={{ fontSize: '0.7rem', fontWeight: 600, padding: '3px 9px', borderRadius: 9999, background: 'rgba(251,191,36,.28)', color: '#fef08a', border: '1px solid rgba(251,191,36,.4)', display: 'flex', alignItems: 'center', gap: 3, cursor: 'pointer' }}
                 >
-                  <AlertTriangle size={11} strokeWidth={2.2} />
-                  {pendingCount}
+                  ⚠️ {pendingCount}
                 </button>
 
                 {showWarning && (
                   <div
                     ref={popoverRef}
                     style={{
-                      position: 'absolute', top: 'calc(100% + 12px)', right: 0,
-                      width: 240, borderRadius: 16, padding: '16px',
-                      background: '#0f1f12',
-                      boxShadow: '0 8px 32px rgba(0,0,0,.4)',
-                      border: '1px solid rgba(251,191,36,0.2)', zIndex: 100,
+                      position: 'absolute', top: 'calc(100% + 10px)', right: 0,
+                      width: 230, borderRadius: 16, padding: '14px',
+                      background: '#fff', boxShadow: '0 8px 28px rgba(0,0,0,.18)',
+                      border: '1.5px solid #fde68a', zIndex: 100,
                     }}
                   >
-                    <div style={{ position: 'absolute', top: -6, right: 16, width: 12, height: 6, overflow: 'hidden' }}>
-                      <div style={{ width: 12, height: 12, background: 'rgba(251,191,36,0.2)', transform: 'rotate(45deg)', marginTop: 3 }}/>
+                    {/* Flecha */}
+                    <div style={{
+                      position: 'absolute', top: -8, right: 14,
+                      width: 14, height: 8, overflow: 'hidden',
+                    }}>
+                      <div style={{ width: 14, height: 14, background: '#fde68a', transform: 'rotate(45deg)', marginTop: 4, marginLeft: 0 }}/>
                     </div>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 12 }}>
-                      <AlertTriangle size={18} color="#fbbf24" strokeWidth={2} style={{ flexShrink: 0, marginTop: 1 }} />
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
+                      <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>⚠️</span>
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '0.82rem', color: '#fff', marginBottom: 4 }}>
+                        <div style={{ fontWeight: 800, fontSize: '0.82rem', color: '#92400e', marginBottom: 3 }}>
                           Productos sin asignar
                         </div>
-                        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+                        <div style={{ fontSize: '0.72rem', color: '#b45309', lineHeight: 1.5 }}>
                           {pendingCount === 1
-                            ? 'Tienes 1 ticket con artículos sin asociar.'
-                            : `Tienes ${pendingCount} tickets con artículos sin asociar.`}
+                            ? 'Tienes 1 ticket con artículos que no se han podido asociar a tu catálogo.'
+                            : `Tienes ${pendingCount} tickets con artículos sin asociar a tu catálogo.`}
                         </div>
                       </div>
                     </div>
                     <button
                       onClick={() => { setShowWarning(false); onNavigate('ticket'); }}
-                      style={{
-                        width: '100%', borderRadius: 10, padding: '9px',
-                        fontWeight: 700, fontSize: '0.78rem', color: '#0f1f12',
-                        background: '#fbbf24', border: 'none', cursor: 'pointer',
-                      }}
+                      style={{ width: '100%', borderRadius: 10, padding: '9px', fontWeight: 700, fontSize: '0.78rem', color: '#fff', background: '#d97706', border: 'none', cursor: 'pointer' }}
                     >
                       Ir a Tickets →
                     </button>
@@ -209,21 +200,15 @@ export function Header({ section, isPro, isUltra, neededCount, pendingCount, syn
             )}
 
             {syncStatus ? (
-              <span style={{ fontSize: '0.6rem', fontWeight: 500, color: 'rgba(255,255,255,0.35)' }}>{syncStatus}</span>
+              <span style={{ fontSize: '0.62rem', fontWeight: 500, color: 'rgba(255,255,255,.6)' }}>{syncStatus}</span>
             ) : null}
 
             <button
               onClick={onSettings}
-              style={{
-                width: 36, height: 36, borderRadius: 10,
-                background: 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                flexShrink: 0,
-              }}
+              style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.22)', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
               title="Ajustes"
             >
-              <Settings2 size={16} strokeWidth={1.8} color="rgba(255,255,255,0.6)" />
+              ⚙️
             </button>
           </div>
         </div>
