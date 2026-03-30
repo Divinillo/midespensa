@@ -461,6 +461,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
   const [modal,setModal]=useState(null);
   const [form,setForm]=useState({name:'',ingredients:[]});
   const [confirm,setConfirm]=useState(null);
+  const [confirmClear,setConfirmClear]=useState(false);
   const [autoModal,setAutoModal]=useState(false);
   const [recipeModal,setRecipeModal]=useState<{name:string,ings:string[]}|null>(null);
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
@@ -504,6 +505,13 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
             </p>
           </div>
           <div className="flex gap-2">
+            {dishes.length > 0 && (
+              <button onClick={()=>setConfirmClear(true)}
+                className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all"
+                style={{background:'#fef2f2',color:'#ef4444',border:'1px solid #fecaca'}}>
+                🗑️ Borrar todos
+              </button>
+            )}
             <button onClick={()=>isPro?setAutoModal(true):onUpgrade('autodish')}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
               style={{background:'#f0fdf4',color:'#16a34a',border:'1px solid #bbf7d0'}}>
@@ -589,6 +597,9 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
       <Confirm open={!!confirm} msg="¿Eliminar este plato?"
         onOk={()=>{setDishes(ds=>ds.filter(d=>d.id!==confirm));setConfirm(null);}}
         onCancel={()=>setConfirm(null)}/>
+      <Confirm open={confirmClear} msg={`¿Eliminar los ${dishes.length} platos? Esta acción no se puede deshacer.`}
+        onOk={()=>{setDishes([]);setConfirmClear(false);}}
+        onCancel={()=>setConfirmClear(false)}/>
       <AutoDishModal open={autoModal} onClose={()=>setAutoModal(false)}
         ingredients={ingredients} dishes={dishes} setDishes={setDishes}
         isUltra={isUltra} onUpgrade={onUpgrade}/>
