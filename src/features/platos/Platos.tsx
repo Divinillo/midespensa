@@ -145,8 +145,8 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
 
   function scoreRecipes() {
     const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
-    // Solo recetas con 4+ ingredientes (recetas completas, no guarniciones)
-    let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length >= 4);
+    // Solo recetas completas: 4+ ings y no son guarniciones/caldos ligeros (< 200 kcal Y < 10g prot)
+    let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length >= 4 && !(r.kcal < 200 && r.prot < 10));
     if(isUltra && diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
 
     const scored=candidates.map(recipe=>{
