@@ -224,9 +224,19 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     };
     const shuffled=shuffleGroup(scored);
 
-    // Separar en comidas (más calóricas) y cenas (más ligeras)
-    const lunchPool=[...shuffled].sort((a,b)=>b.score-a.score||(b.kcal-a.kcal));
-    const dinnerPool=[...shuffled].sort((a,b)=>b.score-a.score||(a.kcal-b.kcal));
+    // Separar en comidas y cenas usando el campo 'when' de RECIPE_DB
+    // lunch: when==='lunch' || when==='both'   (hidratos OK al mediodía)
+    // dinner: when==='dinner' || when==='both'  (sin pasta/arroz/legumbres pesadas por la noche)
+    const getWhen=dish=>{
+      const rec=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
+      return rec?.when||'both';
+    };
+    const lunchPool=[...shuffled]
+      .filter(({dish})=>{ const w=getWhen(dish); return w==='lunch'||w==='both'; })
+      .sort((a,b)=>b.score-a.score||(b.kcal-a.kcal));
+    const dinnerPool=[...shuffled]
+      .filter(({dish})=>{ const w=getWhen(dish); return w==='dinner'||w==='both'; })
+      .sort((a,b)=>b.score-a.score||(a.kcal-b.kcal));
 
     const daysArr=getDaysArr();
     const newPlan={...plan};
