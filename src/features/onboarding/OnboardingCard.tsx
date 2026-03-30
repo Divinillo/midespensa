@@ -125,7 +125,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
 ═══════════════════════════════════════ */
 
 
-export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra}) {
+export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra, userEmail = ''}) {
   const [showKey, setShowKey]=useState(false);
   const [keyVal, setKeyVal]=useState('');
   const [keyErr, setKeyErr]=useState('');
@@ -186,7 +186,7 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra}
             <button onClick={async()=>{
                 const tier=isUltraTier?'ultra':'pro';
                 try{
-                  const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier})});
+                  const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier, ...(userEmail ? {email: userEmail} : {})})});
                   const data=await res.json();
                   if(data.url) window.location.href=data.url;
                   else alert('Error al iniciar el pago. Inténtalo de nuevo.');

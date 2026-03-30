@@ -14,6 +14,8 @@ import { Nutricion } from './features/nutricion/Nutricion';
 import { UpgradeModal } from './features/onboarding/OnboardingCard';
 import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
 import LoginScreen from './features/auth/LoginScreen';
+import CookieBanner from './components/CookieBanner';
+import MigrationModal, { hasLocalDataToMigrate, markMigrationOffered } from './components/MigrationModal';
 import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
 import { validateLicenseRemote } from './utils/licenseApi';
@@ -91,6 +93,7 @@ export function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [importError, setImportError] = useState('');
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null);
+  const [showMigration, setShowMigration] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
 
   // Sync session email → userEmail + load cloud data when session is ready
@@ -102,7 +105,14 @@ export function App() {
     if (cloudLoadedRef.current) return; // only load once per session
     cloudLoadedRef.current = true;
     loadFromCloud(email).then(cloud => {
-      if (!cloud) return;
+      // No cloud data yet → first login. Offer to migrate local data.
+      if (!cloud || cloud.error === 'No data found') {
+        if (hasLocalDataToMigrate()) {
+          setShowMigration(true);
+        }
+        markMigrationOffered();
+        return;
+      }
       const localTs = parseInt(localStorage.getItem('despensa_local_ts') || '0');
       const cloudTs = cloud.updated_at || 0;
       if (cloudTs <= localTs) {
@@ -298,7 +308,31 @@ export function App() {
       </Modal>
 
       <UpgradeModal open={!!upgradeModal} reason={upgradeModal || 'reports'} onClose={() => setUpgradeModal(null)}
-        onUnlockPro={() => setIsPro(true)} onUnlockUltra={() => { setIsPro(true); setIsUltra(true); }} />
+        onUnlockPro={() => setIsPro(true)} onUnlockUltra={() => { setIsPro(true); setIsUltra(true); }}
+        userEmail={userEmail} />
+
+      {/* Migration modal: offer to upload local data on first login */}
+      {showMigration && (
+        <MigrationModal
+          onMigrate={async () => {
+            const email = session?.user?.email || userEmail;
+            if (!email) return;
+            const ts = Date.now();
+            try { localStorage.setItem('despensa_local_ts', String(ts)); } catch {}
+            await fetch('/api/sync-data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email, dishes, ingredients, tickets, price_history: priceHistory, plan, updated_at: ts }),
+            });
+            setShowMigration(false);
+            setSyncStatus('☁️ Datos importados');
+            setTimeout(() => setSyncStatus(''), 3000);
+          }}
+          onSkip={() => setShowMigration(false)}
+        />
+      )}
+
+      <CookieBanner />
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-28" style={{ paddingTop: 20 }}>
         {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}

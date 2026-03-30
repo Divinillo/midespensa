@@ -8,9 +8,10 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
+  const [message, setMessage] = useState<{ text: string; ok: boolean; showResend?: boolean } | null>(null);
 
-  const msg = (text: string, ok = false) => setMessage({ text, ok });
+  const msg = (text: string, ok = false, showResend = false) =>
+    setMessage({ text, ok, showResend });
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -20,14 +21,31 @@ export default function LoginScreen() {
     try {
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) msg(error.message === 'Invalid login credentials'
-          ? 'Correo o contraseña incorrectos.' : error.message);
+        if (error) {
+          if (error.message === 'Invalid login credentials') {
+            msg('Correo o contraseña incorrectos.');
+          } else if (
+            error.message.toLowerCase().includes('email not confirmed') ||
+            error.message.toLowerCase().includes('email_not_confirmed')
+          ) {
+            msg(
+              'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada (y la carpeta de spam).',
+              false,
+              true,
+            );
+          } else {
+            msg(error.message);
+          }
+        }
       } else if (mode === 'register') {
         const { error } = await supabase.auth.signUp({ email, password });
         if (error) {
           msg(error.message);
         } else {
-          msg('¡Cuenta creada! Revisa tu correo para confirmarla.', true);
+          msg(
+            '¡Cuenta creada! Te enviamos un correo de confirmación. Haz clic en el enlace para activarla (revisa también el spam).',
+            true,
+          );
           setMode('login');
         }
       } else {
@@ -35,11 +53,20 @@ export default function LoginScreen() {
           redirectTo: `${window.location.origin}/`,
         });
         if (error) msg(error.message);
-        else msg('Te enviamos un correo para restablecer tu contraseña.', true);
+        else msg('Te enviamos un correo para restablecer tu contraseña. Revisa también la carpeta de spam.', true);
       }
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleResendConfirmation() {
+    if (!email) { msg('Introduce tu correo para reenviar la confirmación.'); return; }
+    setLoading(true);
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    setLoading(false);
+    if (error) msg(error.message);
+    else msg('Correo de confirmación reenviado. Revisa tu bandeja de entrada y la carpeta de spam.', true);
   }
 
   async function handleGoogle() {
@@ -85,11 +112,7 @@ export default function LoginScreen() {
             margin: '0 auto 12px',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <img
-              src="/icon-midespensa.svg"
-              alt="midespensa"
-              style={{ width: '52px', height: '52px' }}
-            />
+            <img src="/icon-midespensa.svg" alt="midespensa" style={{ width: '52px', height: '52px' }} />
           </div>
           <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#15803d', letterSpacing: '-0.03em' }}>
             midespensa
@@ -99,22 +122,16 @@ export default function LoginScreen() {
           </div>
         </div>
 
-        {/* Google button (only on login/register) */}
+        {/* Google button */}
         {mode !== 'forgot' && (
           <button
             onClick={handleGoogle}
             disabled={loading}
             style={{
-              width: '100%',
-              padding: '11px',
-              border: '1.5px solid #e5e7eb',
-              borderRadius: '10px',
-              background: '#fff',
-              cursor: 'pointer',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
-              fontSize: '0.95rem', fontWeight: 600, color: '#374151',
-              marginBottom: '20px',
-              transition: 'background 0.15s',
+              width: '100%', padding: '11px',
+              border: '1.5px solid #e5e7eb', borderRadius: '10px', background: '#fff',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px',
+              fontSize: '0.95rem', fontWeight: 600, color: '#374151', marginBottom: '20px', transition: 'background 0.15s',
             }}
             onMouseOver={e => (e.currentTarget.style.background = '#f9fafb')}
             onMouseOut={e => (e.currentTarget.style.background = '#fff')}
@@ -142,63 +159,56 @@ export default function LoginScreen() {
         <form onSubmit={handleSubmit}>
           <label style={labelStyle}>
             Correo electrónico
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="tu@correo.com"
-              style={inputStyle}
-            />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              required autoComplete="email" placeholder="tu@correo.com" style={inputStyle} />
           </label>
 
           {mode !== 'forgot' && (
             <label style={labelStyle}>
               Contraseña
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                placeholder="••••••••"
-                minLength={6}
-                style={inputStyle}
-              />
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                required autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                placeholder="••••••••" minLength={6} style={inputStyle} />
             </label>
           )}
 
+          {/* T&C notice on register */}
+          {mode === 'register' && (
+            <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '14px', lineHeight: 1.5 }}>
+              Al crear una cuenta aceptas los{' '}
+              <a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#16a34a' }}>Términos y Condiciones</a>
+              {' '}y la{' '}
+              <a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#16a34a' }}>Política de Privacidad</a>.
+            </p>
+          )}
+
+          {/* Message */}
           {message && (
             <div style={{
-              padding: '10px 14px',
-              borderRadius: '8px',
-              fontSize: '0.85rem',
-              marginBottom: '16px',
+              padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '16px',
               background: message.ok ? '#f0fdf4' : '#fef2f2',
               color: message.ok ? '#15803d' : '#dc2626',
               border: `1px solid ${message.ok ? '#bbf7d0' : '#fecaca'}`,
             }}>
               {message.text}
+              {message.showResend && (
+                <div style={{ marginTop: '8px' }}>
+                  <button type="button" onClick={handleResendConfirmation} disabled={loading}
+                    style={{ background: 'none', border: 'none', color: '#dc2626', fontWeight: 700,
+                      cursor: 'pointer', fontSize: '0.85rem', padding: 0, textDecoration: 'underline' }}>
+                    Reenviar correo de confirmación →
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '12px',
-              background: loading ? '#86efac' : '#16a34a',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '1rem',
-              fontWeight: 700,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'background 0.15s',
-            }}
-          >
+          <button type="submit" disabled={loading} style={{
+            width: '100%', padding: '12px',
+            background: loading ? '#86efac' : '#16a34a', color: '#fff',
+            border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700,
+            cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.15s',
+          }}>
             {loading ? '…' : titles[mode]}
           </button>
         </form>
@@ -227,39 +237,27 @@ export default function LoginScreen() {
             </button>
           )}
         </div>
+
+        {/* Legal links */}
+        <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '0.72rem', color: '#9ca3af' }}>
+          <a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#9ca3af' }}>Términos</a>
+          {' · '}
+          <a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#9ca3af' }}>Privacidad</a>
+        </div>
       </div>
     </div>
   );
 }
 
 const labelStyle: React.CSSProperties = {
-  display: 'block',
-  fontSize: '0.85rem',
-  fontWeight: 600,
-  color: '#374151',
-  marginBottom: '16px',
+  display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#374151', marginBottom: '16px',
 };
-
 const inputStyle: React.CSSProperties = {
-  display: 'block',
-  width: '100%',
-  marginTop: '6px',
-  padding: '10px 12px',
-  border: '1.5px solid #e5e7eb',
-  borderRadius: '8px',
-  fontSize: '0.95rem',
-  outline: 'none',
-  boxSizing: 'border-box',
-  color: '#111827',
-  background: '#f9fafb',
+  display: 'block', width: '100%', marginTop: '6px', padding: '10px 12px',
+  border: '1.5px solid #e5e7eb', borderRadius: '8px', fontSize: '0.95rem',
+  outline: 'none', boxSizing: 'border-box', color: '#111827', background: '#f9fafb',
 };
-
 const linkBtn: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: '#16a34a',
-  fontWeight: 600,
-  cursor: 'pointer',
-  fontSize: '0.85rem',
-  padding: 0,
+  background: 'none', border: 'none', color: '#16a34a', fontWeight: 600,
+  cursor: 'pointer', fontSize: '0.85rem', padding: 0,
 };

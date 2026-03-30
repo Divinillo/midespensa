@@ -9,7 +9,7 @@ interface Env {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
-  const { tier = 'pro' } = await request.json() as any;
+  const { tier = 'pro', email } = await request.json() as any;
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-04-10' as any,
@@ -26,6 +26,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       cancel_url:  `${origin}/`,
       allow_promotion_codes: true,
       metadata: { tier },
+      // Pre-fill and lock the email so the webhook always gets the Supabase account email
+      ...(email ? { customer_email: email } : {}),
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
