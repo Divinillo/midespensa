@@ -509,7 +509,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
               <button onClick={()=>setConfirmClear(true)}
                 className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all"
                 style={{background:'#fef2f2',color:'#ef4444',border:'1px solid #fecaca'}}>
-                🗑️ Borrar todos
+                🗑️ Todos
               </button>
             )}
             <button onClick={()=>isPro?setAutoModal(true):onUpgrade('autodish')}
