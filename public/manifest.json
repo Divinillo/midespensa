@@ -1,12 +1,12 @@
 {
-  "name": "Despensa Familiar",
-  "short_name": "Despensa",
+  "name": "MiDespensa",
+  "short_name": "MiDespensa",
   "description": "Planificador de comidas y gestión de despensa familiar",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#f8fafc",
+  "background_color": "#4b9e6e",
   "theme_color": "#166534",
   "lang": "es",
   "categories": ["food", "lifestyle", "productivity"],
@@ -15,13 +15,19 @@
       "src": "./icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "./icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
