@@ -184,6 +184,52 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
         return;
       }
       const p = data.product;
+      const ingredientsText: string = p.ingredients_text_es || p.ingredients_text || '';
+
+      // Aditivos de OpenFoodFacts (campo oficial)
+      const offAdditives: string[] = p.additives_tags || [];
+
+      // Fallback: parsear E-números del texto de ingredientes
+      const eNumRegex = /\bE-?\s*(\d{3,4}[a-z]?[i-v]*)\b/gi;
+      const parsedEnums: string[] = [];
+      let m: RegExpExecArray | null;
+      while ((m = eNumRegex.exec(ingredientsText)) !== null) {
+        const tag = `en:e${m[1].toLowerCase().replace(/-/g,'')}`;
+        if (!parsedEnums.includes(tag)) parsedEnums.push(tag);
+      }
+
+      // Nombres de aditivos comunes en texto de ingredientes
+      const ADDITIVE_NAMES: { pattern: RegExp; tag: string }[] = [
+        { pattern: /acesulfamo\s*k?\b/i,   tag: 'en:e950' },
+        { pattern: /sucralosa\b/i,          tag: 'en:e955' },
+        { pattern: /aspartamo\b/i,          tag: 'en:e951' },
+        { pattern: /stevia\b/i,             tag: 'en:e960' },
+        { pattern: /sacarina\b/i,           tag: 'en:e954' },
+        { pattern: /ciclamato\b/i,          tag: 'en:e952' },
+        { pattern: /tartrazina\b/i,         tag: 'en:e102' },
+        { pattern: /benzoato\b/i,           tag: 'en:e211' },
+        { pattern: /sorbato\b/i,            tag: 'en:e202' },
+        { pattern: /glutamato\b/i,          tag: 'en:e621' },
+        { pattern: /citrato de sodio\b/i,   tag: 'en:e331' },
+        { pattern: /fosfato\b/i,            tag: 'en:e338' },
+        { pattern: /carragenina\b/i,        tag: 'en:e407' },
+        { pattern: /goma xantana\b/i,       tag: 'en:e415' },
+        { pattern: /lecitina\b/i,           tag: 'en:e322' },
+        { pattern: /dióxido de silicio\b/i, tag: 'en:e551' },
+        { pattern: /cafeína\b/i,            tag: 'en:e1186' },
+      ];
+      const parsedNames: string[] = [];
+      for (const { pattern, tag } of ADDITIVE_NAMES) {
+        if (pattern.test(ingredientsText) && !offAdditives.includes(tag) && !parsedEnums.includes(tag)) {
+          parsedNames.push(tag);
+        }
+      }
+
+      // Merge: usar OFF si tiene datos, si no completar con los parseados
+      const mergedAdditives = offAdditives.length > 0
+        ? [...new Set([...offAdditives, ...parsedEnums, ...parsedNames])]
+        : [...new Set([...parsedEnums, ...parsedNames])];
+
       const scanned: ScannedProduct = {
         barcode:     code.trim(),
         name:        p.product_name || p.product_name_es || 'Sin nombre',
@@ -191,8 +237,8 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
         nutriscore:  p.nutriscore_grade?.toLowerCase(),
         nova:        p.nova_group ? Number(p.nova_group) : undefined,
         nutriments:  p.nutriments || {},
-        ingredients: p.ingredients_text_es || p.ingredients_text || '',
-        additives:   p.additives_tags || [],
+        ingredients: ingredientsText,
+        additives:   mergedAdditives,
         image:       p.image_front_small_url || p.image_url || '',
         scannedAt:   new Date().toISOString(),
       };

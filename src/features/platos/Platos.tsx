@@ -145,7 +145,8 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
 
   function scoreRecipes() {
     const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
-    let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()));
+    // Solo recetas con 4+ ingredientes (recetas completas, no guarniciones)
+    let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length >= 4);
     if(isUltra && diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
 
     const scored=candidates.map(recipe=>{
@@ -551,8 +552,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
-                {isUltra && (
-                  <button onClick={()=>{
+                <button onClick={()=>{
                     const recipeMatch = RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
                     const ingNames = recipeMatch
                       ? recipeMatch.ings
@@ -562,7 +562,6 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                     className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                     style={{background:'#f0fdf4',border:'1px solid #bbf7d0'}}
                     title="Ver receta">📖</button>
-                )}
                 <button onClick={()=>openEdit(dish)}
                   className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                   style={{background:'#f8fafc',border:'1px solid #e2e8f0'}}>✏️</button>
