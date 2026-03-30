@@ -3,7 +3,7 @@ import React, { useState, useMemo } from 'react';
 import type { Ingredient, Dish, Plan, PriceHistory } from '../../data/types';
 import { CAT_BG, CAT_TEXT, CAT_EMOJI, MONTH_NAMES, CATEGORIES } from '../../data/categories';
 
-export function ListaCompra({plan,dishes,ingredients,priceHistory}) {
+export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory}) {
   const now=new Date();
   const [selYear,setSelYear]=useState(now.getFullYear());
   const [selMonth,setSelMonth]=useState(now.getMonth());
@@ -24,6 +24,12 @@ export function ListaCompra({plan,dishes,ingredients,priceHistory}) {
     const explicitNeeded=ingredients.filter(i=>i.needed&&!i.available);
     explicitNeeded.forEach(i=>planMissing.add(i.id));
     const missing=ingredients.filter(i=>planMissing.has(i.id));
+
+    // ── Sincronizar con despensa: marcar como "a comprar" (needed) ──
+    setIngredients(ings=>ings.map(i=>
+      planMissing.has(i.id) && !i.needed ? {...i, needed:true} : i
+    ));
+
     const items=missing.map(ing=>{
       const hist=priceHistory[ing.id]||[];
       const avg=hist.length>0?hist.reduce((s,h)=>s+h.price,0)/hist.length:null;

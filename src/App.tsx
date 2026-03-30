@@ -343,7 +343,7 @@ export function App() {
         {section === 'platos' && <Platos dishes={dishes} setDishes={setDishes} ingredients={ingredients} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
         {section === 'cat' && <Catalogo ingredients={ingredients} setIngredients={setIngredients} isUltra={isUltra} />}
         {section === 'ticket' && <Tickets tickets={tickets} setTickets={setTickets} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} setPriceHistory={setPriceHistory} learnedMappings={learnedMappings} setLearnedMappings={setLearnedMappings} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'lista' && <ListaCompra plan={plan} dishes={dishes} ingredients={ingredients} priceHistory={priceHistory} />}
+        {section === 'lista' && <ListaCompra plan={plan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} />}
         {section === 'nutri' && <Nutricion isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
         {section === 'gastos' && <ResumenGasto tickets={tickets} ingredients={ingredients} priceHistory={priceHistory} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
       </main>
