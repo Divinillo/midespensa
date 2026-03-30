@@ -28,34 +28,19 @@ import { RECIPE_DB } from '../../data/recipes';
 import type { Ingredient, Dish } from '../../data/types';
 
 /* ═══════════════════════════════════════
-   RECIPE MODAL — Ultra: steps + YouTube
+   RECIPE MODAL — Ultra: pasos estáticos + YouTube
 ═══════════════════════════════════════ */
 function RecipeModal({ open, onClose, dishName, ings }) {
-  const [status, setStatus] = React.useState<'idle'|'loading'|'done'|'error'>('idle');
-  const [recipe, setRecipe] = React.useState<any>(null);
-  const [error, setError] = React.useState('');
-
-  React.useEffect(() => { if (open) { setStatus('idle'); setRecipe(null); setError(''); } }, [open, dishName]);
-
-  async function loadRecipe() {
-    setStatus('loading');
-    try {
-      const res = await fetch('/api/get-recipe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: dishName, ings }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.error ?? 'Error desconocido');
-      setRecipe(data.recipe);
-      setStatus('done');
-    } catch (e: any) {
-      setError(e?.message ?? 'No se pudo obtener la receta');
-      setStatus('error');
-    }
-  }
+  const recipeData = React.useMemo(() => {
+    if (!dishName) return null;
+    return RECIPE_DB.find(r => r.name.toLowerCase() === dishName.toLowerCase()) ?? null;
+  }, [dishName]);
 
   const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar ' + dishName)}`;
+  const steps: string[] = recipeData?.steps ?? [];
+  const tiempo: string = recipeData?.tiempo ?? '';
+  const dificultad: string = recipeData?.dificultad ?? '';
+  const consejo: string = recipeData?.consejo ?? '';
 
   return (
     <Modal open={open} onClose={onClose} title={`📖 ${dishName}`} wide>
@@ -75,79 +60,52 @@ function RecipeModal({ open, onClose, dishName, ings }) {
           <span style={{marginLeft:'auto', fontSize:'0.75rem', opacity:.7}}>↗</span>
         </a>
 
-        {/* Steps section */}
-        {status === 'idle' && (
-          <button onClick={loadRecipe}
-            style={{
-              width:'100%', padding:'11px 16px', borderRadius:14, fontWeight:700,
-              fontSize:'0.875rem', border:'none', cursor:'pointer',
-              background:'#16a34a', color:'#fff',
-              boxShadow:'0 2px 8px rgba(22,163,74,.3)',
-              display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-            }}>
-            <span>✨</span> Generar pasos de preparación
-          </button>
-        )}
-
-        {status === 'loading' && (
-          <div style={{textAlign:'center', padding:'24px 0', color:'#6b7280', fontSize:'0.875rem'}}>
-            <div style={{fontSize:'2rem', marginBottom:8, animation:'spin 1s linear infinite', display:'inline-block'}}>⏳</div>
-            <p style={{fontWeight:600}}>Generando receta...</p>
-            <p style={{fontSize:'0.75rem', marginTop:4, color:'#9ca3af'}}>El chef está preparando los pasos</p>
-          </div>
-        )}
-
-        {status === 'error' && (
-          <div style={{background:'#fef2f2', borderRadius:12, padding:'12px 14px', border:'1px solid #fecaca'}}>
-            <p style={{color:'#dc2626', fontSize:'0.8rem', fontWeight:600}}>⚠️ {error}</p>
-            <button onClick={loadRecipe}
-              style={{marginTop:8, fontSize:'0.75rem', color:'#16a34a', background:'none', border:'none', cursor:'pointer', fontWeight:700}}>
-              Reintentar →
-            </button>
-          </div>
-        )}
-
-        {status === 'done' && recipe && (
+        {steps.length > 0 ? (
           <div style={{background:'#f0fdf4', borderRadius:14, padding:'14px', border:'1px solid #bbf7d0'}}>
             {/* Time + difficulty */}
-            <div style={{display:'flex', gap:8, marginBottom:14}}>
-              {recipe.tiempo && (
-                <span style={{fontSize:'0.75rem', background:'#dcfce7', color:'#16a34a', padding:'4px 10px', borderRadius:20, fontWeight:700}}>
-                  ⏱ {recipe.tiempo}
-                </span>
-              )}
-              {recipe.dificultad && (
-                <span style={{
-                  fontSize:'0.75rem', padding:'4px 10px', borderRadius:20, fontWeight:700,
-                  background: recipe.dificultad==='Fácil'?'#dcfce7': recipe.dificultad==='Media'?'#fef9c3':'#fee2e2',
-                  color: recipe.dificultad==='Fácil'?'#16a34a': recipe.dificultad==='Media'?'#ca8a04':'#dc2626',
-                }}>
-                  {recipe.dificultad==='Fácil'?'🟢':recipe.dificultad==='Media'?'🟡':'🔴'} {recipe.dificultad}
-                </span>
-              )}
-            </div>
-
-            {/* Steps */}
-            <div style={{space:'y-2'}}>
-              {(recipe.pasos ?? []).map((paso: string, i: number) => (
-                <div key={i} style={{display:'flex', gap:10, marginBottom:10, alignItems:'flex-start'}}>
-                  <div style={{
-                    width:24, height:24, borderRadius:'50%', background:'#16a34a',
-                    color:'#fff', fontSize:'0.7rem', fontWeight:800, display:'flex',
-                    alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1,
-                  }}>{i+1}</div>
-                  <p style={{fontSize:'0.83rem', color:'#166534', lineHeight:1.5, margin:0}}>{paso}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Chef tip */}
-            {recipe.consejo && (
-              <div style={{marginTop:12, padding:'10px 12px', background:'#fff', borderRadius:10, border:'1px solid #bbf7d0'}}>
-                <p style={{fontSize:'0.75rem', color:'#16a34a', fontWeight:700, margin:'0 0 3px'}}>💡 Consejo del chef</p>
-                <p style={{fontSize:'0.78rem', color:'#166534', margin:0, lineHeight:1.4}}>{recipe.consejo}</p>
+            {(tiempo || dificultad) && (
+              <div style={{display:'flex', gap:8, marginBottom:14}}>
+                {tiempo && (
+                  <span style={{fontSize:'0.75rem', background:'#dcfce7', color:'#16a34a', padding:'4px 10px', borderRadius:20, fontWeight:700}}>
+                    ⏱ {tiempo}
+                  </span>
+                )}
+                {dificultad && (
+                  <span style={{
+                    fontSize:'0.75rem', padding:'4px 10px', borderRadius:20, fontWeight:700,
+                    background: dificultad==='Fácil'?'#dcfce7': dificultad==='Media'?'#fef9c3':'#fee2e2',
+                    color: dificultad==='Fácil'?'#16a34a': dificultad==='Media'?'#ca8a04':'#dc2626',
+                  }}>
+                    {dificultad==='Fácil'?'🟢':dificultad==='Media'?'🟡':'🔴'} {dificultad}
+                  </span>
+                )}
               </div>
             )}
+            {/* Steps */}
+            {steps.map((paso, i) => (
+              <div key={i} style={{display:'flex', gap:10, marginBottom:10, alignItems:'flex-start'}}>
+                <div style={{
+                  width:24, height:24, borderRadius:'50%', background:'#16a34a',
+                  color:'#fff', fontSize:'0.7rem', fontWeight:800, display:'flex',
+                  alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1,
+                }}>{i+1}</div>
+                <p style={{fontSize:'0.83rem', color:'#166534', lineHeight:1.5, margin:0}}>{paso}</p>
+              </div>
+            ))}
+            {/* Chef tip */}
+            {consejo && (
+              <div style={{marginTop:12, padding:'10px 12px', background:'#fff', borderRadius:10, border:'1px solid #bbf7d0'}}>
+                <p style={{fontSize:'0.75rem', color:'#16a34a', fontWeight:700, margin:'0 0 3px'}}>💡 Consejo del chef</p>
+                <p style={{fontSize:'0.78rem', color:'#166534', margin:0, lineHeight:1.4}}>{consejo}</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div style={{background:'#f9fafb', borderRadius:12, padding:'14px', textAlign:'center', border:'1px solid #e5e7eb'}}>
+            <p style={{color:'#6b7280', fontSize:'0.82rem', margin:0}}>
+              Ingredientes: {ings?.join(', ') || 'sin datos'}
+            </p>
+            <p style={{color:'#9ca3af', fontSize:'0.75rem', marginTop:6}}>Busca el vídeo en YouTube para ver la preparación</p>
           </div>
         )}
       </div>
