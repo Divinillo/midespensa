@@ -149,9 +149,21 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
         <DayPicker year={year} month={month} plan={plan} selected={selected} setSelected={setSelected}/>
         {/* Botón acción */}
         <button onClick={doClear} disabled={selCount===0}
-          className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all
-            ${selCount===0?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-red-500 text-white hover:bg-red-600 active:scale-95 shadow-sm'}`}>
-          {selCount===0?'Selecciona días para borrar':`🗑️ Borrar ${selCount} día${selCount!==1?'s':''} ${withFoodSel>0?`(${withFoodSel} con comida)`:''}`}
+          style={{
+            width:'100%', padding:'11px 16px', borderRadius:12, fontWeight:700,
+            fontSize:'0.875rem', border:'none', cursor: selCount===0 ? 'not-allowed' : 'pointer',
+            background: selCount===0 ? '#e5e7eb' : '#ef4444',
+            color: selCount===0 ? '#9ca3af' : '#fff',
+            display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+            boxShadow: selCount===0 ? 'none' : '0 4px 12px rgba(239,68,68,0.3)',
+            transition:'all .15s ease',
+          }}>
+          <span style={{fontSize:'1rem',lineHeight:1,flexShrink:0}}>🗑️</span>
+          <span style={{lineHeight:1}}>
+            {selCount===0
+              ? 'Selecciona días para borrar'
+              : `Borrar ${selCount} día${selCount!==1?'s':''}${withFoodSel>0?` (${withFoodSel} con comida)`:''}`}
+          </span>
         </button>
       </div>
     </Modal>

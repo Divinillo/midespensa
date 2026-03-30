@@ -13,30 +13,37 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
-      style={{ backgroundColor: 'rgba(15,23,42,.5)', backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' } as React.CSSProperties}
+      style={{ backgroundColor: 'rgba(0,0,0,.7)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' } as React.CSSProperties}
       onClick={onClose}
     >
       <div
-        className={`bg-white rounded-t-2xl sm:rounded-2xl w-full ${wide ? 'sm:max-w-xl' : 'sm:max-w-md'} max-h-[92vh] flex flex-col slide-up`}
-        style={{ boxShadow: '0 -4px 32px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.04)' }}
+        className={`rounded-t-2xl sm:rounded-2xl w-full ${wide ? 'sm:max-w-xl' : 'sm:max-w-md'} max-h-[92vh] flex flex-col slide-up`}
+        style={{
+          background: '#0d1a0f',
+          border: '1px solid rgba(74,222,128,0.12)',
+          boxShadow: '0 -8px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(74,222,128,0.06)',
+        }}
         onClick={e => e.stopPropagation()}
       >
         {/* Drag handle – mobile only */}
         <div className="flex justify-center pt-2.5 sm:hidden">
-          <div className="w-8 h-1 rounded-full" style={{ background: '#e2e8f0' }} />
+          <div className="w-8 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.1)' }} />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: '1px solid #f1f5f9' }}>
-          <h2 className="font-semibold text-gray-900" style={{ fontSize: '0.9375rem', letterSpacing: '-0.01em' }}>
+        <div className="flex items-center justify-between px-5 py-3.5" style={{ borderBottom: '1px solid rgba(74,222,128,0.08)' }}>
+          <h2 style={{ fontSize: '0.9375rem', fontWeight: 700, letterSpacing: '-0.01em', color: '#f0fdf4' }}>
             {title}
           </h2>
           <button
             onClick={onClose}
-            className="flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600"
-            style={{ width: 28, height: 28, background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '1.1rem', lineHeight: 1, transition: 'all .15s ease' }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.color = '#374151'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#9ca3af'; }}
+            style={{
+              width: 28, height: 28, background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8,
+              fontSize: '1.1rem', lineHeight: 1, color: 'rgba(255,255,255,0.4)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              transition: 'all .15s ease',
+            }}
           >
             ×
           </button>
