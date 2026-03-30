@@ -808,52 +808,67 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       <ClearDaysModal open={clearModal} onClose={()=>setClearModal(false)}
         year={year} month={month} plan={plan} setPlan={setPlan}/>
 
-      {/* ── Recipe modal (Ultra) ── */}
+      {/* ── Recipe modal (Ultra) – zIndex:70 para quedar sobre el modal del día ── */}
       {recipeModal && (()=>{
         const rd=RECIPE_DB.find(r=>r.name.toLowerCase()===recipeModal.name.toLowerCase());
         const ytUrl=`https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar '+recipeModal.name)}`;
         return (
-          <Modal open={!!recipeModal} onClose={()=>setRecipeModal(null)} title={`📖 ${recipeModal.name}`} wide>
-            <div style={{display:'flex',flexDirection:'column',gap:14}}>
-              {/* YouTube link */}
-              <a href={ytUrl} target="_blank" rel="noopener noreferrer"
-                style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:14,background:'#fef2f2',border:'1.5px solid #fecaca',textDecoration:'none',color:'#dc2626',fontWeight:700,fontSize:'0.85rem'}}>
-                <span style={{fontSize:'1.4rem',flexShrink:0}}>▶️</span>
-                <div>
-                  <div style={{fontSize:'0.85rem',fontWeight:700}}>Ver en YouTube</div>
-                  <div style={{fontSize:'0.72rem',fontWeight:400,color:'#f87171'}}>Tutoriales de "{recipeModal.name}"</div>
-                </div>
-                <span style={{marginLeft:'auto',fontSize:'0.75rem',opacity:.7}}>↗</span>
-              </a>
-              {rd?.steps?.length>0?(
-                <div style={{background:'#f0fdf4',borderRadius:14,padding:14,border:'1px solid #bbf7d0'}}>
-                  {(rd.tiempo||rd.dificultad)&&(
-                    <div style={{display:'flex',gap:8,marginBottom:14}}>
-                      {rd.tiempo&&<span style={{fontSize:'0.75rem',background:'#dcfce7',color:'#16a34a',padding:'4px 10px',borderRadius:20,fontWeight:700}}>⏱ {rd.tiempo}</span>}
-                      {rd.dificultad&&<span style={{fontSize:'0.75rem',padding:'4px 10px',borderRadius:20,fontWeight:700,background:rd.dificultad==='Fácil'?'#dcfce7':rd.dificultad==='Media'?'#fef9c3':'#fee2e2',color:rd.dificultad==='Fácil'?'#16a34a':rd.dificultad==='Media'?'#ca8a04':'#dc2626'}}>{rd.dificultad==='Fácil'?'🟢':rd.dificultad==='Media'?'🟡':'🔴'} {rd.dificultad}</span>}
-                    </div>
-                  )}
-                  {rd.steps.map((paso,i)=>(
-                    <div key={i} style={{display:'flex',gap:10,marginBottom:10,alignItems:'flex-start'}}>
-                      <div style={{width:24,height:24,borderRadius:'50%',background:'#16a34a',color:'#fff',fontSize:'0.7rem',fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
-                      <p style={{fontSize:'0.83rem',color:'#166534',lineHeight:1.5,margin:0}}>{paso}</p>
-                    </div>
-                  ))}
-                  {rd.consejo&&(
-                    <div style={{marginTop:12,padding:'10px 12px',background:'#fff',borderRadius:10,border:'1px solid #bbf7d0'}}>
-                      <p style={{fontSize:'0.75rem',color:'#16a34a',fontWeight:700,margin:'0 0 3px'}}>💡 Consejo del chef</p>
-                      <p style={{fontSize:'0.78rem',color:'#166534',margin:0,lineHeight:1.4}}>{rd.consejo}</p>
-                    </div>
-                  )}
-                </div>
-              ):(
-                <div style={{background:'#f9fafb',borderRadius:12,padding:14,textAlign:'center',border:'1px solid #e5e7eb'}}>
-                  <p style={{color:'#6b7280',fontSize:'0.82rem',margin:0}}>Ingredientes: {recipeModal.ings?.join(', ')||'sin datos'}</p>
-                  <p style={{color:'#9ca3af',fontSize:'0.75rem',marginTop:6}}>Busca el vídeo en YouTube para ver la preparación</p>
-                </div>
-              )}
+          <div style={{position:'fixed',inset:0,zIndex:70,background:'rgba(0,0,0,.55)',backdropFilter:'blur(6px)',WebkitBackdropFilter:'blur(6px)',display:'flex',alignItems:'flex-end',justifyContent:'center',padding:'0'}}
+            onClick={()=>setRecipeModal(null)}>
+            <div style={{background:'#fff',borderRadius:'20px 20px 0 0',width:'100%',maxWidth:480,maxHeight:'88vh',overflowY:'auto',boxShadow:'0 -8px 40px rgba(0,0,0,.18)'}}
+              onClick={e=>e.stopPropagation()}>
+              {/* Drag handle */}
+              <div style={{display:'flex',justifyContent:'center',paddingTop:10}}>
+                <div style={{width:36,height:4,borderRadius:4,background:'#e2e8f0'}}/>
+              </div>
+              {/* Header */}
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 20px 12px',borderBottom:'1px solid #f1f5f9'}}>
+                <span style={{fontWeight:700,fontSize:'0.95rem',color:'#111827'}}>📖 {recipeModal.name}</span>
+                <button onClick={()=>setRecipeModal(null)}
+                  style={{width:28,height:28,borderRadius:8,background:'#f8fafc',border:'1px solid #e2e8f0',color:'#9ca3af',fontSize:'1.1rem',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>×</button>
+              </div>
+              {/* Body */}
+              <div style={{padding:'16px 20px',display:'flex',flexDirection:'column',gap:14}}>
+                {/* YouTube link */}
+                <a href={ytUrl} target="_blank" rel="noopener noreferrer"
+                  style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:14,background:'#fef2f2',border:'1.5px solid #fecaca',textDecoration:'none',color:'#dc2626',fontWeight:700,fontSize:'0.85rem'}}>
+                  <span style={{fontSize:'1.4rem',flexShrink:0}}>▶️</span>
+                  <div>
+                    <div style={{fontSize:'0.85rem',fontWeight:700}}>Ver en YouTube</div>
+                    <div style={{fontSize:'0.72rem',fontWeight:400,color:'#f87171'}}>Tutoriales de "{recipeModal.name}"</div>
+                  </div>
+                  <span style={{marginLeft:'auto',fontSize:'0.75rem',opacity:.7}}>↗</span>
+                </a>
+                {rd?.steps?.length>0?(
+                  <div style={{background:'#f0fdf4',borderRadius:14,padding:14,border:'1px solid #bbf7d0'}}>
+                    {(rd.tiempo||rd.dificultad)&&(
+                      <div style={{display:'flex',gap:8,marginBottom:14}}>
+                        {rd.tiempo&&<span style={{fontSize:'0.75rem',background:'#dcfce7',color:'#16a34a',padding:'4px 10px',borderRadius:20,fontWeight:700}}>⏱ {rd.tiempo}</span>}
+                        {rd.dificultad&&<span style={{fontSize:'0.75rem',padding:'4px 10px',borderRadius:20,fontWeight:700,background:rd.dificultad==='Fácil'?'#dcfce7':rd.dificultad==='Media'?'#fef9c3':'#fee2e2',color:rd.dificultad==='Fácil'?'#16a34a':rd.dificultad==='Media'?'#ca8a04':'#dc2626'}}>{rd.dificultad==='Fácil'?'🟢':rd.dificultad==='Media'?'🟡':'🔴'} {rd.dificultad}</span>}
+                      </div>
+                    )}
+                    {rd.steps.map((paso,i)=>(
+                      <div key={i} style={{display:'flex',gap:10,marginBottom:10,alignItems:'flex-start'}}>
+                        <div style={{width:24,height:24,borderRadius:'50%',background:'#16a34a',color:'#fff',fontSize:'0.7rem',fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:1}}>{i+1}</div>
+                        <p style={{fontSize:'0.83rem',color:'#166534',lineHeight:1.5,margin:0}}>{paso}</p>
+                      </div>
+                    ))}
+                    {rd.consejo&&(
+                      <div style={{marginTop:12,padding:'10px 12px',background:'#fff',borderRadius:10,border:'1px solid #bbf7d0'}}>
+                        <p style={{fontSize:'0.75rem',color:'#16a34a',fontWeight:700,margin:'0 0 3px'}}>💡 Consejo del chef</p>
+                        <p style={{fontSize:'0.78rem',color:'#166534',margin:0,lineHeight:1.4}}>{rd.consejo}</p>
+                      </div>
+                    )}
+                  </div>
+                ):(
+                  <div style={{background:'#f9fafb',borderRadius:12,padding:14,textAlign:'center',border:'1px solid #e5e7eb'}}>
+                    <p style={{color:'#6b7280',fontSize:'0.82rem',margin:0}}>Ingredientes: {recipeModal.ings?.join(', ')||'sin datos'}</p>
+                    <p style={{color:'#9ca3af',fontSize:'0.75rem',marginTop:6}}>Busca el vídeo en YouTube para ver la preparación</p>
+                  </div>
+                )}
+              </div>
             </div>
-          </Modal>
+          </div>
         );
       })()}
 
