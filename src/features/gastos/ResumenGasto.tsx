@@ -342,7 +342,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
 ───────────────────────────────────────────────────────────────── */
 export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onUpgrade}) {
   const [showFull, setShowFull]=useState(false);
-  const canSeeReport=isPro||isUltra;
+  const canSeeReport=isUltra;
   const now=new Date();
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
 
@@ -470,7 +470,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
               style={{width:'100%',padding:'13px',borderRadius:16,fontWeight:800,fontSize:'0.875rem',border:'none',cursor:'pointer',
                 background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#fff',
                 boxShadow:'0 4px 14px rgba(245,158,11,.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-              <span>⭐</span> Informe completo con gráficos — Pro/Ultra
+              <span>⭐</span> Informe completo con gráficos — Solo Ultra
             </button>
           )}
         </>
