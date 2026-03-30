@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import type { Session } from '@supabase/supabase-js';
 import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from './data/categories';
 import { Header } from './components/layout/Header';
 import { Nav } from './components/layout/Nav';
@@ -12,9 +13,11 @@ import { ResumenGasto } from './features/gastos/ResumenGasto';
 import { Nutricion } from './features/nutricion/Nutricion';
 import { UpgradeModal } from './features/onboarding/OnboardingCard';
 import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
+import LoginScreen from './features/auth/LoginScreen';
 import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
 import { validateLicenseRemote } from './utils/licenseApi';
+import { supabase } from './utils/supabase';
 import { INIT_INGS } from './data/ingredients';
 import type { Ingredient, Dish, Plan, Ticket, PriceHistory, Section } from './data/types';
 
@@ -50,6 +53,22 @@ const TITLES: Record<Section, string> = {
 };
 
 export function App() {
+  // ── Supabase auth session ─────────────────────────────────────
+  const [session, setSession] = useState<Session | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setAuthLoading(false);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   const [section, setSection] = useLS<Section>('despensa_section_v1', 'plan');
   const [ingredients, setIngredients] = useLS<Ingredient[]>('despensa_ings_v4', INIT_INGS);
   const [dishes, setDishes] = useLS<Dish[]>('despensa_dishes_v4', INIT_DISHES);
@@ -73,6 +92,13 @@ export function App() {
   const [importError, setImportError] = useState('');
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
+
+  // Sync session email → userEmail (used for cloud sync)
+  useEffect(() => {
+    if (session?.user?.email) {
+      setUserEmail(session.user.email);
+    }
+  }, [session]);
 
   // Stripe activation + cloud load on mount
   useEffect(() => {
@@ -166,6 +192,19 @@ export function App() {
 
   const resetWizard = () => { setWizardDone(false); setShowSettings(false); };
 
+  // ── Auth guard ────────────────────────────────────────────────
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+      }}>
+        <div style={{ fontSize: '2rem' }}>🥦</div>
+      </div>
+    );
+  }
+  if (!session) return <LoginScreen />;
+
   // ── Show wizard for first-time users ──────────────────────────
   if (!wizardDone) {
     return (
@@ -197,100 +236,23 @@ export function App() {
       {/* Settings Modal */}
       <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title="⚙️ Ajustes y datos">
         <div className="space-y-4">
-          {userEmail ? (
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-              <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Cuenta vinculada</h3>
-              <p className="text-xs text-blue-600">Datos sincronizados con <strong>{userEmail}</strong></p>
-              {syncStatus && <p className="text-xs text-green-600 mt-1">{syncStatus}</p>}
-              {/* Configurar / cambiar PIN de recuperación */}
-              <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid #bfdbfe'}}>
-                <p className="text-xs font-bold text-blue-800 mb-1">🔐 PIN de recuperación</p>
-                <p className="text-xs text-blue-600 mb-2">Protege tu cuenta con un PIN. Se pedirá al recuperar los datos en otro dispositivo.</p>
-                <input
-                  value={pinSetup} onChange={e => setPinSetup(e.target.value.replace(/\D/,'').slice(0,8))}
-                  placeholder="PIN (4-8 dígitos)" type="password" inputMode="numeric"
-                  style={{width:'100%',boxSizing:'border-box',borderRadius:10,border:'1px solid #bfdbfe',padding:'8px 12px',fontSize:'16px',marginBottom:6,background:'#fff'}}
-                />
-                <input
-                  value={pinSetupConfirm} onChange={e => setPinSetupConfirm(e.target.value.replace(/\D/,'').slice(0,8))}
-                  placeholder="Confirmar PIN" type="password" inputMode="numeric"
-                  style={{width:'100%',boxSizing:'border-box',borderRadius:10,border:'1px solid #bfdbfe',padding:'8px 12px',fontSize:'16px',marginBottom:8,background:'#fff'}}
-                />
-                {pinMsg && <p className={`text-xs mb-2 ${pinMsg.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{pinMsg}</p>}
-                <button onClick={async () => {
-                  if (pinSetup.length < 4) { setPinMsg('El PIN debe tener al menos 4 dígitos.'); return; }
-                  if (pinSetup !== pinSetupConfirm) { setPinMsg('Los PINs no coinciden.'); return; }
-                  setPinMsg('Guardando...');
-                  const ph = await hashPin(userEmail, pinSetup);
-                  // El hash se incluirá en el próximo sync automático
-                  scheduleSyncToCloud(userEmail, () => ({
-                    dishes, ingredients, tickets, price_history: priceHistory, plan,
-                    recovery_pin_hash: ph,
-                    updated_at: Date.now(),
-                  }));
-                  // También guardarlo en localStorage para que el sync periódico lo incluya
-                  try { localStorage.setItem('despensa_pin_hash', ph); } catch {}
-                  setPinSetup(''); setPinSetupConfirm('');
-                  setPinMsg('✅ PIN guardado. Se activará en el próximo sync.');
-                }} style={{width:'100%',borderRadius:10,padding:'9px',fontSize:'0.82rem',fontWeight:700,border:'none',background:'#2563eb',color:'#fff',cursor:'pointer'}}>
-                  Guardar PIN
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-              <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Recuperar cuenta en otro dispositivo</h3>
-              <p className="text-xs text-blue-600 mb-3">Si ya tienes una suscripción activa, introduce tu email para recuperar todos tus datos.</p>
-              <input value={recoverEmail} onChange={e => { setRecoverEmail(e.target.value); setRecoverNeedsPin(false); setRecoverMsg(''); }}
-                placeholder="tu@email.com" type="email"
-                style={{width:'100%',boxSizing:'border-box',borderRadius:10,border:'1px solid #bfdbfe',padding:'8px 12px',fontSize:'16px',marginBottom:6,background:'#fff'}}
-              />
-              {recoverNeedsPin && (
-                <input value={recoverPin} onChange={e => setRecoverPin(e.target.value.replace(/\D/,'').slice(0,8))}
-                  placeholder="PIN de recuperación (4-8 dígitos)" type="password" inputMode="numeric"
-                  style={{width:'100%',boxSizing:'border-box',borderRadius:10,border:'1px solid #fbbf24',padding:'8px 12px',fontSize:'16px',marginBottom:6,background:'#fffbeb'}}
-                  autoFocus
-                />
-              )}
-              {recoverMsg && <p className={`text-xs mb-2 ${recoverMsg.startsWith('✅') ? 'text-green-600' : 'text-red-500'}`}>{recoverMsg}</p>}
-              <button onClick={async () => {
-                if (!recoverEmail) { setRecoverMsg('Introduce tu email.'); return; }
-                setRecoverMsg('Buscando...');
-                // Primera llamada sin PIN para detectar si lo necesita
-                let ph: string | undefined;
-                if (recoverNeedsPin) {
-                  if (!recoverPin || recoverPin.length < 4) { setRecoverMsg('Introduce tu PIN.'); return; }
-                  ph = await hashPin(recoverEmail, recoverPin);
+          {/* Cuenta */}
+          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+            <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Cuenta</h3>
+            <p className="text-xs text-blue-600 mb-1">Sesión iniciada como <strong>{session?.user?.email}</strong></p>
+            {syncStatus && <p className="text-xs text-green-600 mb-2">{syncStatus}</p>}
+            <button
+              onClick={async () => {
+                if (window.confirm('¿Cerrar sesión?')) {
+                  await supabase.auth.signOut();
+                  setShowSettings(false);
                 }
-                const cloud = await loadFromCloud(recoverEmail, ph);
-                if (!cloud) { setRecoverMsg('❌ No se encontraron datos. Comprueba tu email.'); return; }
-                if (cloud.error === 'PIN_REQUIRED') {
-                  setRecoverNeedsPin(true);
-                  setRecoverMsg('🔐 Esta cuenta tiene PIN. Introdúcelo para continuar.');
-                  return;
-                }
-                if (cloud.error === 'PIN_INVALID') {
-                  setRecoverMsg('❌ PIN incorrecto. Inténtalo de nuevo.');
-                  return;
-                }
-                if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
-                if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
-                if (cloud.ingredients?.length > 0) {
-                  const ings = reconcileAvailability(cloud.ingredients, cloud.tickets || []);
-                  setIngredients(ings);
-                }
-                if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
-                if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
-                if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); } else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
-                try { localStorage.setItem('despensa_local_ts', String(cloud.updated_at || Date.now())); } catch {}
-                setUserEmail(recoverEmail);
-                setRecoverMsg('✅ Datos recuperados correctamente.');
-                setRecoverPin(''); setRecoverNeedsPin(false);
-              }} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#2563eb',color:'#fff'}}>
-                {recoverNeedsPin ? '🔐 Verificar y recuperar' : 'Recuperar mis datos'}
-              </button>
-            </div>
-          )}
+              }}
+              style={{marginTop:8,borderRadius:10,padding:'8px 14px',fontSize:'0.82rem',fontWeight:700,border:'none',background:'#ef4444',color:'#fff',cursor:'pointer'}}
+            >
+              Cerrar sesión
+            </button>
+          </div>
           {/* Storage warning */}
           <div style={{borderRadius:12,padding:'12px 14px',background:'#fffbeb',border:'1px solid #fde68a',display:'flex',gap:10,alignItems:'flex-start'}}>
             <span style={{fontSize:'1.1rem',flexShrink:0}}>⚠️</span>
