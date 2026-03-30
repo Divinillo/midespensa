@@ -1,74 +1,110 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
   <defs>
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#16a34a;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#15803d;stop-opacity:1" />
-    </linearGradient>
-    <linearGradient id="basketGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#dcfce7;stop-opacity:1" />
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
-      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="rgba(0,0,0,0.18)"/>
-    </filter>
+    <clipPath id="basketClip">
+      <path d="M 292 482 Q 278 620 288 685 Q 298 748 342 758 L 682 758 Q 726 748 736 685 Q 746 620 732 482 Z"/>
+    </clipPath>
   </defs>
 
-  <!-- Background rounded rect -->
-  <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bgGrad)"/>
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="190" fill="#4b9e6e"/>
 
-  <!-- Subtle inner glow ring -->
-  <rect width="1024" height="1024" rx="220" ry="220" fill="none" stroke="rgba(255,255,255,0.12)" stroke-width="18"/>
+  <!-- ══════════════════════════════════ -->
+  <!-- VEGETABLES — white outline        -->
+  <!-- ══════════════════════════════════ -->
 
-  <!-- ── Basket handle (arc) ── -->
-  <path d="M 330 430 Q 330 260 512 260 Q 694 260 694 430"
-        fill="none" stroke="url(#basketGrad)" stroke-width="56" stroke-linecap="round"/>
+  <!-- LEFT leafy greens -->
+  <g fill="none" stroke="white" stroke-width="19" stroke-linecap="round" stroke-linejoin="round">
+    <!-- leaf 1 (far left, curves left) -->
+    <path d="M 348 478 C 318 430 298 375 312 318 C 328 360 338 418 348 478"/>
+    <!-- leaf 2 (center-left) -->
+    <path d="M 368 468 C 352 410 352 345 372 285 C 378 335 374 400 368 468"/>
+    <!-- leaf 3 (right of left group) -->
+    <path d="M 390 465 C 385 405 395 342 420 292 C 415 345 404 408 390 465"/>
+  </g>
 
-  <!-- ── Basket body ── -->
-  <!-- Main basket shape -->
-  <path d="M 220 430 L 260 720 Q 265 760 310 760 L 714 760 Q 759 760 764 720 L 804 430 Z"
-        fill="url(#basketGrad)" filter="url(#shadow)"/>
+  <!-- CENTER-LEFT: carrot -->
+  <g fill="none" stroke="white" stroke-width="19" stroke-linecap="round" stroke-linejoin="round">
+    <!-- carrot body -->
+    <path d="M 455 480 C 448 520 450 560 460 600 C 468 630 472 650 468 670"/>
+    <path d="M 455 480 C 466 520 470 560 472 600 C 474 630 472 650 468 670"/>
+    <!-- carrot tip -->
+    <path d="M 460 670 C 462 680 468 685 468 670"/>
+    <!-- carrot leaves -->
+    <path d="M 456 488 C 444 455 430 430 418 415"/>
+    <path d="M 460 478 C 456 440 458 405 462 380"/>
+    <path d="M 465 482 C 472 448 480 418 488 402"/>
+    <path d="M 469 490 C 480 460 490 438 498 428"/>
+  </g>
 
-  <!-- Basket weave lines (vertical) -->
-  <line x1="370" y1="436" x2="345" y2="754" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
-  <line x1="440" y1="430" x2="426" y2="758" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
-  <line x1="512" y1="430" x2="512" y2="760" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
-  <line x1="584" y1="430" x2="598" y2="758" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
-  <line x1="654" y1="436" x2="679" y2="754" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
+  <!-- CENTER-RIGHT: carrot -->
+  <g fill="none" stroke="white" stroke-width="19" stroke-linecap="round" stroke-linejoin="round">
+    <!-- carrot body -->
+    <path d="M 543 480 C 536 520 538 560 548 600 C 556 630 560 650 556 670"/>
+    <path d="M 543 480 C 554 520 558 560 560 600 C 562 630 560 650 556 670"/>
+    <!-- carrot tip -->
+    <path d="M 548 670 C 550 680 556 685 556 670"/>
+    <!-- carrot leaves -->
+    <path d="M 536 490 C 526 458 520 430 526 410"/>
+    <path d="M 542 480 C 540 445 544 412 550 385"/>
+    <path d="M 549 482 C 558 450 566 420 572 405"/>
+    <path d="M 554 490 C 566 460 576 440 584 430"/>
+  </g>
 
-  <!-- Basket weave lines (horizontal) -->
-  <line x1="228" y1="520" x2="796" y2="520" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
-  <line x1="240" y1="610" x2="784" y2="610" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
-  <line x1="252" y1="695" x2="772" y2="695" stroke="#16a34a" stroke-width="10" stroke-opacity="0.18"/>
+  <!-- RIGHT leafy greens (mirror of left) -->
+  <g fill="none" stroke="white" stroke-width="19" stroke-linecap="round" stroke-linejoin="round">
+    <!-- leaf 1 (far right, curves right) -->
+    <path d="M 676 478 C 706 430 726 375 712 318 C 696 360 686 418 676 478"/>
+    <!-- leaf 2 -->
+    <path d="M 656 468 C 672 410 672 345 652 285 C 646 335 650 400 656 468"/>
+    <!-- leaf 3 -->
+    <path d="M 634 465 C 639 405 629 342 604 292 C 609 345 620 408 634 465"/>
+  </g>
 
-  <!-- Basket rim (top border) -->
-  <rect x="210" y="415" width="604" height="52" rx="26" fill="white" opacity="0.95"/>
+  <!-- ══════════════════════════════════ -->
+  <!-- BASKET LATTICE (clipped)          -->
+  <!-- ══════════════════════════════════ -->
+  <g clip-path="url(#basketClip)" fill="none" stroke="white" stroke-width="16">
+    <!-- Diagonal lines: top-left to bottom-right -->
+    <line x1="278" y1="500" x2="380" y2="762"/>
+    <line x1="310" y1="482" x2="448" y2="762"/>
+    <line x1="375" y1="482" x2="515" y2="762"/>
+    <line x1="440" y1="482" x2="580" y2="762"/>
+    <line x1="505" y1="482" x2="645" y2="762"/>
+    <line x1="570" y1="482" x2="710" y2="762"/>
+    <line x1="635" y1="482" x2="746" y2="720"/>
+    <line x1="700" y1="482" x2="746" y2="578"/>
+    <line x1="730" y1="482" x2="746" y2="530"/>
 
-  <!-- ── Groceries peeking out of basket ── -->
-  <!-- Carrot -->
-  <ellipse cx="390" cy="385" rx="28" ry="52" fill="#f97316" transform="rotate(-18, 390, 385)"/>
-  <path d="M 370 342 Q 355 305 340 295 Q 360 308 375 338" fill="#16a34a"/>
-  <path d="M 382 335 Q 372 295 365 280 Q 380 300 388 330" fill="#16a34a"/>
+    <!-- Diagonal lines: top-right to bottom-left -->
+    <line x1="746" y1="500" x2="644" y2="762"/>
+    <line x1="714" y1="482" x2="576" y2="762"/>
+    <line x1="649" y1="482" x2="509" y2="762"/>
+    <line x1="584" y1="482" x2="444" y2="762"/>
+    <line x1="519" y1="482" x2="379" y2="762"/>
+    <line x1="454" y1="482" x2="314" y2="762"/>
+    <line x1="389" y1="482" x2="278" y2="720"/>
+    <line x1="324" y1="482" x2="278" y2="578"/>
+    <line x1="294" y1="482" x2="278" y2="530"/>
+  </g>
 
-  <!-- Bread / baguette -->
-  <ellipse cx="512" cy="368" rx="72" ry="30" fill="#fbbf24" transform="rotate(-8, 512, 368)"/>
-  <ellipse cx="512" cy="360" rx="66" ry="22" fill="#fcd34d" transform="rotate(-8, 512, 360)"/>
-  <!-- Bread score lines -->
-  <line x1="478" y1="352" x2="490" y2="376" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" transform="rotate(-8, 484, 364)"/>
-  <line x1="504" y1="348" x2="516" y2="372" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" transform="rotate(-8, 510, 360)"/>
-  <line x1="530" y1="348" x2="542" y2="372" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" transform="rotate(-8, 536, 360)"/>
+  <!-- ══════════════════════════════════ -->
+  <!-- BASKET OUTLINE                    -->
+  <!-- ══════════════════════════════════ -->
+  <path d="M 292 482 Q 278 620 288 685 Q 298 748 342 758 L 682 758 Q 726 748 736 685 Q 746 620 732 482 Z"
+        fill="none" stroke="white" stroke-width="22" stroke-linejoin="round"/>
 
-  <!-- Apple -->
-  <circle cx="640" cy="378" r="46" fill="#ef4444"/>
-  <circle cx="640" cy="378" r="46" fill="none" stroke="#dc2626" stroke-width="2"/>
-  <!-- Apple shine -->
-  <ellipse cx="622" cy="358" rx="10" ry="14" fill="rgba(255,255,255,0.35)" transform="rotate(-20,622,358)"/>
-  <!-- Apple stem -->
-  <path d="M 640 333 Q 648 318 658 314" stroke="#15803d" stroke-width="6" stroke-linecap="round" fill="none"/>
-  <!-- Apple leaf -->
-  <ellipse cx="652" cy="318" rx="12" ry="7" fill="#16a34a" transform="rotate(-30, 652, 318)"/>
+  <!-- Basket rim (sits on top, covers lattice overflow) -->
+  <rect x="280" y="463" width="464" height="42" rx="21"
+        fill="#4b9e6e" stroke="white" stroke-width="22"/>
 
-  <!-- ── "m" letter subtle watermark at bottom of basket ── -->
-  <text x="512" y="730" text-anchor="middle" font-family="'Georgia', serif" font-size="72" font-weight="900"
-        fill="#15803d" opacity="0.22" letter-spacing="-2">midespensa</text>
-
+  <!-- ══════════════════════════════════ -->
+  <!-- TEXT                              -->
+  <!-- ══════════════════════════════════ -->
+  <text x="512" y="895"
+        text-anchor="middle"
+        font-family="'Arial Black','Arial Bold','Arial',sans-serif"
+        font-size="82"
+        font-weight="900"
+        fill="white"
+        letter-spacing="7">MIDESPENSA</text>
 </svg>
