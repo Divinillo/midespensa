@@ -27,6 +27,134 @@ import { CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES, FREE_DISH_LIMIT, ING_EMOJI } f
 import { RECIPE_DB } from '../../data/recipes';
 import type { Ingredient, Dish } from '../../data/types';
 
+/* ═══════════════════════════════════════
+   RECIPE MODAL — Ultra: steps + YouTube
+═══════════════════════════════════════ */
+function RecipeModal({ open, onClose, dishName, ings }) {
+  const [status, setStatus] = React.useState<'idle'|'loading'|'done'|'error'>('idle');
+  const [recipe, setRecipe] = React.useState<any>(null);
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => { if (open) { setStatus('idle'); setRecipe(null); setError(''); } }, [open, dishName]);
+
+  async function loadRecipe() {
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/get-recipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: dishName, ings }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.error ?? 'Error desconocido');
+      setRecipe(data.recipe);
+      setStatus('done');
+    } catch (e: any) {
+      setError(e?.message ?? 'No se pudo obtener la receta');
+      setStatus('error');
+    }
+  }
+
+  const ytUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar ' + dishName)}`;
+
+  return (
+    <Modal open={open} onClose={onClose} title={`📖 ${dishName}`} wide>
+      <div className="space-y-4">
+        {/* YouTube always visible */}
+        <a href={ytUrl} target="_blank" rel="noopener noreferrer"
+          style={{
+            display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
+            borderRadius:14, background:'#fef2f2', border:'1.5px solid #fecaca',
+            textDecoration:'none', color:'#dc2626', fontWeight:700, fontSize:'0.85rem',
+          }}>
+          <span style={{fontSize:'1.4rem', flexShrink:0}}>▶️</span>
+          <div>
+            <div style={{fontSize:'0.85rem', fontWeight:700}}>Ver en YouTube</div>
+            <div style={{fontSize:'0.72rem', fontWeight:400, color:'#f87171'}}>Tutoriales de "{dishName}"</div>
+          </div>
+          <span style={{marginLeft:'auto', fontSize:'0.75rem', opacity:.7}}>↗</span>
+        </a>
+
+        {/* Steps section */}
+        {status === 'idle' && (
+          <button onClick={loadRecipe}
+            style={{
+              width:'100%', padding:'11px 16px', borderRadius:14, fontWeight:700,
+              fontSize:'0.875rem', border:'none', cursor:'pointer',
+              background:'#16a34a', color:'#fff',
+              boxShadow:'0 2px 8px rgba(22,163,74,.3)',
+              display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+            }}>
+            <span>✨</span> Generar pasos de preparación
+          </button>
+        )}
+
+        {status === 'loading' && (
+          <div style={{textAlign:'center', padding:'24px 0', color:'#6b7280', fontSize:'0.875rem'}}>
+            <div style={{fontSize:'2rem', marginBottom:8, animation:'spin 1s linear infinite', display:'inline-block'}}>⏳</div>
+            <p style={{fontWeight:600}}>Generando receta...</p>
+            <p style={{fontSize:'0.75rem', marginTop:4, color:'#9ca3af'}}>El chef está preparando los pasos</p>
+          </div>
+        )}
+
+        {status === 'error' && (
+          <div style={{background:'#fef2f2', borderRadius:12, padding:'12px 14px', border:'1px solid #fecaca'}}>
+            <p style={{color:'#dc2626', fontSize:'0.8rem', fontWeight:600}}>⚠️ {error}</p>
+            <button onClick={loadRecipe}
+              style={{marginTop:8, fontSize:'0.75rem', color:'#16a34a', background:'none', border:'none', cursor:'pointer', fontWeight:700}}>
+              Reintentar →
+            </button>
+          </div>
+        )}
+
+        {status === 'done' && recipe && (
+          <div style={{background:'#f0fdf4', borderRadius:14, padding:'14px', border:'1px solid #bbf7d0'}}>
+            {/* Time + difficulty */}
+            <div style={{display:'flex', gap:8, marginBottom:14}}>
+              {recipe.tiempo && (
+                <span style={{fontSize:'0.75rem', background:'#dcfce7', color:'#16a34a', padding:'4px 10px', borderRadius:20, fontWeight:700}}>
+                  ⏱ {recipe.tiempo}
+                </span>
+              )}
+              {recipe.dificultad && (
+                <span style={{
+                  fontSize:'0.75rem', padding:'4px 10px', borderRadius:20, fontWeight:700,
+                  background: recipe.dificultad==='Fácil'?'#dcfce7': recipe.dificultad==='Media'?'#fef9c3':'#fee2e2',
+                  color: recipe.dificultad==='Fácil'?'#16a34a': recipe.dificultad==='Media'?'#ca8a04':'#dc2626',
+                }}>
+                  {recipe.dificultad==='Fácil'?'🟢':recipe.dificultad==='Media'?'🟡':'🔴'} {recipe.dificultad}
+                </span>
+              )}
+            </div>
+
+            {/* Steps */}
+            <div style={{space:'y-2'}}>
+              {(recipe.pasos ?? []).map((paso: string, i: number) => (
+                <div key={i} style={{display:'flex', gap:10, marginBottom:10, alignItems:'flex-start'}}>
+                  <div style={{
+                    width:24, height:24, borderRadius:'50%', background:'#16a34a',
+                    color:'#fff', fontSize:'0.7rem', fontWeight:800, display:'flex',
+                    alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1,
+                  }}>{i+1}</div>
+                  <p style={{fontSize:'0.83rem', color:'#166534', lineHeight:1.5, margin:0}}>{paso}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Chef tip */}
+            {recipe.consejo && (
+              <div style={{marginTop:12, padding:'10px 12px', background:'#fff', borderRadius:10, border:'1px solid #bbf7d0'}}>
+                <p style={{fontSize:'0.75rem', color:'#16a34a', fontWeight:700, margin:'0 0 3px'}}>💡 Consejo del chef</p>
+                <p style={{fontSize:'0.78rem', color:'#166534', margin:0, lineHeight:1.4}}>{recipe.consejo}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </Modal>
+  );
+}
+
 const DIET_SETS = [
   { id: 'omnivora',    icon: '🍽️', label: 'Omnívora',    desc: 'Todo tipo de alimentos' },
   { id: 'vegetariano', icon: '🥗',  label: 'Vegetariana', desc: 'Sin carne ni pescado' },
@@ -53,6 +181,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
   const [results,setResults]=useState(null);
   const [selected,setSelected]=useState({});
   const [added,setAdded]=useState(false);
+  const [recipePreview,setRecipePreview]=useState<{name:string,ings:string[]}|null>(null);
 
   React.useEffect(()=>{ if(open){setResults(null);setSelected({});setAdded(false);} },[open]);
 
@@ -98,6 +227,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
   const pct=n=>Math.round(n*100);
 
   return (
+    <>
     <Modal open={open} onClose={onClose} title="✨ Sugerir platos" wide>
       {added?(
         <div className="space-y-4 text-center py-2">
@@ -222,6 +352,19 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                           🛒 Faltan: {s.missing.map(m=>m.name).join(', ')}
                         </p>
                       )}
+                      {isUltra&&(
+                        <button
+                          type="button"
+                          onClick={e=>{e.stopPropagation();setRecipePreview({name:s.recipe.name,ings:s.recipe.ings});}}
+                          style={{
+                            marginTop:6, fontSize:'0.7rem', fontWeight:700,
+                            color:'#16a34a', background:'#f0fdf4',
+                            border:'1px solid #bbf7d0', borderRadius:8,
+                            padding:'3px 9px', cursor:'pointer',
+                          }}>
+                          📖 Ver preparación
+                        </button>
+                      )}
                     </div>
                   </div>
                 </button>
@@ -241,6 +384,13 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
         </div>
       )}
     </Modal>
+    <RecipeModal
+      open={!!recipePreview}
+      onClose={()=>setRecipePreview(null)}
+      dishName={recipePreview?.name ?? ''}
+      ings={recipePreview?.ings ?? []}
+    />
+    </>
   );
 }
 
@@ -353,6 +503,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
   const [form,setForm]=useState({name:'',ingredients:[]});
   const [confirm,setConfirm]=useState(null);
   const [autoModal,setAutoModal]=useState(false);
+  const [recipeModal,setRecipeModal]=useState<{name:string,ings:string[]}|null>(null);
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
 
   const openAdd=()=>{
@@ -442,6 +593,18 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
+                {isUltra && (
+                  <button onClick={()=>{
+                    const recipeMatch = RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
+                    const ingNames = recipeMatch
+                      ? recipeMatch.ings
+                      : dish.ingredients.map((iid:string)=>ingMap[iid]?.name).filter(Boolean);
+                    setRecipeModal({name:dish.name, ings:ingNames});
+                  }}
+                    className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
+                    style={{background:'#f0fdf4',border:'1px solid #bbf7d0'}}
+                    title="Ver receta">📖</button>
+                )}
                 <button onClick={()=>openEdit(dish)}
                   className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                   style={{background:'#f8fafc',border:'1px solid #e2e8f0'}}>✏️</button>
@@ -470,6 +633,12 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
       <AutoDishModal open={autoModal} onClose={()=>setAutoModal(false)}
         ingredients={ingredients} dishes={dishes} setDishes={setDishes}
         isUltra={isUltra} onUpgrade={onUpgrade}/>
+      <RecipeModal
+        open={!!recipeModal}
+        onClose={()=>setRecipeModal(null)}
+        dishName={recipeModal?.name ?? ''}
+        ings={recipeModal?.ings ?? []}
+      />
     </div>
   );
 }
