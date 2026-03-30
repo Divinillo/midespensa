@@ -7,6 +7,10 @@ import { generateNutriPDF } from '../../utils/pdfReport';
 import type { Ingredient, Dish, Plan, Ticket } from '../../data/types';
 import { FREE_DISH_LIMIT, MONTH_NAMES, WEEK_DAYS, CAT_EMOJI } from '../../data/categories';
 import { RECIPE_DB } from '../../data/recipes';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend, LineChart, Line
+} from 'recharts';
 
 function DayPicker({year,month,plan,selected,setSelected,highlightHasFood=true}) {
   const days=getDays(year,month);
@@ -227,9 +231,17 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     // Separar en comidas y cenas usando el campo 'when' de RECIPE_DB
     // lunch: when==='lunch' || when==='both'   (hidratos OK al mediodía)
     // dinner: when==='dinner' || when==='both'  (sin pasta/arroz/legumbres pesadas por la noche)
+    const PROTEIN_WORDS=/pollo|pechuga|muslos|pavo|ternera|cerdo|lomo|solomillo|costillas|carne|jamón|chorizo|bacon|salmón|merluza|bacalao|atún|gambas|mejillones|calamares|sepia|rape|dorada|langostinos|sardinas|huevo|huevos|tofu|tempeh|garbanzos|lentejas|alubias/i;
+    const SOLO_VEG=/^(brócoli|espinacas|zanahoria|calabacín|berenjena|coliflor|judías verdes|pimientos?|tomate|lechuga|champiñones?|setas|acelgas|puerros?|alcachofas?|rúcula)(\s(al vapor|salteado|rehogado|asado|hervido|plancha))?$/i;
     const getWhen=dish=>{
       const rec=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
-      return rec?.when||'both';
+      if(rec?.when) return rec.when;
+      // Platos con solo verdura sin proteína → nunca para cenar solos
+      const n=dish.name.trim();
+      if(SOLO_VEG.test(n)&&!PROTEIN_WORDS.test(n)) return 'lunch';
+      // Pasta/arroz/legumbres → mediodía
+      if(/pasta|arroz|macarr|espagueti|fideu|ñoqui|ravioli|lentejas|garbanzos|alubias|potaje/i.test(n)) return 'lunch';
+      return 'both';
     };
     const lunchPool=[...shuffled]
       .filter(({dish})=>{ const w=getWhen(dish); return w==='lunch'||w==='both'; })
@@ -547,69 +559,171 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
             {selected.length===0?'Selecciona días':'📊 Generar informe'}
           </button>
         </div>
-      ):(
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-bold text-gray-800">Informe · {report.rows.length} días · {MONTH_NAMES[month]} {year}</p>
-            <button onClick={()=>setShowReport(false)} className="text-xs text-gray-400 hover:text-gray-600">← Volver</button>
+      ):(()=>{
+        const MACRO_COLORS={prot:'#3b82f6',carbs:'#f59e0b',fat:'#ef4444',sugar:'#ec4899'};
+        const kcalData=report.rows.map(r=>({name:`${r.day}`,kcal:r.totKcal,objetivo:2000}));
+        const macroData=report.rows.map(r=>({name:`${r.day}`,Proteína:r.totProt,Hidratos:r.totCarbs,Grasas:r.totFat}));
+        const pieTotals=[
+          {name:'Proteína',value:report.totals.prot*4,color:'#3b82f6'},
+          {name:'Hidratos',value:report.totals.carbs*4,color:'#f59e0b'},
+          {name:'Grasas',value:report.totals.fat*9,color:'#ef4444'},
+        ].filter(p=>p.value>0);
+        const CustomTip=({active,payload,label})=>active&&payload?.length?(
+          <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:10,padding:'8px 12px',fontSize:11,boxShadow:'0 2px 8px rgba(0,0,0,.08)'}}>
+            <p style={{fontWeight:700,marginBottom:4,color:'#374151'}}>{label}</p>
+            {payload.map(p=><p key={p.name} style={{color:p.color||p.fill,margin:'1px 0'}}>{p.name}: <b>{p.value}</b></p>)}
           </div>
-
-          {/* Resumen total + media */}
-          <div className="bg-purple-50 border border-purple-100 rounded-2xl p-3">
-            <p className="text-xs font-bold text-purple-700 mb-2">📈 Media diaria estimada</p>
-            <div className="flex gap-2 justify-around">
-              <MacroBadge label="Kcal" val={report.avg.kcal} unit="" color="bg-orange-100 text-orange-700"/>
-              <MacroBadge label="Prot" val={report.avg.prot} color="bg-blue-100 text-blue-700"/>
-              <MacroBadge label="HC" val={report.avg.carbs} color="bg-yellow-100 text-yellow-700"/>
-              <MacroBadge label="Grasas" val={report.avg.fat} color="bg-red-100 text-red-600"/>
-              <MacroBadge label="Azúcar" val={report.avg.sugar} color="bg-pink-100 text-pink-600"/>
+        ):null;
+        const [nutriTab,setNutriTab]=useState('kcal');
+        return (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-bold text-gray-800">📊 {report.rows.length} días · {MONTH_NAMES[month]} {year}</p>
+              <button onClick={()=>setShowReport(false)} className="text-xs text-gray-400 hover:text-gray-600">← Volver</button>
             </div>
-            <p className="text-[10px] text-purple-400 mt-2 text-center">Total: {report.totals.kcal} kcal · {report.totals.prot}g prot · {report.totals.carbs}g HC · {report.totals.fat}g grasas · {report.totals.sugar}g azúcar</p>
-          </div>
 
-          {/* Detalle por día */}
-          <div className="max-h-64 overflow-y-auto space-y-2 pr-0.5">
-            {report.rows.map(r=>(
-              <div key={r.day} className="bg-white border border-gray-100 rounded-xl p-3">
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs font-bold text-gray-700">{r.day} {MONTH_NAMES[month]}</p>
-                  {r.totKcal>0&&<span className="text-[10px] bg-orange-50 text-orange-600 font-bold px-1.5 py-0.5 rounded-full">🔥 {r.totKcal} kcal</span>}
+            {/* KPI cards */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                {label:'Media kcal',val:report.avg.kcal,unit:'',bg:'#fff7ed',col:'#ea580c'},
+                {label:'Proteína',val:report.avg.prot,unit:'g',bg:'#eff6ff',col:'#2563eb'},
+                {label:'Hidratos',val:report.avg.carbs,unit:'g',bg:'#fefce8',col:'#ca8a04'},
+                {label:'Grasas',val:report.avg.fat,unit:'g',bg:'#fef2f2',col:'#dc2626'},
+              ].map(c=>(
+                <div key={c.label} style={{background:c.bg,borderRadius:12,padding:'8px',textAlign:'center'}}>
+                  <div style={{fontSize:16,fontWeight:800,color:c.col,lineHeight:1}}>{c.val}{c.unit}</div>
+                  <div style={{fontSize:9,color:'#9ca3af',marginTop:2,fontWeight:600}}>{c.label}</div>
                 </div>
-                {r.lunch&&<p className="text-[10px] text-gray-500 truncate">🍽 {r.lunch.name}{r.lMacros?` · ${r.lMacros.kcal}kcal`:''}</p>}
-                {r.dinner&&<p className="text-[10px] text-gray-500 truncate">🌙 {r.dinner.name}{r.dMacros?` · ${r.dMacros.kcal}kcal`:''}</p>}
-                {r.totProt>0&&(
-                  <div className="flex gap-1.5 mt-1.5 flex-wrap">
-                    <span className="text-[9px] bg-blue-50 text-blue-600 px-1 py-0.5 rounded font-semibold">P {r.totProt}g</span>
-                    <span className="text-[9px] bg-yellow-50 text-yellow-600 px-1 py-0.5 rounded font-semibold">HC {r.totCarbs}g</span>
-                    <span className="text-[9px] bg-red-50 text-red-500 px-1 py-0.5 rounded font-semibold">G {r.totFat}g</span>
-                    {r.totSugar>0&&<span className="text-[9px] bg-pink-50 text-pink-500 px-1 py-0.5 rounded font-semibold">🍬 {r.totSugar}g</span>}
-                  </div>
-                )}
-                {!r.totKcal&&<p className="text-[10px] text-gray-300 italic">Sin datos de macros para estos platos</p>}
-              </div>
-            ))}
-          </div>
-          <p className="text-[10px] text-gray-300 text-center">* Estimaciones orientativas por ración. No sustituyen asesoramiento nutricional.</p>
+              ))}
+            </div>
 
-          {/* Botones acción */}
-          <div style={{display:'flex',gap:8}}>
-            <button onClick={()=>handleDownloadPDF(report)} disabled={pdfLoading}
-              style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:700,border:'none',
-                cursor:pdfLoading?'not-allowed':'pointer',
-                background:pdfLoading?'#ede9fe':'#7c3aed',
-                color:pdfLoading?'#a78bfa':'#fff',
-                boxShadow:pdfLoading?'none':'0 2px 12px rgba(109,40,217,0.35)'}}>
-              {pdfLoading
-                ? <><span style={{display:'inline-block',animation:'spin 1s linear infinite'}}>⏳</span> Generando…</>
-                : <><span>📄</span> Descargar PDF</>}
-            </button>
-            <button onClick={onClose}
-              style={{flex:1,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:600,border:'1px solid #e2e8f0',background:'#f8fafc',color:'#475569',cursor:'pointer'}}>
-              Cerrar
-            </button>
+            {/* Chart tabs */}
+            <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              {[['kcal','🔥 Calorías'],['macros','💪 Macros'],['dist','🥧 Distribución'],['detalle','📋 Días']].map(([t,l])=>(
+                <button key={t} onClick={()=>setNutriTab(t)}
+                  style={{fontSize:'0.7rem',padding:'4px 10px',borderRadius:20,fontWeight:700,border:'none',cursor:'pointer',
+                    background:nutriTab===t?'#7c3aed':'#f1f5f9',
+                    color:nutriTab===t?'#fff':'#64748b'}}>
+                  {l}
+                </button>
+              ))}
+            </div>
+
+            {/* Chart content */}
+            {nutriTab==='kcal'&&(
+              <div>
+                <p style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>Calorías diarias estimadas (línea = objetivo 2000 kcal)</p>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={kcalData} margin={{top:4,right:4,left:-20,bottom:0}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
+                    <XAxis dataKey="name" tick={{fontSize:9}} interval={Math.floor(kcalData.length/6)}/>
+                    <YAxis tick={{fontSize:9}}/>
+                    <Tooltip content={<CustomTip/>}/>
+                    <Bar dataKey="kcal" fill="#f97316" radius={[4,4,0,0]} name="Kcal"/>
+                    <Line type="monotone" dataKey="objetivo" stroke="#94a3b8" strokeDasharray="4 4" dot={false} name="Objetivo"/>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div style={{display:'flex',justifyContent:'center',gap:16,marginTop:4}}>
+                  <span style={{fontSize:9,color:'#f97316',fontWeight:700}}>■ Kcal reales</span>
+                  <span style={{fontSize:9,color:'#94a3b8',fontWeight:700}}>-- Objetivo 2000</span>
+                </div>
+              </div>
+            )}
+
+            {nutriTab==='macros'&&(
+              <div>
+                <p style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>Macronutrientes por día (gramos)</p>
+                <ResponsiveContainer width="100%" height={180}>
+                  <BarChart data={macroData} margin={{top:4,right:4,left:-20,bottom:0}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
+                    <XAxis dataKey="name" tick={{fontSize:9}} interval={Math.floor(macroData.length/6)}/>
+                    <YAxis tick={{fontSize:9}}/>
+                    <Tooltip content={<CustomTip/>}/>
+                    <Bar dataKey="Proteína" stackId="a" fill="#3b82f6"/>
+                    <Bar dataKey="Hidratos" stackId="a" fill="#f59e0b"/>
+                    <Bar dataKey="Grasas" stackId="a" fill="#ef4444" radius={[4,4,0,0]}/>
+                  </BarChart>
+                </ResponsiveContainer>
+                <div style={{display:'flex',justifyContent:'center',gap:12,marginTop:4}}>
+                  {[['Proteína','#3b82f6'],['Hidratos','#f59e0b'],['Grasas','#ef4444']].map(([n,c])=>(
+                    <span key={n} style={{fontSize:9,color:c,fontWeight:700}}>■ {n}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {nutriTab==='dist'&&(
+              <div>
+                <p style={{fontSize:10,color:'#9ca3af',marginBottom:4}}>Distribución energética total del período</p>
+                {pieTotals.length>0?(
+                  <>
+                    <ResponsiveContainer width="100%" height={180}>
+                      <PieChart>
+                        <Pie data={pieTotals} cx="50%" cy="50%" innerRadius={45} outerRadius={75} dataKey="value" nameKey="name" paddingAngle={3}>
+                          {pieTotals.map(e=><Cell key={e.name} fill={e.color}/>)}
+                        </Pie>
+                        <Tooltip formatter={(v,n)=>[`${v} kcal`,n]} contentStyle={{fontSize:11,borderRadius:10}}/>
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div style={{display:'flex',justifyContent:'center',gap:12,flexWrap:'wrap'}}>
+                      {pieTotals.map(e=>{
+                        const total=pieTotals.reduce((s,p)=>s+p.value,0);
+                        const pct=total>0?Math.round(e.value/total*100):0;
+                        return <span key={e.name} style={{fontSize:10,color:e.color,fontWeight:700}}>■ {e.name} {pct}%</span>;
+                      })}
+                    </div>
+                    <p style={{fontSize:9,color:'#cbd5e1',textAlign:'center',marginTop:4}}>Prot 4kcal/g · HC 4kcal/g · Grasa 9kcal/g</p>
+                  </>
+                ):<p style={{textAlign:'center',fontSize:12,color:'#94a3b8',padding:'40px 0'}}>Sin datos de macros disponibles</p>}
+              </div>
+            )}
+
+            {nutriTab==='detalle'&&(
+              <div className="max-h-52 overflow-y-auto space-y-1.5 pr-0.5">
+                {report.rows.map(r=>(
+                  <div key={r.day} style={{background:'#fff',border:'1px solid #f1f5f9',borderRadius:12,padding:'8px 12px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
+                      <span style={{fontSize:11,fontWeight:700,color:'#374151'}}>{r.day} {MONTH_NAMES[month]}</span>
+                      {r.totKcal>0&&<span style={{fontSize:10,background:'#fff7ed',color:'#ea580c',fontWeight:700,padding:'2px 7px',borderRadius:20}}>🔥 {r.totKcal} kcal</span>}
+                    </div>
+                    {r.lunch&&<p style={{fontSize:10,color:'#6b7280',margin:'1px 0'}}>🍽 {r.lunch.name}{r.lMacros?` · ${r.lMacros.kcal}kcal`:''}</p>}
+                    {r.dinner&&<p style={{fontSize:10,color:'#6b7280',margin:'1px 0'}}>🌙 {r.dinner.name}{r.dMacros?` · ${r.dMacros.kcal}kcal`:''}</p>}
+                    {r.totProt>0&&(
+                      <div style={{display:'flex',gap:6,marginTop:5,flexWrap:'wrap'}}>
+                        <span style={{fontSize:9,background:'#eff6ff',color:'#2563eb',padding:'2px 5px',borderRadius:6,fontWeight:700}}>P {r.totProt}g</span>
+                        <span style={{fontSize:9,background:'#fefce8',color:'#ca8a04',padding:'2px 5px',borderRadius:6,fontWeight:700}}>HC {r.totCarbs}g</span>
+                        <span style={{fontSize:9,background:'#fef2f2',color:'#dc2626',padding:'2px 5px',borderRadius:6,fontWeight:700}}>G {r.totFat}g</span>
+                        {r.totSugar>0&&<span style={{fontSize:9,background:'#fdf2f8',color:'#db2777',padding:'2px 5px',borderRadius:6,fontWeight:700}}>🍬 {r.totSugar}g</span>}
+                      </div>
+                    )}
+                    {!r.totKcal&&<p style={{fontSize:10,color:'#d1d5db',fontStyle:'italic'}}>Sin datos de macros</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-[9px] text-gray-300 text-center">* Estimaciones orientativas por ración. No sustituyen asesoramiento nutricional.</p>
+
+            {/* Botones acción */}
+            <div style={{display:'flex',gap:8}}>
+              <button onClick={()=>handleDownloadPDF(report)} disabled={pdfLoading}
+                style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:700,border:'none',
+                  cursor:pdfLoading?'not-allowed':'pointer',
+                  background:pdfLoading?'#ede9fe':'#7c3aed',
+                  color:pdfLoading?'#a78bfa':'#fff',
+                  boxShadow:pdfLoading?'none':'0 2px 12px rgba(109,40,217,0.35)'}}>
+                {pdfLoading
+                  ? <><span style={{display:'inline-block',animation:'spin 1s linear infinite'}}>⏳</span> Generando…</>
+                  : <><span>📄</span> Descargar PDF</>}
+              </button>
+              <button onClick={onClose}
+                style={{flex:1,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:600,border:'1px solid #e2e8f0',background:'#f8fafc',color:'#475569',cursor:'pointer'}}>
+                Cerrar
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </Modal>
   );
 }
@@ -624,6 +738,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   const [clearModal,setClearModal]=useState(false);
   const [nutriModal,setNutriModal]=useState(false);
   const [recipeModal,setRecipeModal]=useState(null); // {name,ings}
+  const [confirmDayClear,setConfirmDayClear]=useState(false);
   const days=getDays(year,month); const firstWD=getFirstWD(year,month);
   const dishMap=useMemo(()=>Object.fromEntries(dishes.map(d=>[d.id,d])),[dishes]);
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
@@ -815,6 +930,10 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         dishes={dishes} ingredients={ingredients} setIngredients={setIngredients}/>
       <NutriReportModal open={nutriModal} onClose={()=>setNutriModal(false)}
         year={year} month={month} plan={plan} dishes={dishes} tickets={tickets}/>
+      <Confirm open={confirmDayClear}
+        msg={`¿Borrar los platos del día ${selDay} de ${MONTH_NAMES[month]}? Esta acción no se puede deshacer.`}
+        onOk={()=>{if(selDay){clearDay(selDay);setSelDay(null);}setConfirmDayClear(false);}}
+        onCancel={()=>setConfirmDayClear(false)}/>
       <ClearDaysModal open={clearModal} onClose={()=>setClearModal(false)}
         year={year} month={month} plan={plan} setPlan={setPlan}/>
 
@@ -993,7 +1112,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                   style={{flex:1,borderRadius:14,padding:'14px',fontSize:'0.9rem',fontWeight:800,color:'#fff',background:sameDayDup?'#d1d5db':'#16a34a',boxShadow:sameDayDup?'none':'0 4px 14px rgba(22,163,74,.35)',border:'none',cursor:sameDayDup?'not-allowed':'pointer',transition:'all .15s'}}>
                   💾 Guardar
                 </button>
-                <button onClick={()=>{clearDay(selDay);setSelDay(null);}}
+                <button onClick={()=>setConfirmDayClear(true)}
                   style={{padding:'14px 18px',borderRadius:14,fontSize:'0.85rem',fontWeight:700,color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fecaca',cursor:'pointer'}}>
                   🗑️ Limpiar
                 </button>

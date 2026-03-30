@@ -2,213 +2,389 @@
 import React, { useState, useMemo } from 'react';
 import { fmt2 } from '../../utils/helpers';
 import { CAT_EMOJI, CAT_BG, CAT_TEXT, MONTH_NAMES, STORE_EMOJI } from '../../data/categories';
-import { Modal } from '../../components/ui/Modal';
-import { generateNutriPDF } from '../../utils/pdfReport';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
+import {
+  PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
+  LineChart, Line,
+} from 'recharts';
 
-// CDN globals
 declare const window: any;
 
+const PALETTE = ['#16a34a','#7c3aed','#f59e0b','#ef4444','#3b82f6','#10b981','#f97316','#8b5cf6','#ec4899','#06b6d4','#84cc16','#14b8a6'];
+
+const STORE_COLOR: Record<string,string> = {Mercadona:'#16a34a',Consum:'#3b82f6',Carrefour:'#ef4444',Lidl:'#f59e0b',Aldi:'#f97316',Otro:'#6b7280'};
+
+function SectionTitle({children}:{children:React.ReactNode}) {
+  return <p style={{fontSize:'0.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.07em',color:'#94a3b8',marginBottom:10}}>{children}</p>;
+}
+
+const customTooltip=({active,payload,label})=>{
+  if(!active||!payload?.length) return null;
+  return (
+    <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:10,padding:'8px 12px',boxShadow:'0 4px 12px rgba(0,0,0,.08)'}}>
+      {label&&<p style={{fontSize:'0.75rem',fontWeight:700,color:'#374151',marginBottom:4}}>{label}</p>}
+      {payload.map((p,i)=>(
+        <p key={i} style={{fontSize:'0.75rem',color:p.color||'#374151'}}>{p.name}: <strong>{typeof p.value==='number'?p.value.toFixed(2)+'€':p.value}</strong></p>
+      ))}
+    </div>
+  );
+};
+
 export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade}) {
-  const [tab,setTab]=useState('mes');
+  const [tab,setTab]=useState('resumen');
   const now=new Date();
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
-  const monthKey=`${now.getFullYear()}-${fmt2(now.getMonth()+1)}`;
-  const monthTickets=tickets.filter(t=>t.date?.startsWith(monthKey));
-  const monthTotal=monthTickets.reduce((s,t)=>s+(t.total||0),0);
-  const allTotal=tickets.reduce((s,t)=>s+(t.total||0),0);
-  const ingStats=useMemo(()=>Object.entries(priceHistory).map(([id,recs])=>{
-    const ing=ingMap[id];if(!ing)return null;
-    const total=recs.reduce((s,r)=>s+r.price,0);
-    return {ing,total,avg:total/recs.length,count:recs.length,recs};
-  }).filter(Boolean).sort((a,b)=>b.total-a.total),[priceHistory,ingMap]);
-  const catStats=useMemo(()=>{const s={};ingStats.forEach(({ing,total})=>{if(!s[ing.category])s[ing.category]=0;s[ing.category]+=total;});return Object.entries(s).sort((a,b)=>b[1]-a[1]);},[ingStats]);
-  const catTotal=useMemo(()=>catStats.reduce((s,[,v])=>s+v,0),[catStats]);
-  // Por supermercado
-  const storeStats=useMemo(()=>{
-    const s={};
-    tickets.forEach(t=>{
-      const store=t.store||(t.filename?.toLowerCase().includes('mercadona')?'Mercadona':t.filename?.toLowerCase().includes('consum')?'Consum':'Otro');
-      if(!s[store])s[store]={total:0,count:0,monthTotal:0};
-      s[store].total+=(t.total||0);
-      s[store].count++;
-      if(t.date?.startsWith(monthKey))s[store].monthTotal+=(t.total||0);
-    });
-    return Object.entries(s).sort((a,b)=>b[1].total-a[1].total);
-  },[tickets,monthKey]);
-  const storeTotal=useMemo(()=>storeStats.reduce((s,[,v])=>s+v.total,0),[storeStats]);
-  const STORE_EMOJI={'Mercadona':'🟢','Consum':'🔵','Carrefour':'🔴','Lidl':'🟡','Aldi':'🟠','Otro':'🏪'};
 
-  const printReport = () => { window.print(); };
+  // ── Datos por mes (últimos 6 meses) ────────────────────────────────────────
+  const monthlyData = useMemo(()=>{
+    const map:{[k:string]:number}={};
+    tickets.forEach(t=>{
+      const k=t.date?.slice(0,7);
+      if(k) map[k]=(map[k]||0)+(t.total||0);
+    });
+    return Object.entries(map)
+      .sort((a,b)=>a[0].localeCompare(b[0]))
+      .slice(-6)
+      .map(([k,v])=>{
+        const [y,m]=k.split('-');
+        return {mes:MONTH_NAMES[parseInt(m)-1].slice(0,3), total:parseFloat(v.toFixed(2))};
+      });
+  },[tickets]);
+
+  // ── Gasto por categoría ────────────────────────────────────────────────────
+  const catData = useMemo(()=>{
+    const s:{[k:string]:number}={};
+    Object.entries(priceHistory).forEach(([id,recs])=>{
+      const ing=ingMap[id]; if(!ing) return;
+      recs.forEach((r:any)=>{ s[ing.category]=(s[ing.category]||0)+r.price; });
+    });
+    return Object.entries(s)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([cat,v],i)=>({cat, name:`${CAT_EMOJI[cat]||''} ${cat}`, value:parseFloat(v.toFixed(2)), fill:PALETTE[i%PALETTE.length]}));
+  },[priceHistory,ingMap]);
+  const catTotal=catData.reduce((s,c)=>s+c.value,0);
+
+  // ── Gasto por supermercado ────────────────────────────────────────────────
+  const storeData = useMemo(()=>{
+    const s:{[k:string]:number}={};
+    tickets.forEach(t=>{
+      const store=t.store||(t.filename?.toLowerCase().includes('mercadona')?'Mercadona':t.filename?.toLowerCase().includes('consum')?'Consum':t.filename?.toLowerCase().includes('carrefour')?'Carrefour':t.filename?.toLowerCase().includes('lidl')?'Lidl':t.filename?.toLowerCase().includes('aldi')?'Aldi':'Otro');
+      s[store]=(s[store]||0)+(t.total||0);
+    });
+    return Object.entries(s)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([store,v])=>({store, value:parseFloat(v.toFixed(2)), fill:STORE_COLOR[store]||'#6b7280'}));
+  },[tickets]);
+  const storeTotal=storeData.reduce((s,d)=>s+d.value,0);
+
+  // ── Top 10 ingredientes más caros ─────────────────────────────────────────
+  const topIngs = useMemo(()=>
+    Object.entries(priceHistory)
+      .map(([id,recs])=>{ const ing=ingMap[id];if(!ing)return null; const total=(recs as any[]).reduce((s,r)=>s+r.price,0); return {name:ing.name,total:parseFloat(total.toFixed(2))}; })
+      .filter(Boolean).sort((a,b)=>b.total-a.total).slice(0,10)
+  ,[priceHistory,ingMap]);
+
+  // ── KPIs ──────────────────────────────────────────────────────────────────
+  const monthKey=`${now.getFullYear()}-${fmt2(now.getMonth()+1)}`;
+  const monthTotal=tickets.filter(t=>t.date?.startsWith(monthKey)).reduce((s,t)=>s+(t.total||0),0);
+  const allTotal=tickets.reduce((s,t)=>s+(t.total||0),0);
+  const avgMonthly=monthlyData.length>0?(monthlyData.reduce((s,m)=>s+m.total,0)/monthlyData.length):0;
+
+  const TABS=[['resumen','📊 Resumen'],['meses','📅 Meses'],['categoria','🏷️ Categorías'],['super','🏪 Súpers'],['ings','🥕 Ingredientes']];
 
   return (
-    <div className="fade-in">
+    <div className="fade-in" style={{paddingBottom:32}}>
 
       {/* ── Header ── */}
       <div className="mb-5">
-        <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-          Gastos 💰
-        </h1>
-        <p className="text-sm text-gray-400 mt-1">
-          <span className="font-bold text-green-600">{monthTotal.toFixed(2)}€</span> este mes · {tickets.length} tickets en total
+        <h1 style={{fontSize:'1.5rem',fontWeight:900,color:'#111827',letterSpacing:'-0.02em',lineHeight:1}}>Gastos 💰</h1>
+        <p style={{fontSize:'0.875rem',color:'#9ca3af',marginTop:4}}>
+          <span style={{fontWeight:700,color:'#16a34a'}}>{monthTotal.toFixed(2)}€</span> este mes · {tickets.length} tickets en total
         </p>
       </div>
 
-      {/* ── Stat cards ── */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="rounded-2xl p-4 text-white" style={{background:'linear-gradient(135deg,#15803d,#16a34a)',boxShadow:'0 2px 12px rgba(22,163,74,.3)'}}>
-          <div className="text-xs font-semibold mb-1" style={{opacity:.75}}>{MONTH_NAMES[now.getMonth()]}</div>
-          <div className="text-2xl font-black leading-none">{monthTotal.toFixed(2)}€</div>
-          <div className="text-xs mt-1" style={{opacity:.7}}>{monthTickets.length} tickets</div>
-        </div>
-        <div className="rounded-2xl p-4 text-white" style={{background:'linear-gradient(135deg,#6d28d9,#7c3aed)',boxShadow:'0 2px 12px rgba(109,40,217,.25)'}}>
-          <div className="text-xs font-semibold mb-1" style={{opacity:.75}}>Total histórico</div>
-          <div className="text-2xl font-black leading-none">{allTotal.toFixed(2)}€</div>
-          <div className="text-xs mt-1" style={{opacity:.7}}>{tickets.length} tickets</div>
-        </div>
+      {/* ── KPI cards ── */}
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:16}}>
+        {[
+          {label:MONTH_NAMES[now.getMonth()],val:`${monthTotal.toFixed(2)}€`,sub:`${tickets.filter(t=>t.date?.startsWith(monthKey)).length} tickets`,bg:'linear-gradient(135deg,#15803d,#16a34a)',shadow:'rgba(22,163,74,.3)'},
+          {label:'Media mensual',val:`${avgMonthly.toFixed(2)}€`,sub:'últimos meses',bg:'linear-gradient(135deg,#0369a1,#0284c7)',shadow:'rgba(3,105,161,.25)'},
+          {label:'Total histórico',val:`${allTotal.toFixed(2)}€`,sub:`${tickets.length} tickets`,bg:'linear-gradient(135deg,#6d28d9,#7c3aed)',shadow:'rgba(109,40,217,.25)'},
+        ].map(c=>(
+          <div key={c.label} style={{borderRadius:16,padding:'12px 10px',color:'#fff',background:c.bg,boxShadow:`0 2px 10px ${c.shadow}`}}>
+            <div style={{fontSize:'0.6rem',fontWeight:700,opacity:.75,marginBottom:3,textTransform:'uppercase',letterSpacing:'.04em'}}>{c.label}</div>
+            <div style={{fontSize:'1.1rem',fontWeight:900,lineHeight:1}}>{c.val}</div>
+            <div style={{fontSize:'0.6rem',marginTop:3,opacity:.7}}>{c.sub}</div>
+          </div>
+        ))}
       </div>
-
-      {/* ── PDF banner ── */}
-      <div className="rounded-2xl p-4 mb-4 flex items-center justify-between"
-        style={{background: isPro?'#f5f3ff':'#f8fafc', border:`1px solid ${isPro?'#ddd6fe':'#e2e8f0'}`}}>
-        <div>
-          <p className="text-sm font-bold text-gray-700">📊 Informe PDF</p>
-          <p className="text-xs text-gray-400 mt-0.5">{isPro?'Imprime o guarda el resumen':'Solo en versión Pro'}</p>
-        </div>
-        {isPro
-          ?<button onClick={printReport} className="px-4 py-2 rounded-full text-xs font-bold text-white no-print" style={{background:'#7c3aed'}}>Generar PDF</button>
-          :<button onClick={()=>onUpgrade('reports')} className="px-4 py-2 rounded-full text-xs font-bold text-white" style={{background:'#16a34a'}}>🔒 Desbloquear</button>
-        }
-      </div>
-
-      {/* ── Aviso mes ── */}
-      {tickets.length>0&&monthTickets.length===0&&(
-        <div className="rounded-2xl px-4 py-3 mb-4 flex gap-3 items-start"
-          style={{background:'#fffbeb',border:'1px solid #fde68a'}}>
-          <span className="text-base leading-none mt-0.5">💡</span>
-          <p className="text-xs text-amber-700 leading-relaxed">
-            Los tickets no corresponden a <strong>{MONTH_NAMES[now.getMonth()]}</strong>. El importe del mes se muestra en 0 € — puedes verlos en <strong>Tickets</strong>.
-          </p>
-        </div>
-      )}
 
       {/* ── Tabs ── */}
-      <div className="flex gap-1 mb-4 p-1 rounded-2xl" style={{background:'#f1f5f9'}}>
-        {[['mes','Tickets'],['super','Súper'],['cat','Categoría'],['ing','Ingrediente']].map(([k,l])=>(
+      <div style={{display:'flex',gap:4,marginBottom:16,padding:4,borderRadius:16,background:'#f1f5f9',overflowX:'auto'}}>
+        {TABS.map(([k,l])=>(
           <button key={k} onClick={()=>setTab(k)}
-            className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${tab===k?'bg-white text-gray-800 shadow-sm':'text-gray-400'}`}>
+            style={{flex:'1 0 auto',padding:'7px 10px',borderRadius:12,fontSize:'0.7rem',fontWeight:700,border:'none',cursor:'pointer',whiteSpace:'nowrap',
+              background:tab===k?'#fff':'transparent',color:tab===k?'#111827':'#94a3b8',
+              boxShadow:tab===k?'0 1px 4px rgba(0,0,0,.08)':'none',transition:'all .15s'}}>
             {l}
           </button>
         ))}
       </div>
 
-      {/* ── Tab: Tickets ── */}
-      {tab==='mes'&&(
-        <div className="space-y-2">
-          {!tickets.length&&<div className="text-center text-gray-300 py-10 text-sm">Sin tickets</div>}
-          {[...tickets].reverse().map(t=>{
-            const store=t.store||(t.filename?.toLowerCase().includes('mercadona')?'Mercadona':t.filename?.toLowerCase().includes('consum')?'Consum':'Otro');
-            return (
-              <div key={t.id} className="bg-white rounded-2xl p-4 flex justify-between items-center"
-                style={{border:'1px solid #f1f5f9',boxShadow:'0 1px 3px rgba(0,0,0,.04)'}}>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold text-gray-800 truncate">🧾 {t.filename}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{t.date} · {STORE_EMOJI[store]||'🏪'} {store} · {(t.matched||[]).length} ing.</p>
-                </div>
-                <div className="text-base font-black text-green-600 shrink-0 ml-3">{t.total?.toFixed(2)}€</div>
-              </div>
-            );
-          })}
+      {!tickets.length&&(
+        <div style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>
+          Sin tickets aún · sube tu primer ticket para ver el informe
         </div>
       )}
 
-      {/* ── Tab: Súper ── */}
+      {/* ══ RESUMEN ══ */}
+      {tab==='resumen'&&tickets.length>0&&(
+        <div style={{display:'flex',flexDirection:'column',gap:20}}>
+
+          {/* Evolución mensual bar */}
+          {monthlyData.length>0&&(
+            <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+              <SectionTitle>Evolución del gasto mensual</SectionTitle>
+              <ResponsiveContainer width="100%" height={160}>
+                <BarChart data={monthlyData} margin={{top:0,right:4,left:-20,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
+                  <XAxis dataKey="mes" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                  <Tooltip content={customTooltip}/>
+                  <Bar dataKey="total" name="Gasto" fill="#16a34a" radius={[6,6,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Pie categorías */}
+          {catData.length>0&&(
+            <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+              <SectionTitle>Gasto por categoría</SectionTitle>
+              <div style={{display:'flex',gap:12,alignItems:'center'}}>
+                <ResponsiveContainer width={140} height={140}>
+                  <PieChart>
+                    <Pie data={catData} cx="50%" cy="50%" innerRadius={38} outerRadius={60} paddingAngle={2} dataKey="value">
+                      {catData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                    </Pie>
+                    <Tooltip content={customTooltip}/>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
+                  {catData.slice(0,5).map(c=>(
+                    <div key={c.cat} style={{display:'flex',alignItems:'center',gap:6}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:c.fill,flexShrink:0}}/>
+                      <span style={{fontSize:'0.7rem',color:'#374151',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{c.name}</span>
+                      <span style={{fontSize:'0.7rem',fontWeight:700,color:'#111827',flexShrink:0}}>{catTotal>0?Math.round(c.value/catTotal*100):0}%</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Pie supermercados */}
+          {storeData.length>0&&(
+            <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+              <SectionTitle>Dónde compras más</SectionTitle>
+              <div style={{display:'flex',gap:12,alignItems:'center'}}>
+                <ResponsiveContainer width={140} height={140}>
+                  <PieChart>
+                    <Pie data={storeData} cx="50%" cy="50%" innerRadius={38} outerRadius={60} paddingAngle={2} dataKey="value">
+                      {storeData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                    </Pie>
+                    <Tooltip content={customTooltip}/>
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{flex:1,display:'flex',flexDirection:'column',gap:5}}>
+                  {storeData.map(s=>(
+                    <div key={s.store} style={{display:'flex',alignItems:'center',gap:6}}>
+                      <div style={{width:8,height:8,borderRadius:'50%',background:s.fill,flexShrink:0}}/>
+                      <span style={{fontSize:'0.7rem',color:'#374151',flex:1}}>{s.store}</span>
+                      <span style={{fontSize:'0.7rem',fontWeight:700,color:'#111827',flexShrink:0}}>{s.value.toFixed(2)}€</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══ MESES ══ */}
+      {tab==='meses'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {monthlyData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>Sin datos mensuales</p>}
+          {monthlyData.length>0&&(
+            <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+              <SectionTitle>Gasto mensual (€)</SectionTitle>
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={monthlyData} margin={{top:0,right:4,left:-16,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
+                  <XAxis dataKey="mes" tick={{fontSize:11,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                  <Tooltip content={customTooltip}/>
+                  <Bar dataKey="total" name="Gasto" fill="#16a34a" radius={[7,7,0,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
+              {/* Tendencia */}
+              {monthlyData.length>=2&&(()=>{
+                const first=monthlyData[0].total, last=monthlyData[monthlyData.length-1].total;
+                const diff=last-first, pct=first>0?Math.round(diff/first*100):0;
+                return (
+                  <div style={{marginTop:12,padding:'8px 12px',borderRadius:12,background:diff<=0?'#f0fdf4':'#fef2f2',display:'flex',alignItems:'center',gap:8}}>
+                    <span style={{fontSize:'1.2rem'}}>{diff<=0?'📉':'📈'}</span>
+                    <p style={{fontSize:'0.75rem',color:diff<=0?'#15803d':'#dc2626',fontWeight:600,margin:0}}>
+                      {diff<=0?'Bajada':'Subida'} de {Math.abs(diff).toFixed(2)}€ ({Math.abs(pct)}%) vs primer mes
+                    </p>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+          {/* Línea de evolución */}
+          {monthlyData.length>=2&&(
+            <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+              <SectionTitle>Tendencia de gasto</SectionTitle>
+              <ResponsiveContainer width="100%" height={140}>
+                <LineChart data={monthlyData} margin={{top:0,right:4,left:-16,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
+                  <XAxis dataKey="mes" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                  <Tooltip content={customTooltip}/>
+                  <Line type="monotone" dataKey="total" name="Gasto" stroke="#7c3aed" strokeWidth={2.5} dot={{r:4,fill:'#7c3aed'}} activeDot={{r:6}}/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ══ CATEGORÍAS ══ */}
+      {tab==='categoria'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {catData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>Sin datos</p>}
+          {catData.length>0&&(
+            <>
+              <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+                <SectionTitle>Distribución por categoría</SectionTitle>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie data={catData} cx="50%" cy="50%" outerRadius={85} dataKey="value" label={({name,percent})=>`${(percent*100).toFixed(0)}%`} labelLine={false}>
+                      {catData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                    </Pie>
+                    <Tooltip content={customTooltip}/>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+                <SectionTitle>Ranking de gasto</SectionTitle>
+                <ResponsiveContainer width="100%" height={catData.length*40+20}>
+                  <BarChart data={catData} layout="vertical" margin={{top:0,right:40,left:4,bottom:0}}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false}/>
+                    <XAxis type="number" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                    <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:'#374151'}} width={100} axisLine={false} tickLine={false}/>
+                    <Tooltip content={customTooltip}/>
+                    <Bar dataKey="value" name="Gasto" radius={[0,6,6,0]}>
+                      {catData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ══ SÚPERS ══ */}
       {tab==='super'&&(
-        <div className="space-y-2">
-          {!storeStats.length&&<div className="text-center text-gray-300 py-10 text-sm">Sin tickets</div>}
-          {storeStats.map(([store,{total,count,monthTotal}])=>(
-            <div key={store} className="bg-white rounded-2xl p-4"
-              style={{border:'1px solid #f1f5f9',boxShadow:'0 1px 3px rgba(0,0,0,.04)'}}>
-              <div className="flex justify-between items-center mb-2.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">{STORE_EMOJI[store]||'🏪'}</span>
-                  <div>
-                    <div className="text-sm font-bold text-gray-900">{store}</div>
-                    <div className="text-xs text-gray-400">{count} ticket{count!==1?'s':''}</div>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-base font-black text-gray-900">{total.toFixed(2)}€</div>
-                  {monthTotal>0&&<div className="text-xs text-gray-400">Este mes: {monthTotal.toFixed(2)}€</div>}
-                </div>
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {storeData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>Sin datos</p>}
+          {storeData.length>0&&(
+            <>
+              <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+                <SectionTitle>Gasto por supermercado</SectionTitle>
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie data={storeData} cx="50%" cy="50%" outerRadius={80} dataKey="value" nameKey="store" label={({store,percent})=>`${store} ${(percent*100).toFixed(0)}%`} labelLine={false}>
+                      {storeData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                    </Pie>
+                    <Tooltip content={customTooltip}/>
+                  </PieChart>
+                </ResponsiveContainer>
               </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{background:'#f1f5f9'}}>
-                <div className="h-full bg-green-400 rounded-full transition-all"
-                  style={{width:storeTotal>0?`${Math.min(100,(total/storeTotal)*100)}%`:'0%'}}/>
-              </div>
-              <p className="text-[10px] text-gray-400 mt-1">{storeTotal>0?Math.round((total/storeTotal)*100):0}% del gasto total</p>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Tab: Categoría ── */}
-      {tab==='cat'&&(
-        <div className="space-y-2">
-          {!catStats.length&&<div className="text-center text-gray-300 py-10 text-sm">Sin datos</div>}
-          {catStats.map(([cat,total])=>(
-            <div key={cat} className="bg-white rounded-2xl p-4"
-              style={{border:'1px solid #f1f5f9',boxShadow:'0 1px 3px rgba(0,0,0,.04)'}}>
-              <div className="flex justify-between items-center mb-2.5">
-                <span className="text-sm font-semibold text-gray-700">{CAT_EMOJI[cat]} {cat}</span>
-                <span className="text-sm font-black text-gray-900">{total.toFixed(2)}€</span>
-              </div>
-              <div className="h-1.5 rounded-full overflow-hidden" style={{background:'#f1f5f9'}}>
-                <div className="h-full rounded-full transition-all" style={{width:catTotal>0?`${Math.min(100,(total/catTotal)*100)}%`:'0%',background:'linear-gradient(90deg,#16a34a,#7c3aed)'}}/>
-              </div>
-              <div className="text-xs text-gray-400 mt-1">{catTotal>0?Math.round((total/catTotal)*100):0}% del total</div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* ── Tab: Ingrediente ── */}
-      {tab==='ing'&&(
-        <div className="space-y-2">
-          {!ingStats.length&&<div className="text-center text-gray-300 py-10 text-sm">Sin historial</div>}
-          {ingStats.map(({ing,total,avg,count,recs})=>(
-            <div key={ing.id} className="bg-white rounded-2xl p-4"
-              style={{border:'1px solid #f1f5f9',boxShadow:'0 1px 3px rgba(0,0,0,.04)'}}>
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <span className="text-sm font-bold text-gray-900">{ing.name}</span>
-                  <div className="mt-1">
-                    <span className={`text-[11px] px-2 py-0.5 rounded-full font-semibold ${CAT_BG[ing.category]} ${CAT_TEXT[ing.category]}`}>{ing.category}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-base font-black text-gray-900">{total.toFixed(2)}€</div>
-                  <div className="text-xs text-gray-400">~{avg.toFixed(2)}€/ud · {count}x</div>
-                </div>
-              </div>
-              <div className="space-y-0.5">
-                {recs.slice(-3).map((r,i)=>(
-                  <div key={i} className="flex justify-between text-xs text-gray-400">
-                    <span>{r.date} · <span className="italic text-gray-300">{r.rawName}</span></span>
-                    <span className="font-semibold">{r.price.toFixed(2)}€</span>
+              <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+                <SectionTitle>Total por súper</SectionTitle>
+                {storeData.map(s=>(
+                  <div key={s.store} style={{marginBottom:10}}>
+                    <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                      <span style={{fontSize:'0.8rem',fontWeight:700,color:'#374151'}}>{STORE_EMOJI?.[s.store]||'🏪'} {s.store}</span>
+                      <span style={{fontSize:'0.8rem',fontWeight:800,color:'#111827'}}>{s.value.toFixed(2)}€ <span style={{fontWeight:400,fontSize:'0.7rem',color:'#9ca3af'}}>{storeTotal>0?Math.round(s.value/storeTotal*100):0}%</span></span>
+                    </div>
+                    <div style={{height:6,borderRadius:6,background:'#f1f5f9',overflow:'hidden'}}>
+                      <div style={{height:'100%',borderRadius:6,background:s.fill,width:storeTotal>0?`${s.value/storeTotal*100}%`:'0%',transition:'width .4s'}}/>
+                    </div>
                   </div>
                 ))}
-                {recs.length>3&&<p className="text-xs text-gray-300">+ {recs.length-3} compras más</p>}
               </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* ══ INGREDIENTES ══ */}
+      {tab==='ings'&&(
+        <div style={{display:'flex',flexDirection:'column',gap:14}}>
+          {topIngs.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>Sin historial de precios</p>}
+          {topIngs.length>0&&(
+            <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+              <SectionTitle>Top 10 ingredientes por gasto</SectionTitle>
+              <ResponsiveContainer width="100%" height={topIngs.length*36+20}>
+                <BarChart data={topIngs} layout="vertical" margin={{top:0,right:44,left:4,bottom:0}}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false}/>
+                  <XAxis type="number" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
+                  <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:'#374151'}} width={90} axisLine={false} tickLine={false}/>
+                  <Tooltip content={customTooltip}/>
+                  <Bar dataKey="total" name="Gasto total" fill="#7c3aed" radius={[0,6,6,0]}/>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-          ))}
+          )}
+          {/* Historial detallado */}
+          <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
+            <SectionTitle>Detalle por ingrediente</SectionTitle>
+            <div style={{display:'flex',flexDirection:'column',gap:10}}>
+              {Object.entries(priceHistory)
+                .map(([id,recs])=>{ const ing=ingMap[id];if(!ing)return null; const total=(recs as any[]).reduce((s,r)=>s+r.price,0); const avg=total/(recs as any[]).length; return {ing,total,avg,count:(recs as any[]).length,recs:recs as any[]}; })
+                .filter(Boolean).sort((a,b)=>b.total-a.total)
+                .map(({ing,total,avg,count,recs})=>(
+                  <div key={ing.id} style={{padding:'10px 12px',borderRadius:12,border:'1px solid #f1f5f9',background:'#fafafa'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:6}}>
+                      <div>
+                        <span style={{fontSize:'0.82rem',fontWeight:700,color:'#111827'}}>{ing.name}</span>
+                        <span style={{marginLeft:6,fontSize:'0.65rem',fontWeight:700,padding:'2px 7px',borderRadius:20,background:'#f1f5f9',color:'#6b7280'}}>{ing.category}</span>
+                      </div>
+                      <div style={{textAlign:'right'}}>
+                        <div style={{fontSize:'0.9rem',fontWeight:900,color:'#7c3aed'}}>{total.toFixed(2)}€</div>
+                        <div style={{fontSize:'0.65rem',color:'#9ca3af'}}>~{avg.toFixed(2)}€/ud · {count}x</div>
+                      </div>
+                    </div>
+                    <div style={{display:'flex',flexDirection:'column',gap:2}}>
+                      {recs.slice(-3).map((r,i)=>(
+                        <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'0.68rem',color:'#9ca3af'}}>
+                          <span>{r.date} · <em>{r.rawName}</em></span>
+                          <span style={{fontWeight:700}}>{r.price.toFixed(2)}€</span>
+                        </div>
+                      ))}
+                      {recs.length>3&&<p style={{fontSize:'0.65rem',color:'#d1d5db',margin:0}}>+ {recs.length-3} compras más</p>}
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
-
-/* ═══════════════════════════════════════
-   ONBOARDING — PRIMEROS PASOS
-═══════════════════════════════════════ */
-
