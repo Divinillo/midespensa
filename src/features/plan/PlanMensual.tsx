@@ -742,12 +742,29 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   const dishMap=useMemo(()=>Object.fromEntries(dishes.map(d=>[d.id,d])),[dishes]);
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
 
-  // Dishes used elsewhere this month (excluding current day being edited)
+  // Dishes used this month (excluding current day being edited)
   const usedInMonth=useMemo(()=>{
     const counts={};
     Object.entries(plan).forEach(([k,dp])=>{
       if(!k.startsWith(`${year}-${fmt2(month+1)}`)) return;
       if(selDay&&k===dateKey(year,month,selDay)) return;
+      [dp.lunch,dp.dinner].filter(Boolean).forEach(id=>{counts[id]=(counts[id]||0)+1;});
+    });
+    return counts;
+  },[plan,year,month,selDay]);
+
+  // Dishes used this week (Mon–Sun of selDay, excluding current day)
+  const usedInWeek=useMemo(()=>{
+    const counts={};
+    if(!selDay) return counts;
+    const dow=new Date(year,month,selDay).getDay(); // 0=Sun
+    const mon=selDay-(dow===0?6:dow-1);
+    const sun=mon+6;
+    Object.entries(plan).forEach(([k,dp])=>{
+      if(!k.startsWith(`${year}-${fmt2(month+1)}`)) return;
+      const d=parseInt(k.split('-')[2]);
+      if(d<mon||d>sun) return;
+      if(d===selDay) return;
       [dp.lunch,dp.dinner].filter(Boolean).forEach(id=>{counts[id]=(counts[id]||0)+1;});
     });
     return counts;
@@ -761,13 +778,15 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   // Same-day duplicate guard
   const sameDayDup=!!(dayMeal.lunch&&dayMeal.lunch===dayMeal.dinner);
 
-  // Repeat warning message
+  // Repeat warning: only if >2 times this week OR >8 times this month
+  const isExcessive=(id)=> id && ((usedInWeek[id]||0)>2 || (usedInMonth[id]||0)>8);
+
   const repeatWarning=useMemo(()=>{
-    const repeated=[dayMeal.lunch,dayMeal.dinner].filter(Boolean).filter(id=>usedInMonth[id]>0);
+    const repeated=[dayMeal.lunch,dayMeal.dinner].filter(Boolean).filter(id=>isExcessive(id));
     if(!repeated.length) return null;
     const names=repeated.map(id=>dishMap[id]?.name).filter(Boolean);
     return {names,fewDishes:makeableDishes<4};
-  },[dayMeal,usedInMonth,dishMap,makeableDishes]);
+  },[dayMeal,usedInWeek,usedInMonth,dishMap,makeableDishes]);
 
   // Macros per 100g for a dish (from RECIPE_DB, scaled to 100g assuming 300g portion)
   const getMacros100=useCallback((dishId)=>{
@@ -1080,7 +1099,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                       {dishes
                         .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : d.id!==dayMeal.lunch)
                         .map(d=>{
-                          const isRepeat = usedInMonth[d.id]>0;
+                          const isRepeat = isExcessive(d.id);
                           return <option key={d.id} value={d.id}>{isRepeat?'⚠️ ':''}{d.name}</option>;
                         })
                       }
