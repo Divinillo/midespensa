@@ -93,43 +93,43 @@ export function App() {
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
-  // Sync session email → userEmail (used for cloud sync)
+  // Sync session email → userEmail + load cloud data when session is ready
+  const cloudLoadedRef = useRef(false);
   useEffect(() => {
-    if (session?.user?.email) {
-      setUserEmail(session.user.email);
-    }
+    if (!session?.user?.email) return;
+    const email = session.user.email;
+    setUserEmail(email);
+    if (cloudLoadedRef.current) return; // only load once per session
+    cloudLoadedRef.current = true;
+    loadFromCloud(email).then(cloud => {
+      if (!cloud) return;
+      const localTs = parseInt(localStorage.getItem('despensa_local_ts') || '0');
+      const cloudTs = cloud.updated_at || 0;
+      if (cloudTs <= localTs) {
+        if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
+        else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
+        return;
+      }
+      if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
+      if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
+      if (cloud.ingredients?.length > 0) {
+        const ings = reconcileAvailability(cloud.ingredients, cloud.tickets || []);
+        setIngredients(ings);
+      }
+      if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
+      if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
+      if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
+      else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
+      setSyncStatus('☁️ Sincronizado');
+      setTimeout(() => setSyncStatus(''), 3000);
+    });
   }, [session]);
 
-  // Stripe activation + cloud load on mount
+  // Stripe activation URL cleanup on mount
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('activated') === '1') {
       window.history.replaceState({}, '', window.location.pathname);
-    }
-    const savedEmail = JSON.parse(localStorage.getItem('despensa_email_v1') || '""');
-    if (savedEmail) {
-      loadFromCloud(savedEmail).then(cloud => {
-        if (!cloud) return;
-        const localTs = parseInt(localStorage.getItem('despensa_local_ts') || '0');
-        const cloudTs = cloud.updated_at || 0;
-        if (cloudTs <= localTs) {
-          if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
-          else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
-          return;
-        }
-        if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
-        if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
-        if (cloud.ingredients?.length > 0) {
-          const ings = reconcileAvailability(cloud.ingredients, cloud.tickets || []);
-          setIngredients(ings);
-        }
-        if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
-        if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
-        if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
-        else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
-        setSyncStatus('☁️ Sincronizado');
-        setTimeout(() => setSyncStatus(''), 3000);
-      });
     }
   }, []);
 
