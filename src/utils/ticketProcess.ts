@@ -13,7 +13,8 @@ async function extractRowsFromPdf(arrayBuffer) {
     cMapUrl: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/cmaps/',
     cMapPacked: true,
   }).promise;
-  const allRows = [];
+
+  const pageRows: string[][] = [];
   for (let p=1; p<=pdf.numPages; p++) {
     const page = await pdf.getPage(p);
     const content = await page.getTextContent();
@@ -31,7 +32,18 @@ async function extractRowsFromPdf(arrayBuffer) {
       .sort((a,b)=>Number(b[0])-Number(a[0]))
       .map(([,items]) => items.sort((a,b)=>a.x-b.x).map(i=>i.str).join(' ').trim())
       .filter(r=>r.length>0);
-    allRows.push(...sorted);
+    pageRows.push(sorted);
+  }
+
+  // Desduplicar páginas idénticas (ej. tickets Consum con copia cliente)
+  const allRows: string[] = [];
+  const seenSigs = new Set<string>();
+  for (const rows of pageRows) {
+    const sig = rows.join('\t');
+    if (!seenSigs.has(sig)) {
+      seenSigs.add(sig);
+      allRows.push(...rows);
+    }
   }
   return allRows;
 }
@@ -177,11 +189,15 @@ function isConsum(rows) {
 }
 
 // PARSER para tickets físicos de Consum
-// Las líneas de separación (---) son gráficas en el PDF y NO aparecen en el texto extraído,
-// por lo que NO se usan como delimitadores. En su lugar:
-//   · Las líneas de productos SIEMPRE empiezan por dígito (cantidad o peso)
-//   · Se para en cuanto se detecta una línea de pie de ticket
-//   · Se ignoran líneas de descuentos/puntos/etc.
+// PDF.js extrae las columnas del ticket en filas separadas:
+//   · Fila A: "NOMBRE_PRODUCTO PRECIO_TOTAL"   (columnas nombre + total)
+//   · Fila B: "CANTIDAD" o "CANTIDAD PRECIO_UNIT"  (columna cantidad/peso — separada)
+// Ejemplos reales:
+//   'PORCIÓN SALMÓN 15,09'  → producto
+//   '0,605'                 → peso en kg (fila siguiente, se ignora)
+//   'Q.RALLADO 4QUE CONS 4,06' → producto
+//   '2 2,03'               → qty + precio_unidad (fila siguiente, se ignora)
+// También puede haber líneas en formato antiguo combinado: "N NOMBRE PRECIO"
 function parseConsumReceipt(rows) {
   const products = [];
   let total = null, date = null;
@@ -198,45 +214,50 @@ function parseConsumReceipt(rows) {
     if (tm) { total = parseFloat(tm[1].replace(',','.')); break; }
   }
 
-  // Palabras clave que indican fin del área de productos (pie de ticket)
+  // Pie de ticket — al detectar cualquiera de estas palabras se para
   const FOOTER = /IMPORTE A ABONAR|Total factura|Tarj\.\s|Tarjeta|EFECTIVO|CAMBIO|Socio-Cliente|Base\s+IVA|Cuota\s+Importe/i;
 
-  // Líneas a ignorar dentro del área de productos (no son artículos)
-  const SKIP = /acumula|al cheque|cup[oó]n|vale\s*desc|bolsa|UND\s+PVP|KG\s+ARTICULO|ARTICULO\s+€/i;
+  // Líneas que no son productos (descuentos, cabecera columnas, bolsas…)
+  const SKIP = /acumula|cheque|cup[oó]n|vale\s*desc|descuento|bolsa|UND\s+PVP|KG\s+ARTICULO|ARTICULO\s+€/i;
 
-  // Líneas que son solo números separados por espacios/comas (tabla IVA)
-  const ALL_NUMS = /^[\d\s,\.]+$/;
+  // Fila de cantidad/peso standalone: solo un número (entero o decimal)
+  // o "N X,XX" (cantidad + precio_unidad). Siempre SIGUEN a una línea de producto.
+  // Ejemplos: '1', '0,605', '2 2,03', '18 0,75', '1,080'
+  const STANDALONE_QTY = /^(\d+|\d+[,\.]\d{1,3})(\s+\d{1,4}[,\.]\d{2})?\s*$/;
 
   for (const row of rows) {
     const t = row.trim();
     if (!t) continue;
-
-    // Parar en pie de ticket
     if (FOOTER.test(t)) break;
-
-    // Ignorar líneas no-producto
     if (SKIP.test(t)) continue;
-    if (ALL_NUMS.test(t)) continue;
     if (/^[-=*]{3,}/.test(t)) continue;
 
-    // Formato unidades: "N NOMBRE PRECIO" o "N NOMBRE PRECIO_UNIT TOTAL"
-    const unitMatch = t.match(/^(\d+)\s+(.+?)\s+([\d]+[,\.]\d{2})(?:\s+([\d]+[,\.]\d{2}))?\s*$/);
-    if (unitMatch) {
-      const [,, name, p1, p2] = unitMatch;
-      const price = parseFloat((p2||p1).replace(',','.'));
+    // Saltar filas de cantidad/peso standalone
+    if (STANDALONE_QTY.test(t)) continue;
+
+    // ── FORMATO NUEVO (columnas separadas): "NOMBRE TOTAL"
+    // El nombre empieza con letra, termina con precio X,XX con coma decimal
+    const newFmt = t.match(/^([A-Za-záéíóúÁÉÍÓÚñÑüÜ].+?)\s+([\d]{1,4}[,]\d{2})\s*$/);
+    if (newFmt) {
+      const [, name, priceStr] = newFmt;
+      const price = parseFloat(priceStr.replace(',', '.'));
       if (price > 0 && price < 500 && name.trim().length > 1) {
         products.push({id:uid(), rawName:name.trim(), price, normalizedName:normalizeName(name.trim())});
       }
       continue;
     }
 
-    // Formato peso: "0,NNN NOMBRE TOTAL"
-    const weightMatch = t.match(/^0[,\.](\d{3})\s+(.+?)\s+([\d]+[,\.]\d{2})\s*$/);
-    if (weightMatch) {
-      const [,, name, priceStr] = weightMatch;
-      const price = parseFloat(priceStr.replace(',','.'));
-      if (price > 0 && price < 500 && name.trim().length > 1) {
-        products.push({id:uid(), rawName:name.trim(), price, normalizedName:normalizeName(name.trim())});
+    // ── FORMATO ANTIGUO / COMBINADO: "N NOMBRE [PRECIO_UNIT] TOTAL"
+    // Cubre edge cases como "18 AGUA BEZOYA 1,5 L 0,75 13,50" o "1 PIPA TOSTADA 1,20"
+    const unitMatch = t.match(/^(\d+)\s+(.+?)\s+([\d]+[,\.]\d{2})(?:\s+([\d]+[,\.]\d{2}))?\s*$/);
+    if (unitMatch) {
+      const [,, name, p1, p2] = unitMatch;
+      // El nombre debe contener al menos una letra (no es una fila numérica)
+      if (/[A-Za-záéíóúÁÉÍÓÚñÑüÜ]/.test(name)) {
+        const price = parseFloat((p2||p1).replace(',','.'));
+        if (price > 0 && price < 500 && name.trim().length > 1) {
+          products.push({id:uid(), rawName:name.trim(), price, normalizedName:normalizeName(name.trim())});
+        }
       }
       continue;
     }
