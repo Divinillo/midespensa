@@ -473,8 +473,9 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   const [selected,setSelected]=useState([]);
   const [showReport,setShowReport]=useState(false);
   const [pdfLoading,setPdfLoading]=useState(false);
+  const [nutriTab,setNutriTab]=useState('kcal');
 
-  React.useEffect(()=>{ if(open){setSelected([]);setShowReport(false);setPdfLoading(false);} },[open]);
+  React.useEffect(()=>{ if(open){setSelected([]);setShowReport(false);setPdfLoading(false);setNutriTab('kcal');} },[open]);
 
   async function handleDownloadPDF(report){
     setPdfLoading(true);
@@ -559,9 +560,8 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
             {selected.length===0?'Selecciona días':'📊 Generar informe'}
           </button>
         </div>
-      ):(()=>{
-        const MACRO_COLORS={prot:'#3b82f6',carbs:'#f59e0b',fat:'#ef4444',sugar:'#ec4899'};
-        const kcalData=report.rows.map(r=>({name:`${r.day}`,kcal:r.totKcal,objetivo:2000}));
+      ):report&&(()=>{
+        const kcalData=report.rows.map(r=>({name:`${r.day}`,kcal:r.totKcal}));
         const macroData=report.rows.map(r=>({name:`${r.day}`,Proteína:r.totProt,Hidratos:r.totCarbs,Grasas:r.totFat}));
         const pieTotals=[
           {name:'Proteína',value:report.totals.prot*4,color:'#3b82f6'},
@@ -574,7 +574,6 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
             {payload.map(p=><p key={p.name} style={{color:p.color||p.fill,margin:'1px 0'}}>{p.name}: <b>{p.value}</b></p>)}
           </div>
         ):null;
-        const [nutriTab,setNutriTab]=useState('kcal');
         return (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
