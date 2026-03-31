@@ -15,6 +15,7 @@ import { UpgradeModal } from './features/onboarding/OnboardingCard';
 import { OnboardingWizard } from './features/onboarding/OnboardingWizard';
 import LoginScreen from './features/auth/LoginScreen';
 import CookieBanner from './components/CookieBanner';
+import { PWAInstallWizard } from './components/PWAInstallWizard';
 import MigrationModal, { hasLocalDataToMigrate, markMigrationOffered } from './components/MigrationModal';
 import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
@@ -337,6 +338,7 @@ export function App() {
       )}
 
       <CookieBanner />
+      <PWAInstallWizard />
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-28" style={{ paddingTop: 20 }}>
         {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
