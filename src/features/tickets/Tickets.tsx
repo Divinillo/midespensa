@@ -7,7 +7,7 @@ import { FREE_TICKET_LIMIT, CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES } from '../.
 import { processImageTicket, processPdf, applyTicket } from '../../utils/ticketProcess';
 import { normalizeName } from '../../utils/helpers';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
-import { Receipt, Trash, X } from '@phosphor-icons/react';
+import { Receipt, Trash, X, PencilSimple, Check } from '@phosphor-icons/react';
 
 // CDN globals
 declare const window: any;
@@ -23,8 +23,18 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
   const [addModal,setAddModal]=useState(null);
   const [addForm,setAddForm]=useState({name:'',category:'verduras'});
   const [confirm,setConfirm]=useState(null);
+  const [editingAlias,setEditingAlias]=useState<string|null>(null);
+  const [aliasValue,setAliasValue]=useState('');
   const fileRef=useRef();
   const cameraRef=useRef();
+
+  const startEditAlias=(tk)=>{setEditingAlias(tk.id);setAliasValue(tk.store||'');};
+  const saveAlias=()=>{
+    if(editingAlias){
+      setTickets(ts=>ts.map(t=>t.id===editingAlias?{...t,store:aliasValue.trim()||t.store}:t));
+    }
+    setEditingAlias(null);
+  };
 
   // Cargar pdf.js dinámicamente
   useEffect(()=>{
@@ -316,8 +326,36 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-gray-800 truncate" style={{display:'flex',alignItems:'center',gap:6}}><Receipt size={16}/> {tk.filename}</p>
-                        <p className="text-xs text-gray-400 mt-0.5">{tk.date} · {(tk.products||[]).length} líneas · <span className="font-medium text-gray-600">{tk.total?.toFixed(2)}€</span></p>
+                        {/* Alias editable del supermercado */}
+                        {editingAlias===tk.id ? (
+                          <div style={{display:'flex',alignItems:'center',gap:4,marginBottom:2}}>
+                            <Receipt size={14} color="#94a3b8" style={{flexShrink:0}}/>
+                            <input
+                              autoFocus
+                              value={aliasValue}
+                              onChange={e=>setAliasValue(e.target.value)}
+                              onBlur={saveAlias}
+                              onKeyDown={e=>{if(e.key==='Enter')saveAlias();if(e.key==='Escape')setEditingAlias(null);}}
+                              placeholder="Ej: Mercadona, Lidl…"
+                              style={{flex:1,fontSize:'0.85rem',fontWeight:600,border:'none',borderBottom:'2px solid #0d9488',outline:'none',background:'transparent',color:'#1e293b',padding:'0 2px',minWidth:0}}
+                            />
+                            <button onMouseDown={saveAlias} style={{background:'#0d9488',border:'none',borderRadius:6,padding:'2px 6px',cursor:'pointer',display:'flex',alignItems:'center'}}>
+                              <Check size={13} color="#fff" weight="bold"/>
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={()=>startEditAlias(tk)}
+                            style={{display:'flex',alignItems:'center',gap:5,background:'none',border:'none',cursor:'pointer',padding:0,textAlign:'left',width:'100%',marginBottom:2}}
+                          >
+                            <Receipt size={14} color="#94a3b8" style={{flexShrink:0}}/>
+                            <span style={{fontSize:'0.85rem',fontWeight:700,color:'#1e293b',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                              {tk.store || tk.filename}
+                            </span>
+                            <PencilSimple size={12} color="#cbd5e1" style={{flexShrink:0}}/>
+                          </button>
+                        )}
+                        <p className="text-xs text-gray-400">{tk.date} · {(tk.products||[]).length} líneas · <span className="font-medium text-gray-600">{tk.total?.toFixed(2)}€</span></p>
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <button onClick={()=>setDetail(tk.id)} className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-100 font-medium">Ver</button>

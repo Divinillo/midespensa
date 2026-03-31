@@ -68,12 +68,19 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
   const catTotal=catData.reduce((s,c)=>s+c.value,0);
 
   const storeData = useMemo(()=>{
-    const s:{[k:string]:number}={};
+    const s:{[k:string]:{total:number,count:number}}={};
     tickets.forEach(t=>{
-      const store=t.store||(t.filename?.toLowerCase().includes('mercadona')?'Mercadona':t.filename?.toLowerCase().includes('consum')?'Consum':t.filename?.toLowerCase().includes('carrefour')?'Carrefour':t.filename?.toLowerCase().includes('lidl')?'Lidl':t.filename?.toLowerCase().includes('aldi')?'Aldi':'Otro');
-      s[store]=(s[store]||0)+(t.total||0);
+      const store=t.store||(t.filename?.toLowerCase().includes('mercadona')?'Mercadona':t.filename?.toLowerCase().includes('consum')?'Consum':t.filename?.toLowerCase().includes('carrefour')?'Carrefour':t.filename?.toLowerCase().includes('lidl')?'Lidl':t.filename?.toLowerCase().includes('aldi')?'Aldi':'Sin nombre');
+      if(!s[store]) s[store]={total:0,count:0};
+      s[store].total+=(t.total||0);
+      s[store].count+=1;
     });
-    return Object.entries(s).sort((a,b)=>b[1]-a[1]).map(([store,v])=>({store, value:parseFloat(v.toFixed(2)), fill:STORE_COLOR[store]||'#6b7280'}));
+    return Object.entries(s).sort((a,b)=>b[1].total-a[1].total).map(([store,d])=>({
+      store,
+      value:parseFloat(d.total.toFixed(2)),
+      count:d.count,
+      fill:STORE_COLOR[store]||'#6b7280'
+    }));
   },[tickets]);
   const storeTotal=storeData.reduce((s,d)=>s+d.value,0);
 
@@ -274,33 +281,54 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
         {/* ══ SÚPERS ══ */}
         {tab==='super'&&(
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            {storeData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>Sin datos</p>}
+            {storeData.length===0&&(
+              <div style={{textAlign:'center',color:'#d1d5db',padding:'48px 0',fontSize:'0.875rem'}}>
+                <div style={{fontSize:'2.5rem',marginBottom:8}}>🏪</div>
+                <p>Sin datos de supermercados</p>
+                <p style={{fontSize:'0.75rem',marginTop:4}}>Añade un alias a tus tickets para verlos aquí</p>
+              </div>
+            )}
             {storeData.length>0&&(
               <>
+                {/* Gráfico de barras horizontales */}
                 <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
                   <SectionTitle>Gasto por supermercado</SectionTitle>
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie data={storeData} cx="50%" cy="50%" outerRadius={80} dataKey="value" nameKey="store" label={({store,percent})=>`${store} ${(percent*100).toFixed(0)}%`} labelLine={false}>
-                        {storeData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
-                      </Pie>
+                  <ResponsiveContainer width="100%" height={storeData.length*52+20}>
+                    <BarChart data={storeData} layout="vertical" margin={{top:4,right:56,left:4,bottom:0}}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false}/>
+                      <XAxis type="number" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={v=>`${v}€`}/>
+                      <YAxis type="category" dataKey="store" tick={{fontSize:11,fill:'#374151',fontWeight:600}} width={82} axisLine={false} tickLine={false}
+                        tickFormatter={store=>`${STORE_EMOJI?.[store]||'🏪'} ${store}`}/>
                       <Tooltip content={customTooltip}/>
-                    </PieChart>
+                      <Bar dataKey="value" name="Gasto total" radius={[0,8,8,0]} label={{position:'right',fontSize:11,fontWeight:700,fill:'#374151',formatter:(v:number)=>`${v.toFixed(0)}€`}}>
+                        {storeData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
+                      </Bar>
+                    </BarChart>
                   </ResponsiveContainer>
                 </div>
-                <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                  <SectionTitle>Total por súper</SectionTitle>
-                  {storeData.map(s=>(
-                    <div key={s.store} style={{marginBottom:10}}>
-                      <div style={{display:'flex',justifyContent:'space-between',marginBottom:4}}>
-                        <span style={{fontSize:'0.8rem',fontWeight:700,color:'#374151'}}>{STORE_EMOJI?.[s.store]||'🏪'} {s.store}</span>
-                        <span style={{fontSize:'0.8rem',fontWeight:800,color:'#111827'}}>{s.value.toFixed(2)}€ <span style={{fontWeight:400,fontSize:'0.7rem',color:'#9ca3af'}}>{storeTotal>0?Math.round(s.value/storeTotal*100):0}%</span></span>
+
+                {/* Tarjetas por súper */}
+                <div style={{display:'flex',flexDirection:'column',gap:8}}>
+                  {storeData.map((s,i)=>{
+                    const pct=storeTotal>0?Math.round(s.value/storeTotal*100):0;
+                    return (
+                      <div key={s.store} style={{background:'#fff',borderRadius:16,padding:'14px 16px',border:'1px solid #f1f5f9',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                          <div style={{display:'flex',alignItems:'center',gap:8}}>
+                            <div style={{width:10,height:10,borderRadius:'50%',background:s.fill,flexShrink:0}}/>
+                            <span style={{fontSize:'0.85rem',fontWeight:700,color:'#1e293b'}}>{STORE_EMOJI?.[s.store]||'🏪'} {s.store}</span>
+                          </div>
+                          <div style={{textAlign:'right'}}>
+                            <div style={{fontSize:'0.9rem',fontWeight:800,color:'#111827'}}>{s.value.toFixed(2)}€</div>
+                            <div style={{fontSize:'0.65rem',color:'#94a3b8'}}>{s.count} ticket{s.count!==1?'s':''} · {pct}%</div>
+                          </div>
+                        </div>
+                        <div style={{height:6,borderRadius:6,background:'#f1f5f9',overflow:'hidden'}}>
+                          <div style={{height:'100%',borderRadius:6,background:s.fill,width:`${pct}%`,transition:'width .5s'}}/>
+                        </div>
                       </div>
-                      <div style={{height:6,borderRadius:6,background:'#f1f5f9',overflow:'hidden'}}>
-                        <div style={{height:'100%',borderRadius:6,background:s.fill,width:storeTotal>0?`${s.value/storeTotal*100}%`:'0%',transition:'width .4s'}}/>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </>
             )}
