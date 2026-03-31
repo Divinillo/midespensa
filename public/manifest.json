@@ -1,4 +1,5 @@
 {
+  "id": "/app",
   "name": "MiDespensa",
   "short_name": "MiDespensa",
   "description": "Planificador de comidas y gestión de despensa familiar",
@@ -10,6 +11,7 @@
   "theme_color": "#134e4a",
   "lang": "es",
   "categories": ["food", "lifestyle", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./icon-192-v2.png",
@@ -28,6 +30,36 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./screenshots/misplatos-v3.jpeg",
+      "sizes": "1008x2048",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Mis platos — recetas habituales"
+    },
+    {
+      "src": "./screenshots/calendario-v2.jpeg",
+      "sizes": "945x1796",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Planificador mensual"
+    },
+    {
+      "src": "./screenshots/despensa-v2.jpeg",
+      "sizes": "945x1722",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Despensa inteligente"
+    },
+    {
+      "src": "./screenshots/escaner-v2.jpeg",
+      "sizes": "945x1700",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Escáner nutricional"
     }
   ]
 }
