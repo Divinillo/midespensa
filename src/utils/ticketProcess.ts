@@ -414,7 +414,14 @@ function ocrTextToRows(text) {
 ═══════════════════════════════════════ */
 
 const GEMINI_KEY: string | undefined = (import.meta as any).env?.VITE_GEMINI_KEY;
-const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+// Modelos en orden de preferencia — cada uno tiene cuota independiente (1500 req/día gratis)
+const GEMINI_MODELS = [
+  'gemini-2.0-flash-lite',
+  'gemini-1.5-flash-8b',
+  'gemini-1.5-flash',
+  'gemini-2.0-flash',
+];
 
 const GEMINI_PROMPT_TEXT = `Analiza este texto de un ticket de supermercado español y extrae todos los productos comprados.
 Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional):
@@ -437,38 +444,47 @@ Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional, 
 
 async function callGemini(parts) {
   if (!GEMINI_KEY) return null;
-  try {
-    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0, maxOutputTokens: 8192 },
-      }),
-    });
-    if (!res.ok) {
-      const errText = await res.text().catch(()=>'');
-      console.error('Gemini HTTP error:', res.status, errText);
-      return null;
+  // Intentar cada modelo en orden hasta que uno responda (cuotas independientes)
+  for (const model of GEMINI_MODELS) {
+    try {
+      const url = `${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY}`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts }],
+          generationConfig: { responseMimeType: 'application/json', temperature: 0, maxOutputTokens: 8192 },
+        }),
+      });
+      if (res.status === 429) {
+        console.warn(`Gemini ${model}: cuota agotada, probando siguiente modelo...`);
+        continue; // probar el siguiente modelo
+      }
+      if (!res.ok) {
+        const errText = await res.text().catch(()=>'');
+        console.error(`Gemini ${model} error ${res.status}:`, errText.slice(0,200));
+        continue;
+      }
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!text) { console.warn(`Gemini ${model}: respuesta vacía`); continue; }
+      const parsed = JSON.parse(text);
+      const products = (parsed.products || [])
+        .filter(p => p.name && typeof p.price === 'number' && p.price > 0 && p.price < 1000)
+        .map(p => ({
+          id: uid(),
+          rawName: String(p.name).trim(),
+          price: p.price,
+          normalizedName: normalizeName(String(p.name).trim()),
+        }));
+      console.log(`Gemini ${model} OK: ${products.length} productos`);
+      return { products, total: parsed.total || null, date: parsed.date || null };
+    } catch(e) {
+      console.error(`Gemini ${model} excepción:`, e);
     }
-    const data = await res.json();
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) { console.warn('Gemini: respuesta vacía', JSON.stringify(data).slice(0,300)); return null; }
-    const parsed = JSON.parse(text);
-    const products = (parsed.products || [])
-      .filter(p => p.name && typeof p.price === 'number' && p.price > 0 && p.price < 1000)
-      .map(p => ({
-        id: uid(),
-        rawName: String(p.name).trim(),
-        price: p.price,
-        normalizedName: normalizeName(String(p.name).trim()),
-      }));
-    console.log(`Gemini OK: ${products.length} productos`);
-    return { products, total: parsed.total || null, date: parsed.date || null };
-  } catch(e) {
-    console.error('Gemini parse error:', e);
-    return null;
   }
+  console.error('Todos los modelos Gemini fallaron o tienen cuota agotada');
+  return null;
 }
 
 // PDF: recibe las filas ya extraídas por PDF.js
@@ -551,7 +567,7 @@ export async function processImageTicket(file, onProgress) {
     };
   }
 
-  throw new Error('No se pudieron extraer productos del ticket. Prueba con mejor iluminación o más cerca.');
+  throw new Error('No se pudieron extraer productos del ticket. Si el problema persiste, puede que la cuota diaria de IA esté agotada — inténtalo mañana.');
 
   /* ── OCR fallback desactivado (Tesseract — peor calidad que Gemini) ──
   const enhanced = await enhanceImageForOCR(file);
