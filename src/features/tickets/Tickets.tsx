@@ -285,22 +285,22 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
 
           {/* Barra de progreso OCR */}
           {ocrProgress!==null && ocrProgress>=0 && (
-            <div className="mt-2 bg-purple-100 rounded-full overflow-hidden h-1.5">
-              <div className="h-full bg-purple-500 transition-all duration-300 rounded-full"
+            <div className="mt-2 bg-amber-100 rounded-full overflow-hidden h-1.5">
+              <div className="h-full bg-amber-500 transition-all duration-300 rounded-full"
                 style={{width:`${ocrProgress}%`}}/>
             </div>
           )}
 
-          <p className="text-[10px] text-purple-400 text-center mt-1.5 font-medium">
+          <p className="text-[10px] text-amber-600 text-center mt-1.5 font-medium">
             📱 Abre la cámara y enfoca el ticket — el OCR reconocerá los productos automáticamente
           </p>
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onCameraChange} className="hidden"/>
         </div>
       ) : (
         <button onClick={()=>onUpgrade('ultra')}
-          className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 border-2 border-dashed border-purple-200 text-purple-400 text-sm font-semibold hover:bg-purple-50 transition-all">
+          className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 border-2 border-dashed border-amber-200 text-amber-600 text-sm font-semibold hover:bg-amber-50 transition-all">
           <span>📷</span> Foto de ticket
-          <span className="text-[10px] bg-purple-100 text-purple-500 px-2 py-0.5 rounded-full font-bold ml-1">Ultra Chef</span>
+          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold ml-1">Ultra Chef</span>
         </button>
       )}
 

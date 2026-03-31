@@ -13,7 +13,7 @@ const CAT_PASTEL: Record<string, { bg: string; border: string; accent: string }>
   'pescado':               { bg: '#e4f0fd', border: '#93c5ef', accent: '#1a5fa8' },
   'verduras':              { bg: '#e5f7ea', border: '#5eead4', accent: '#0f766e' },
   'legumbres':             { bg: '#fef3c7', border: '#fcd34d', accent: '#a16207' },
-  'lácteos':               { bg: '#f5e8fd', border: '#d8b4fe', accent: '#7e22ce' },
+  'lácteos':               { bg: '#fef9c3', border: '#fde68a', accent: '#d97706' },
   'pasta y harinas':       { bg: '#fff0e5', border: '#fbbf87', accent: '#c2510e' },
   'conservas':             { bg: '#e8f5ee', border: '#a7d9b8', accent: '#134e4a' },
   'fruta':                 { bg: '#fde8ed', border: '#f9a8c0', accent: '#be123c' },

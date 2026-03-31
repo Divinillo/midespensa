@@ -59,7 +59,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
   );
 
   return (
-    <div className="bg-gradient-to-br from-teal-50 to-violet-50 rounded-2xl border border-teal-100 mb-5 overflow-hidden fade">
+    <div className="bg-gradient-to-br from-teal-50 to-amber-50 rounded-2xl border border-teal-100 mb-5 overflow-hidden fade">
       {/* Cabecera */}
       <div className="px-5 pt-4 pb-3 flex items-center justify-between cursor-pointer" onClick={() => setExpanded(e => !e)}>
         <div className="flex items-center gap-3">
@@ -82,7 +82,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
       {/* Barra de progreso */}
       <div className="px-5 pb-2">
         <div className="h-1.5 bg-teal-100 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-teal-500 to-violet-500 rounded-full transition-all duration-500"
+          <div className="h-full bg-gradient-to-r from-teal-500 to-amber-400 rounded-full transition-all duration-500"
             style={{width:`${(doneCount/steps.length)*100}%`}}/>
         </div>
       </div>
@@ -160,15 +160,15 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra,
   return (
     <Modal open={open} onClose={close} title={isUltraTier?'👨‍🍳 Desbloquear Ultra Chef':'✨ Desbloquear versión Pro'}>
       <div className="space-y-4">
-        <div className={`rounded-2xl p-5 text-center border ${isUltraTier?'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100':'bg-gradient-to-br from-teal-50 to-violet-50 border-teal-100'}`}>
+        <div className={`rounded-2xl p-5 text-center border ${isUltraTier?'bg-gradient-to-br from-amber-50 to-teal-50 border-amber-100':'bg-gradient-to-br from-teal-50 to-amber-50 border-teal-100'}`}>
           <div className="text-4xl mb-2">{r.icon}</div>
           <h3 className="font-bold text-gray-800 mb-1">{r.title}</h3>
           <p className="text-sm text-gray-500">{r.desc}</p>
         </div>
 
         {isUltraTier?(
-          <div className="bg-white rounded-2xl border border-purple-100 p-4 space-y-2.5">
-            <p className="text-xs font-bold text-purple-400 uppercase tracking-wide mb-2">👨‍🍳 Ultra Chef incluye (además de Pro)</p>
+          <div className="bg-white rounded-2xl border border-amber-100 p-4 space-y-2.5">
+            <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-2">👨‍🍳 Ultra Chef incluye (además de Pro)</p>
             {[['🥗','6 sets de dieta: saludable, vegano, vegetariano, paleo, foodie…'],['🔥','Macronutrientes y kcal por plato'],['📊','Informes nutricionales con selección de días'],['🔒','Todas las funciones Pro incluidas']].map(([e,t])=>(
               <div key={t} className="flex items-start gap-2.5"><span className="text-base mt-0.5">{e}</span><span className="text-sm text-gray-700">{t}</span></div>
             ))}
@@ -198,8 +198,8 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra,
               }}
               className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md"
               style={{background: isUltraTier
-                ? 'linear-gradient(to right, #9333ea, #4f46e5)'
-                : 'linear-gradient(to right, #0d9488, #7c3aed)'}}>
+                ? 'linear-gradient(135deg,#b45309,#d97706,#fbbf24)'
+                : 'linear-gradient(to right, #0d9488, #d97706)'}}>
               💳 {isUltraTier?'Suscribirse a Ultra Chef · 4,99 €/mes':'Suscribirse a Pro · 2,99 €/mes'}
             </button>
             <button onClick={()=>setShowKey(true)} className="w-full border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">
@@ -217,7 +217,7 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra,
               {keyErr&&<p className="text-xs text-red-500 mt-1.5">{keyErr}</p>}
             </div>
             <button onClick={tryUnlock} disabled={unlocking}
-              className={`w-full text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 ${isUltraTier?'bg-purple-600 hover:bg-purple-700':'bg-teal-600 hover:bg-teal-700'}`}>
+              className={`w-full text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 ${isUltraTier?'bg-amber-600 hover:bg-amber-700':'bg-teal-600 hover:bg-teal-700'}`}>
               {unlocking?'Verificando...':'Activar licencia ✨'}
             </button>
             <button onClick={()=>{setShowKey(false);setKeyErr('');}} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">← Volver</button>

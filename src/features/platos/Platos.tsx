@@ -274,23 +274,23 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                 {DIET_SETS.map(ds=>(
                   <button key={ds.id} type="button" onClick={()=>setDiet(ds.id)}
                     className={`py-2 px-2.5 rounded-xl border-2 text-left transition-all
-                      ${diet===ds.id?'border-purple-400 bg-purple-50':'border-gray-200 bg-white hover:border-purple-200'}`}
+                      ${diet===ds.id?'border-amber-400 bg-amber-50':'border-gray-200 bg-white hover:border-amber-200'}`}
                     style={{boxShadow: diet===ds.id?'0 3px 10px rgba(139,92,246,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
                     <div className="text-base mb-0.5">{ds.icon}</div>
-                    <div className={`text-xs font-bold ${diet===ds.id?'text-purple-700':'text-gray-600'}`}>{ds.label}</div>
-                    <div className={`text-[10px] ${diet===ds.id?'text-purple-500':'text-gray-400'}`}>{ds.desc}</div>
+                    <div className={`text-xs font-bold ${diet===ds.id?'text-amber-700':'text-gray-600'}`}>{ds.label}</div>
+                    <div className={`text-[10px] ${diet===ds.id?'text-amber-600':'text-gray-400'}`}>{ds.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
           ):(
-            <div className="flex items-center gap-2 bg-purple-50 border border-purple-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('ultra')}>
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('ultra')}>
               <span className="text-lg">👨‍🍳</span>
               <div className="flex-1">
-                <p className="text-xs font-bold text-purple-700">Filtros de dieta — Ultra Chef</p>
-                <p className="text-[10px] text-purple-500">Vegano · Saludable · Paleo · Foodie y más</p>
+                <p className="text-xs font-bold text-amber-700">Filtros de dieta — Ultra Chef</p>
+                <p className="text-[10px] text-amber-600">Vegano · Saludable · Paleo · Foodie y más</p>
               </div>
-              <span className="text-xs font-bold text-purple-500">🔒 Ver</span>
+              <span className="text-xs font-bold text-amber-600">🔒 Ver</span>
             </div>
           )}
           {/* ── Toggle "Con lo que tengo en despensa" ── */}
@@ -323,7 +323,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
           </div>
           <div className="text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
             📦 +100 recetas · {ingredients.filter(i=>i.available).length} ingredientes disponibles
-            {isUltra&&diet!=='omnivora'&&<span className="ml-1 text-purple-500 font-semibold">· {DIET_SETS.find(d=>d.id===diet)?.label}</span>}
+            {isUltra&&diet!=='omnivora'&&<span className="ml-1 text-amber-600 font-semibold">· {DIET_SETS.find(d=>d.id===diet)?.label}</span>}
           </div>
           <button onClick={searchRecipes} disabled={loading}
             className="w-full rounded-xl py-3 font-bold text-sm transition-all"

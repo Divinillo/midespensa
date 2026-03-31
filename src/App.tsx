@@ -291,11 +291,11 @@ export function App() {
             </div>
             <button onClick={resetWizard} className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0" style={{background:'#0284c7',color:'#fff'}}>Reiniciar</button>
           </div>
-          <div className={`rounded-xl p-4 border ${isPro ? 'bg-violet-50 border-violet-100' : 'bg-teal-50 border-teal-100'}`}>
-            <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-violet-800' : 'text-green-800'}`}>{isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito'}</h3>
+          <div className={`rounded-xl p-4 border ${isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
+            <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-amber-800' : 'text-green-800'}`}>{isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito'}</h3>
             {isPro ? (
               <div className="flex items-center justify-between">
-                <p className="text-xs text-violet-600">Todas las funciones desbloqueadas</p>
+                <p className="text-xs text-amber-600">Todas las funciones desbloqueadas</p>
                 <button onClick={async () => { if (window.confirm('¿Cerrar sesión?')) { await supabase.auth.signOut(); setShowSettings(false); } }} className="text-xs text-gray-400 hover:text-red-500 underline ml-2">Cerrar sesión</button>
               </div>
             ) : (

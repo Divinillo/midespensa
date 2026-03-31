@@ -12,7 +12,7 @@ import {
 
 declare const window: any;
 
-const PALETTE = ['#0d9488','#7c3aed','#f59e0b','#ef4444','#3b82f6','#10b981','#f97316','#8b5cf6','#ec4899','#06b6d4','#84cc16','#14b8a6'];
+const PALETTE = ['#0d9488','#d97706','#f59e0b','#ef4444','#3b82f6','#10b981','#f97316','#fbbf24','#ec4899','#06b6d4','#84cc16','#14b8a6'];
 const STORE_COLOR: Record<string,string> = {Mercadona:'#0d9488',Consum:'#3b82f6',Carrefour:'#ef4444',Lidl:'#f59e0b',Aldi:'#f97316',Otro:'#6b7280'};
 const CAT_COLOR: Record<string,string> = {
   'carnes':                '#ef4444',
@@ -236,7 +236,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                     <XAxis dataKey="mes" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <Tooltip content={customTooltip}/>
-                    <Line type="monotone" dataKey="total" name="Gasto" stroke="#7c3aed" strokeWidth={2.5} dot={{r:4,fill:'#7c3aed'}} activeDot={{r:6}}/>
+                    <Line type="monotone" dataKey="total" name="Gasto" stroke="#d97706" strokeWidth={2.5} dot={{r:4,fill:'#d97706'}} activeDot={{r:6}}/>
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -348,7 +348,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                     <XAxis type="number" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:'#374151'}} width={90} axisLine={false} tickLine={false}/>
                     <Tooltip content={customTooltip}/>
-                    <Bar dataKey="total" name="Gasto total" fill="#7c3aed" radius={[0,6,6,0]}/>
+                    <Bar dataKey="total" name="Gasto total" fill="#d97706" radius={[0,6,6,0]}/>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -367,7 +367,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                           <span style={{marginLeft:6,fontSize:'0.65rem',fontWeight:700,padding:'2px 7px',borderRadius:20,background:'#f1f5f9',color:'#6b7280'}}>{ing.category}</span>
                         </div>
                         <div style={{textAlign:'right'}}>
-                          <div style={{fontSize:'0.9rem',fontWeight:900,color:'#7c3aed'}}>{total.toFixed(2)}€</div>
+                          <div style={{fontSize:'0.9rem',fontWeight:900,color:'#d97706'}}>{total.toFixed(2)}€</div>
                           <div style={{fontSize:'0.65rem',color:'#9ca3af'}}>~{avg.toFixed(2)}€/ud · {count}x</div>
                         </div>
                       </div>
@@ -439,7 +439,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
         {[
           {label:MONTH_NAMES[now.getMonth()],val:`${monthTotal.toFixed(2)}€`,sub:`${monthTickets.length} tickets`,bg:'linear-gradient(135deg,#0f766e,#0d9488)',shadow:'rgba(13,148,136,.3)'},
           {label:'Media mensual',val:`${avgMonthly.toFixed(2)}€`,sub:'últimos meses',bg:'linear-gradient(135deg,#0369a1,#0284c7)',shadow:'rgba(3,105,161,.25)'},
-          {label:'Total histórico',val:`${allTotal.toFixed(2)}€`,sub:`${tickets.length} tickets`,bg:'linear-gradient(135deg,#6d28d9,#7c3aed)',shadow:'rgba(109,40,217,.25)'},
+          {label:'Total histórico',val:`${allTotal.toFixed(2)}€`,sub:`${tickets.length} tickets`,bg:'linear-gradient(135deg,#134e4a,#0f766e)',shadow:'rgba(19,78,74,.3)'},
         ].map(c=>(
           <div key={c.label} style={{borderRadius:16,padding:'12px 10px',color:'#fff',background:c.bg,boxShadow:`0 2px 10px ${c.shadow}`}}>
             <div style={{fontSize:'0.6rem',fontWeight:700,opacity:.75,marginBottom:3,textTransform:'uppercase',letterSpacing:'.04em'}}>{c.label}</div>
@@ -514,8 +514,8 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
           {canSeeReport?(
             <button onClick={()=>setShowFull(true)}
               style={{width:'100%',padding:'13px',borderRadius:16,fontWeight:800,fontSize:'0.9rem',border:'none',cursor:'pointer',
-                background:'linear-gradient(135deg,#6d28d9,#7c3aed)',color:'#fff',
-                boxShadow:'0 4px 14px rgba(109,40,217,.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+                background:'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',color:'#fff',
+                boxShadow:'0 4px 14px rgba(180,83,9,.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
               <ChartBar size={16} style={{flexShrink:0}}/> Ver informe completo
             </button>
           ):(

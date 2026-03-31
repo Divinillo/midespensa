@@ -552,11 +552,11 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
             <button onClick={()=>setSelected(Array.from({length:days},(_,i)=>i+1))} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#475569',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>Todos</button>
             <button onClick={()=>setSelected([])} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#94a3b8',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>Limpiar</button>
           </div>
-          <p style={{fontSize:'0.75rem',color:'#94a3b8'}}>Toca o arrastra para seleccionar días · <span style={{fontWeight:700,color:'#7c3aed'}}>{selected.length} días</span></p>
+          <p style={{fontSize:'0.75rem',color:'#94a3b8'}}>Toca o arrastra para seleccionar días · <span style={{fontWeight:700,color:'#d97706'}}>{selected.length} días</span></p>
           <DayPicker year={year} month={month} plan={plan} selected={selected} setSelected={setSelected}/>
           <button onClick={()=>setShowReport(true)} disabled={selected.length===0}
             style={{width:'100%',padding:'10px',borderRadius:12,fontWeight:700,fontSize:'0.875rem',border:'none',cursor:selected.length===0?'not-allowed':'pointer',
-              background:selected.length===0?'#e2e8f0':'#7c3aed',color:selected.length===0?'#94a3b8':'#fff',
+              background:selected.length===0?'#e2e8f0':'#d97706',color:selected.length===0?'#94a3b8':'#fff',
               boxShadow:selected.length===0?'none':'0 2px 8px rgba(124,58,237,.3)'}}>
             {selected.length===0?'Selecciona días':<span style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> Generar informe</span>}
           </button>
@@ -602,7 +602,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
               {[['kcal','🔥 Calorías'],['macros','💪 Macros'],['dist','🥧 Distribución'],['detalle','📋 Días']].map(([t,l])=>(
                 <button key={t} onClick={()=>setNutriTab(t)}
                   style={{fontSize:'0.7rem',padding:'4px 10px',borderRadius:20,fontWeight:700,border:'none',cursor:'pointer',
-                    background:nutriTab===t?'#7c3aed':'#f1f5f9',
+                    background:nutriTab===t?'#d97706':'#f1f5f9',
                     color:nutriTab===t?'#fff':'#64748b'}}>
                   {l}
                 </button>
@@ -709,7 +709,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
               <button onClick={()=>handleDownloadPDF(report)} disabled={pdfLoading}
                 style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:700,border:'none',
                   cursor:pdfLoading?'not-allowed':'pointer',
-                  background:pdfLoading?'#ede9fe':'#7c3aed',
+                  background:pdfLoading?'#fef3c7':'#d97706',
                   color:pdfLoading?'#a78bfa':'#fff',
                   boxShadow:pdfLoading?'none':'0 2px 12px rgba(109,40,217,0.35)'}}>
                 {pdfLoading
@@ -940,13 +940,13 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         {isUltra?(
           <button onClick={()=>setNutriModal(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm"
-            style={{background:'linear-gradient(135deg,#6d28d9,#7c3aed)',color:'#fff',boxShadow:'0 3px 10px rgba(124,58,237,.28)'}}>
+            style={{background:'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',color:'#fff',boxShadow:'0 3px 10px rgba(124,58,237,.28)'}}>
             <ChartBar size={16} weight="fill"/> Nutrición
           </button>
         ):(
           <button onClick={()=>onUpgrade('ultra')}
             className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm"
-            style={{background:'#f5f3ff',color:'#7c3aed',border:'1px solid #ddd6fe'}}>
+            style={{background:'#f5f3ff',color:'#d97706',border:'1px solid #ddd6fe'}}>
             🔒 Nutrición <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Ultra</span>
           </button>
         )}
