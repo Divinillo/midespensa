@@ -1,3 +1,15 @@
+import { supabase } from './supabase';
+
+/** Get the current Supabase access token, or null if not authenticated. */
+async function getAuthToken(): Promise<string | null> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token || null;
+  } catch {
+    return null;
+  }
+}
+
 let _syncTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function scheduleSyncToCloud(email: string, getData: () => object) {
@@ -5,12 +17,17 @@ export function scheduleSyncToCloud(email: string, getData: () => object) {
   _syncTimer = setTimeout(async () => {
     if (!email) return;
     try {
+      const token = await getAuthToken();
+      if (!token) return; // skip sync if not authenticated
       const ts = Date.now();
       try { localStorage.setItem('despensa_local_ts', String(ts)); } catch {}
       const data = getData();
       await fetch('/api/sync-data', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
         body: JSON.stringify({ email, ...data, updated_at: ts }),
       });
     } catch (e: any) {
@@ -23,9 +40,13 @@ export function scheduleSyncToCloud(email: string, getData: () => object) {
 export async function loadFromCloud(email: string, pinHash?: string) {
   if (!email) return null;
   try {
+    const token = await getAuthToken();
+    if (!token) return null;
     let url = '/api/sync-data?email=' + encodeURIComponent(email);
     if (pinHash) url += '&pin_hash=' + encodeURIComponent(pinHash);
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Bearer ${token}` },
+    });
     if (res.status === 401) return { error: 'PIN_REQUIRED' };
     if (res.status === 403) return { error: 'PIN_INVALID' };
     if (!res.ok) return null;

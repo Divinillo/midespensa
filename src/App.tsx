@@ -78,8 +78,10 @@ export function App() {
   const [tickets, setTickets] = useLS<Ticket[]>('despensa_tickets_v4', []);
   const [priceHistory, setPriceHistory] = useLS<PriceHistory>('despensa_prices_v4', {});
   const [learnedMappings, setLearnedMappings] = useLS<Record<string,string>>('despensa_learned_v1', {});
-  const [isPro, setIsPro] = useLS<boolean>('despensa_pro_v1', false);
-  const [isUltra, setIsUltra] = useLS<boolean>('despensa_ultra_v1', false);
+  // isPro/isUltra are derived exclusively from the cloud tier — never from localStorage
+  // to prevent trivial bypass via localStorage manipulation.
+  const [isPro, setIsPro] = useState<boolean>(false);
+  const [isUltra, setIsUltra] = useState<boolean>(false);
   const [wizardDone, setWizardDone] = useLS<boolean>('despensa_wizard_v1', false);
   const [userEmail, setUserEmail] = useLS<string>('despensa_email_v1', '');
   const [syncStatus, setSyncStatus] = useState('');
@@ -295,7 +297,7 @@ export function App() {
             {isPro ? (
               <div className="flex items-center justify-between">
                 <p className="text-xs text-violet-600">Todas las funciones desbloqueadas</p>
-                <button onClick={() => { if (window.confirm('¿Desactivar la licencia Pro en este dispositivo?')) setIsPro(false); }} className="text-xs text-gray-400 hover:text-red-500 underline ml-2">Desactivar</button>
+                <button onClick={async () => { if (window.confirm('¿Cerrar sesión?')) { await supabase.auth.signOut(); setShowSettings(false); } }} className="text-xs text-gray-400 hover:text-red-500 underline ml-2">Cerrar sesión</button>
               </div>
             ) : (
               <div>
@@ -317,11 +319,14 @@ export function App() {
           onMigrate={async () => {
             const email = session?.user?.email || userEmail;
             if (!email) return;
+            const { data: { session: s } } = await supabase.auth.getSession();
+            const token = s?.access_token;
+            if (!token) return;
             const ts = Date.now();
             try { localStorage.setItem('despensa_local_ts', String(ts)); } catch {}
             await fetch('/api/sync-data', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
               body: JSON.stringify({ email, dishes, ingredients, tickets, price_history: priceHistory, plan, updated_at: ts }),
             });
             setShowMigration(false);

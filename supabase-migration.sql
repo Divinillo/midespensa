@@ -24,15 +24,14 @@ ALTER TABLE licencias ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT no
 CREATE INDEX IF NOT EXISTS idx_licencias_session ON licencias (session_id);
 CREATE INDEX IF NOT EXISTS idx_licencias_email   ON licencias (email);
 
--- Row-level security: anon users can only SELECT their own row by clave
--- (the service key used in the backend bypasses RLS entirely)
+-- Row-level security: no public access.
+-- Only the service key (backend) can read/write — it bypasses RLS entirely.
+-- Client-side license validation is handled by the /api/sync-data endpoint.
 ALTER TABLE licencias ENABLE ROW LEVEL SECURITY;
 
+-- Remove any overly permissive anon read policy
 DROP POLICY IF EXISTS "anon_read_by_clave" ON licencias;
-CREATE POLICY "anon_read_by_clave" ON licencias
-  FOR SELECT
-  TO anon
-  USING (true);   -- Frontend already filters by clave — restrict further if you want
+-- No SELECT policy for anon or authenticated roles — service key bypasses RLS
 
 
 -- ─────────────────────────────────────────────────────────────────
