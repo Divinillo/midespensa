@@ -133,6 +133,44 @@ function matchRecipeIng(recipeIng, catalogIngs) {
   });
 }
 
+/* ── Gemini: sugerir recetas con ingredientes disponibles ───
+   Límite silencioso: 5 llamadas/mes por dispositivo.
+   Al agotarse, vuelve al scoring por reglas sin avisar.
+──────────────────────────────────────────────────────── */
+const _GK = () => (import.meta as any).env?.VITE_GEMINI_KEY;
+const _sKey = () => `gds_${new Date().toISOString().slice(0,7)}`;
+const _getU  = () => parseInt(localStorage.getItem(_sKey()) || '0', 10);
+const _incU  = () => localStorage.setItem(_sKey(), String(_getU() + 1));
+const _canAI = () => _getU() < 5;
+
+async function _geminiRecipes(availIngs, recipeNames, qty, diet) {
+  const key = _GK();
+  if (!key || !recipeNames.length) return [];
+  const dietStr = diet !== 'omnivora' ? `Solo recetas de tipo "${diet}". ` : '';
+  const prompt =
+    `Ingredientes disponibles: ${availIngs.slice(0,50).join(', ')}.\n` +
+    `${dietStr}` +
+    `De estas recetas: ${recipeNames.slice(0,80).join(' | ')}.\n` +
+    `Selecciona las ${qty} más adecuadas que pueda preparar principalmente con lo que tengo, ` +
+    `priorizando las que necesiten menos ingredientes extra.\n` +
+    `Devuelve ÚNICAMENTE un array JSON con los nombres exactos tal como aparecen: ["Nombre1","Nombre2"]`;
+  for (const model of ['gemini-2.5-flash-lite','gemini-2.5-flash']) {
+    try {
+      const r = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+        { method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0,maxOutputTokens:512} }) }
+      );
+      const d = await r.json();
+      if (d.error?.code === 429) continue;
+      const raw = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      const m = raw.match(/\[[\s\S]*\]/);
+      if (m) { const names = JSON.parse(m[0]); if (Array.isArray(names) && names.length) return names; }
+    } catch {}
+  }
+  return [];
+}
+
 /* ═══════════════════════════════════════
    SUGERIR PLATOS — Modal Premium
 ═══════════════════════════════════════ */
@@ -143,8 +181,10 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
   const [selected,setSelected]=useState({});
   const [added,setAdded]=useState(false);
   const [recipePreview,setRecipePreview]=useState<{name:string,ings:string[]}|null>(null);
+  const [useGemini,setUseGemini]=useState(false);
+  const [loading,setLoading]=useState(false);
 
-  React.useEffect(()=>{ if(open){setResults(null);setSelected({});setAdded(false);} },[open]);
+  React.useEffect(()=>{ if(open){setResults(null);setSelected({});setAdded(false);setLoading(false);} },[open]);
 
   function scoreRecipes() {
     const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
@@ -169,6 +209,39 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
     const pre={};
     top.slice(0,qty).forEach(s=>pre[s.recipe.id]=true);
     setSelected(pre);
+  }
+
+  async function searchRecipes() {
+    if (useGemini && _canAI()) {
+      setLoading(true);
+      try {
+        const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
+        let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length>=4 && !(r.kcal<200&&r.prot<10));
+        if(isUltra&&diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
+        const availIngs=ingredients.filter(i=>i.available).map(i=>i.name);
+        const geminiNames=await _geminiRecipes(availIngs, candidates.map(r=>r.name), qty, diet);
+        if(geminiNames.length){
+          _incU();
+          const map=new Map(candidates.map(r=>[r.name.toLowerCase(),r]));
+          let ordered=geminiNames.map(n=>map.get(n.toLowerCase())).filter(Boolean);
+          if(ordered.length<qty){
+            const usedIds=new Set(ordered.map(r=>r.id));
+            ordered=[...ordered,...candidates.filter(r=>!usedIds.has(r.id)).slice(0,qty-ordered.length)];
+          }
+          const scored=ordered.map(recipe=>{
+            const matched=recipe.ings.map(ri=>{const cat=matchRecipeIng(ri,ingredients);return{name:ri,catIng:cat||null,available:cat?cat.available:false};});
+            const availCnt=matched.filter(m=>m.available).length;
+            return{recipe,matched,total:matched.length,availCnt,missing:matched.filter(m=>!m.available),score:matched.length?availCnt/matched.length:0};
+          });
+          setLoading(false);
+          setResults({all:scored,requested:qty});
+          const pre={};scored.forEach(s=>{pre[s.recipe.id]=true;});setSelected(pre);
+          return;
+        }
+      } catch {}
+      setLoading(false);
+    }
+    scoreRecipes();
   }
 
   function addSelected() {
@@ -227,6 +300,21 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
               <span className="text-xs font-bold text-purple-500">🔒 Ver</span>
             </div>
           )}
+          {/* ── Toggle "Con lo que tengo en despensa" ── */}
+          <button type="button" onClick={()=>setUseGemini(v=>!v)}
+            className={`w-full flex items-center gap-2.5 py-2.5 px-3 rounded-xl border-2 transition-all text-left
+              ${useGemini?'border-emerald-400 bg-emerald-50':'border-gray-200 bg-white hover:border-emerald-200'}`}
+            style={{boxShadow:useGemini?'0 3px 10px rgba(16,185,129,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
+            <span className="text-lg">🥬</span>
+            <div className="flex-1 min-w-0">
+              <p className={`text-xs font-bold leading-tight ${useGemini?'text-emerald-700':'text-gray-600'}`}>Con lo que tengo en despensa</p>
+              <p className={`text-[10px] leading-tight mt-0.5 ${useGemini?'text-emerald-500':'text-gray-400'}`}>Prioriza los ingredientes que ya tienes disponibles</p>
+            </div>
+            <div className={`w-10 h-5 rounded-full transition-all flex items-center px-0.5 shrink-0 ${useGemini?'bg-emerald-500':'bg-gray-200'}`}>
+              <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-all ${useGemini?'translate-x-5':'translate-x-0'}`}/>
+            </div>
+          </button>
+
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-2">¿Cuántos platos?</p>
             <div className="flex gap-2">
@@ -244,10 +332,10 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
             📦 +100 recetas · {ingredients.filter(i=>i.available).length} ingredientes disponibles
             {isUltra&&diet!=='omnivora'&&<span className="ml-1 text-purple-500 font-semibold">· {DIET_SETS.find(d=>d.id===diet)?.label}</span>}
           </div>
-          <button onClick={scoreRecipes}
-            className="w-full rounded-xl py-3 font-bold text-sm active:scale-95 transition-all"
-            style={{background:'#16a34a',color:'#fff',boxShadow:'0 2px 8px rgba(22,163,74,.3)'}}>
-            🔍 Buscar recetas
+          <button onClick={searchRecipes} disabled={loading}
+            className="w-full rounded-xl py-3 font-bold text-sm transition-all"
+            style={{background:loading?'#86efac':'#16a34a',color:'#fff',boxShadow:'0 2px 8px rgba(22,163,74,.3)',opacity:loading?.85:1}}>
+            {loading?'⏳ Buscando...':'🔍 Buscar recetas'}
           </button>
         </div>
       ):(
