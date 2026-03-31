@@ -24,6 +24,13 @@ import { INIT_INGS } from './data/ingredients';
 import type { Ingredient, Dish, Plan, Ticket, PriceHistory, Section } from './data/types';
 
 /** Marca como disponibles los ingredientes que aparecen como matched en los tickets. */
+function isStandaloneApp(): boolean {
+  return (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    (window.navigator as any).standalone === true
+  );
+}
+
 function reconcileAvailability(ingredients: Ingredient[], tickets: Ticket[]): Ingredient[] {
   const matchedNames = new Set<string>();
   for (const t of tickets) {
@@ -93,6 +100,7 @@ export function App() {
   const [pinSetupConfirm, setPinSetupConfirm] = useState('');
   const [pinMsg, setPinMsg] = useState('');
   const [showSettings, setShowSettings] = useState(false);
+  const [showPWAWizard, setShowPWAWizard] = useState(false);
   const [importError, setImportError] = useState('');
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null);
   const [showMigration, setShowMigration] = useState(false);
@@ -292,6 +300,21 @@ export function App() {
             </div>
             <button onClick={resetWizard} className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0" style={{background:'#0284c7',color:'#fff'}}>Reiniciar</button>
           </div>
+          {!isStandaloneApp() && (
+            <div className="bg-teal-50 rounded-xl p-4 border border-teal-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-teal-800 text-sm">📲 Añadir a pantalla de inicio</h3>
+                <p className="text-xs text-teal-600 mt-0.5">Ver cómo instalar la app en tu dispositivo</p>
+              </div>
+              <button
+                onClick={() => { setShowSettings(false); setShowPWAWizard(true); }}
+                className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0"
+                style={{ background: '#0d9488', color: '#fff' }}
+              >
+                Ver guía
+              </button>
+            </div>
+          )}
           <div className={`rounded-xl p-4 border ${isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
             <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-amber-800' : 'text-green-800'}`}>{isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito'}</h3>
             {isPro ? (
@@ -339,6 +362,7 @@ export function App() {
 
       <CookieBanner />
       <PWAInstallWizard />
+      {showPWAWizard && <PWAInstallWizard forceOpen onClose={() => setShowPWAWizard(false)} />}
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-28" style={{ paddingTop: 20 }}>
         {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}

@@ -51,26 +51,33 @@ const STEPS: Record<OS, { title: string; subtitle: string; steps: Step[] }> = {
   },
 };
 
-export function PWAInstallWizard() {
+export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; onClose?: () => void } = {}) {
   const [visible, setVisible] = useState(false);
   const [os, setOs] = useState<OS>('android');
   const [activeTab, setActiveTab] = useState<OS>('android');
 
   useEffect(() => {
-    if (isStandalone()) return; // ya está instalada
+    if (forceOpen) {
+      const detected = detectOS();
+      setOs(detected);
+      setActiveTab(detected);
+      setVisible(true);
+      return;
+    }
+    if (isStandalone()) return;
     const dismissed = localStorage.getItem(STORAGE_KEY);
     if (dismissed) return;
     const detected = detectOS();
     setOs(detected);
     setActiveTab(detected);
-    // Mostrar después de 3s para no interrumpir la carga
     const t = setTimeout(() => setVisible(true), 3000);
     return () => clearTimeout(t);
-  }, []);
+  }, [forceOpen]);
 
   function dismiss() {
-    localStorage.setItem(STORAGE_KEY, '1');
+    if (!forceOpen) localStorage.setItem(STORAGE_KEY, '1');
     setVisible(false);
+    onClose?.();
   }
 
   if (!visible) return null;
