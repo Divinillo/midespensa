@@ -131,6 +131,8 @@ function parseMercadonaOnline(rows) {
 // Detecta si es un ticket online/app de Consum (formato web)
 function isConsumOnline(rows) {
   const text = rows.slice(0, 30).join('\n');
+  // Los tickets físicos de Consum tienen estas cabeceras de columna — no son pedidos online
+  if (/UND\s+PVP|KG\s+ARTICULO/i.test(text)) return false;
   return /consum/i.test(text) && (
     /Ref\.|Referencia|N[uú]mero de pedido|factura simplificada/i.test(text) ||
     rows.some(r => /^\d{2}\/\d{2}\/\d{4}/.test(r) && /€/.test(r))
@@ -248,8 +250,9 @@ function parseConsumReceipt(rows) {
     }
 
     // ── FORMATO ANTIGUO / COMBINADO: "N NOMBRE [PRECIO_UNIT] TOTAL"
-    // Cubre edge cases como "18 AGUA BEZOYA 1,5 L 0,75 13,50" o "1 PIPA TOSTADA 1,20"
-    const unitMatch = t.match(/^(\d+)\s+(.+?)\s+([\d]+[,\.]\d{2})(?:\s+([\d]+[,\.]\d{2}))?\s*$/);
+    // Cubre enteros "1 PLÁTANO CANARIO IGP 3,02", decimales de peso "0,595 AÑOJO GUISAR 11,10"
+    // y con precio/kg intermedio "0,635 LOMO DE CERDO 7,20 4,57"
+    const unitMatch = t.match(/^(\d+[,\.]?\d*)\s+(.+?)\s+([\d]+[,\.]\d{2})(?:\s+([\d]+[,\.]\d{2}))?\s*$/);
     if (unitMatch) {
       const [,, name, p1, p2] = unitMatch;
       // El nombre debe contener al menos una letra (no es una fila numérica)

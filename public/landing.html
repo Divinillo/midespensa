@@ -171,89 +171,61 @@
     .footer-links a { color: var(--gray-400); text-decoration: none; }
     .footer-links a:hover { color: #fff; }
 
-    /* ── SCREENS ── */
-    .screens { background: var(--gray-900); }
-    .screens .section-label { color: rgba(255,255,255,.45); }
-    .screens .section-title { color: #fff; }
-    .screens .section-sub { color: rgba(255,255,255,.55); }
-    .screens-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 28px;
-      margin-top: 48px;
-      align-items: end;
-    }
-    .phone-wrap { display: flex; flex-direction: column; align-items: center; gap: 14px; }
-    .phone-wrap p { font-size: .82rem; color: rgba(255,255,255,.55); text-align: center; max-width: 180px; line-height: 1.4; }
-    .phone-wrap strong { color: rgba(255,255,255,.85); display: block; font-size: .9rem; margin-bottom: 3px; }
+    /* ── PHONE IMAGE FRAMES ── */
+    .hero-phones { background: linear-gradient(180deg, var(--green-50) 0%, #fff 100%); padding: 8px 24px 72px; }
+    .phones-row { display: flex; justify-content: center; align-items: flex-end; gap: 20px; max-width: 700px; margin: 0 auto; }
+    .phone-frame { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .phone-frame.main { transform: translateY(-24px); }
     .phone-shell {
-      width: 200px;
       background: #1c1c1e;
-      border-radius: 36px;
-      padding: 10px;
-      box-shadow: 0 24px 48px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.07) inset;
+      border-radius: 38px;
+      padding: 9px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.18), 0 0 0 1px rgba(255,255,255,.08) inset;
+      width: 186px;
     }
-    .phone-shell.center-phone { width: 220px; }
-    .phone-screen {
-      background: #fff;
-      border-radius: 28px;
-      overflow: hidden;
-      aspect-ratio: 9/19.5;
-      display: flex;
-      flex-direction: column;
-      font-family: 'Inter', sans-serif;
-    }
+    .phone-shell.lg { width: 210px; }
+    .phone-img { width: 100%; border-radius: 30px; display: block; }
+    .phone-caption { text-align: center; font-size: .8rem; color: var(--gray-500); line-height: 1.35; max-width: 150px; }
+    .phone-caption strong { display: block; color: var(--gray-800); font-size: .88rem; font-weight: 600; margin-bottom: 2px; }
 
-    /* phone header bar */
-    .ps-status { background: var(--green-800); height: 22px; display: flex; align-items: center; padding: 0 12px; justify-content: space-between; flex-shrink: 0; }
-    .ps-status span { color: rgba(255,255,255,.6); font-size: .45rem; }
-    .ps-header { background: var(--green-700); padding: 9px 12px 8px; flex-shrink: 0; }
-    .ps-title { color: #fff; font-size: .68rem; font-weight: 700; }
-    .ps-sub { color: rgba(255,255,255,.65); font-size: .52rem; margin-top: 1px; }
-    .ps-body { flex: 1; overflow: hidden; padding: 7px 8px; display: flex; flex-direction: column; gap: 5px; background: var(--gray-50); }
-    .ps-nav { background: #fff; border-top: 1px solid var(--gray-200); display: flex; padding: 5px 0 4px; flex-shrink: 0; }
-    .ps-nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
-    .ps-nav-dot { width: 16px; height: 4px; border-radius: 2px; background: var(--gray-200); }
-    .ps-nav-dot.active { background: var(--green-600); }
-    .ps-nav-label { font-size: .38rem; color: var(--gray-400); }
-    .ps-nav-item.active .ps-nav-label { color: var(--green-600); font-weight: 700; }
+    /* ── TICKET SPOTLIGHT ── */
+    .ticket-spot { background: var(--gray-50); padding: 72px 24px; }
+    .spot-layout { max-width: 940px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .spot-text .section-label { margin-bottom: 10px; }
+    .spot-text h2 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.2; margin-bottom: 16px; }
+    .spot-text p { font-size: .95rem; color: var(--gray-500); line-height: 1.7; margin-bottom: 20px; }
+    .spot-stat { display: inline-flex; align-items: center; gap: 8px; background: var(--green-100); color: var(--green-800); border-radius: 10px; padding: 8px 16px; font-size: .88rem; font-weight: 600; }
+    .spot-phones { display: flex; justify-content: center; }
 
-    /* calendar grid */
-    .ps-cal-header { display: grid; grid-template-columns: repeat(7,1fr); gap: 1px; margin-bottom: 2px; }
-    .ps-cal-header span { font-size: .36rem; color: var(--gray-400); text-align: center; font-weight: 600; }
-    .ps-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 2px; }
-    .ps-day { font-size: .42rem; text-align: center; padding: 2px 0; border-radius: 3px; color: var(--gray-500); }
-    .ps-day.has { background: var(--green-100); color: var(--green-700); font-weight: 700; }
-    .ps-day.today { background: var(--green-600); color: #fff; font-weight: 700; }
-    .ps-day.empty { color: var(--gray-200); }
+    /* ── RECIPE STRIPE (extras intercalado) ── */
+    .recipe-stripe { background: #fff; padding: 64px 24px; border-bottom: 1px solid var(--gray-100); }
+    .recipe-layout { max-width: 940px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .recipe-text .section-label { margin-bottom: 10px; }
+    .recipe-text h2 { font-size: clamp(1.4rem, 3vw, 2rem); font-weight: 800; letter-spacing: -.02em; line-height: 1.2; margin-bottom: 16px; }
+    .recipe-text p { font-size: .95rem; color: var(--gray-500); line-height: 1.7; margin-bottom: 12px; }
 
-    /* cards inside phone */
-    .ps-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 6px 8px; }
-    .ps-card-label { font-size: .46rem; color: var(--green-600); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; margin-bottom: 2px; }
-    .ps-card-label.gray { color: var(--gray-400); }
-    .ps-card-name { font-size: .58rem; font-weight: 600; color: var(--gray-800); line-height: 1.3; }
-    .ps-card-sub { font-size: .46rem; color: var(--gray-400); margin-top: 1px; }
-    .ps-row { display: flex; align-items: center; gap: 4px; padding: 3px 0; border-bottom: 1px solid var(--gray-100); }
-    .ps-row:last-child { border-bottom: none; }
-    .ps-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
-    .ps-row-text { font-size: .52rem; color: var(--gray-700); }
-    .ps-badge { display: inline-flex; background: var(--green-100); color: var(--green-700); font-size: .44rem; font-weight: 700; padding: 1px 6px; border-radius: 10px; margin-top: 3px; }
-    .ps-badge.violet { background: #ede9fe; color: #7c3aed; }
-    .ps-section-label { font-size: .46rem; font-weight: 700; color: var(--gray-400); text-transform: uppercase; letter-spacing: .04em; padding: 2px 0; }
-    .ps-success { background: var(--green-50); border: 1px solid var(--green-200); border-radius: 8px; padding: 6px 8px; display: flex; align-items: center; gap: 5px; }
-    .ps-success-icon { font-size: .9rem; }
-    .ps-success-text { font-size: .5rem; color: var(--green-700); font-weight: 600; line-height: 1.3; }
+    /* ── FLOATING SCREENSHOT CARD ── */
+    .float-shot { background: #fff; border-radius: 18px; box-shadow: 0 16px 52px rgba(0,0,0,.13), 0 2px 8px rgba(0,0,0,.06); overflow: hidden; }
+    .float-shot img { width: 100%; display: block; }
 
     /* ── RESPONSIVE ── */
     @media (max-width: 760px) {
       .nav-links a:not(:last-child) { display: none; }
       section { padding: 56px 20px; }
       .hero { padding: 60px 20px 50px; }
-      .screens-row { grid-template-columns: 1fr; align-items: center; }
-      .phone-shell, .phone-shell.center-phone { width: 220px; }
+      .phones-row { gap: 12px; }
+      .phone-shell { width: 140px; }
+      .phone-shell.lg { width: 160px; }
+      .phone-frame.main { transform: translateY(-16px); }
+      .spot-layout, .recipe-layout { grid-template-columns: 1fr; gap: 36px; }
+      .spot-phones { order: -1; }
     }
     @media (max-width: 480px) {
       .hero { padding: 52px 16px 40px; }
+      .phones-row { gap: 8px; }
+      .phone-shell { width: 110px; border-radius: 28px; padding: 7px; }
+      .phone-shell.lg { width: 126px; }
+      .phone-img { border-radius: 22px; }
     }
   </style>
 </head>
@@ -291,6 +263,33 @@
     <span>🚫 Sin anuncios</span>
   </div>
 </section>
+<!-- ── HERO PHONES ── -->
+<div class="hero-phones">
+  <div class="phones-row">
+
+    <div class="phone-frame">
+      <div class="phone-shell">
+        <img src="/screenshots/misplatos.jpg" alt="Mis platos" class="phone-img" />
+      </div>
+      <div class="phone-caption"><strong>Mis platos</strong>Tus recetas habituales</div>
+    </div>
+
+    <div class="phone-frame main">
+      <div class="phone-shell lg">
+        <img src="/screenshots/calendario.jpg" alt="Plan mensual" class="phone-img" />
+      </div>
+      <div class="phone-caption"><strong>Plan mensual</strong>Comida y cena para cada día</div>
+    </div>
+
+    <div class="phone-frame">
+      <div class="phone-shell">
+        <img src="/screenshots/despensa.jpg" alt="Mi despensa" class="phone-img" />
+      </div>
+      <div class="phone-caption"><strong>Mi despensa</strong>Todo lo que tienes en casa</div>
+    </div>
+
+  </div>
+</div>
 
 <!-- ── CORE FLOW ── -->
 <section class="flow" id="como-funciona">
@@ -345,150 +344,36 @@
   </div>
 </section>
 
-<!-- ── SCREENS ── -->
-<section class="screens">
-  <div class="section-inner">
-    <div class="center">
-      <div class="section-label">La app en acción</div>
-      <h2 class="section-title">Así se ve por dentro</h2>
-      <p class="section-sub">Diseñada para usarse a diario, rápida y sin complicaciones.</p>
+
+<!-- ── SUGGESTION SPOTLIGHT ── -->
+<section class="ticket-spot">
+  <div class="spot-layout">
+    <div class="spot-text">
+      <div class="section-label">Crea tus platos</div>
+      <h2>La app te sugiere recetas según lo que tienes en casa</h2>
+      <p>Elige el tipo de dieta y MiDespensa propone platos que puedes preparar con los ingredientes que ya tienes. Cuantos más platos guardes, mejores sugerencias.</p>
+      <div class="spot-stat">✨ +100 recetas · detecta ingredientes disponibles</div>
     </div>
-    <div class="screens-row">
-
-      <!-- Phone 1: Ticket scan result -->
-      <div class="phone-wrap">
-        <div class="phone-shell">
-          <div class="phone-screen">
-            <div class="ps-status"><span>9:41</span><span>●●●</span></div>
-            <div class="ps-header">
-              <div class="ps-title">🧾 Tickets</div>
-              <div class="ps-sub">Mercadona · 28 Mar 2026</div>
-            </div>
-            <div class="ps-body">
-              <div class="ps-success">
-                <div class="ps-success-icon">✅</div>
-                <div class="ps-success-text">11 productos detectados<br/><span style="font-weight:400;color:#16a34a;">Total: 38,40 €</span></div>
-              </div>
-              <div class="ps-section-label">Añadidos a tu despensa</div>
-              <div class="ps-card">
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Leche semidesnatada ×2 — 1,98€</div></div>
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Pechuga de pollo 800g — 5,20€</div></div>
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Huevos L ×12 — 2,85€</div></div>
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Tomate natural triturado — 0,89€</div></div>
-                <div class="ps-row"><div class="ps-dot" style="background:#eab308;"></div><div class="ps-row-text" style="color:#a16207;">1 artículo sin reconocer…</div></div>
-              </div>
-              <div class="ps-card" style="background:var(--green-50); border-color:var(--green-200); text-align:center;">
-                <div style="font-size:.5rem; color:var(--green-700); font-weight:700;">🥕 Despensa actualizada automáticamente</div>
-              </div>
-            </div>
-            <div class="ps-nav">
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Plan</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Platos</div></div>
-              <div class="ps-nav-item active"><div class="ps-nav-dot active"></div><div class="ps-nav-label">Tickets</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Lista</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Gastos</div></div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <strong>Escaneo de ticket</strong>
-          Sube el PDF y la despensa se actualiza sola
-        </div>
+    <div class="spot-phones">
+      <div class="float-shot" style="max-width:340px;">
+        <img src="/screenshots/sugerirplatos.jpg" alt="Sugerir platos" />
       </div>
+    </div>
+  </div>
+</section>
 
-      <!-- Phone 2: Plan mensual (center, taller) -->
-      <div class="phone-wrap">
-        <div class="phone-shell center-phone">
-          <div class="phone-screen">
-            <div class="ps-status"><span>9:41</span><span>●●●</span></div>
-            <div class="ps-header">
-              <div class="ps-title">📅 Plan Mensual</div>
-              <div class="ps-sub">Abril 2026 · 20 días planificados</div>
-            </div>
-            <div class="ps-body">
-              <!-- calendar -->
-              <div class="ps-card" style="padding:6px;">
-                <div class="ps-cal-header">
-                  <span>L</span><span>M</span><span>X</span><span>J</span><span>V</span><span>S</span><span>D</span>
-                </div>
-                <div class="ps-cal-grid">
-                  <div class="ps-day empty"></div><div class="ps-day empty"></div><div class="ps-day">1</div><div class="ps-day has">2</div><div class="ps-day has">3</div><div class="ps-day">4</div><div class="ps-day">5</div>
-                  <div class="ps-day has">6</div><div class="ps-day has">7</div><div class="ps-day has">8</div><div class="ps-day has">9</div><div class="ps-day has">10</div><div class="ps-day">11</div><div class="ps-day">12</div>
-                  <div class="ps-day has">13</div><div class="ps-day has">14</div><div class="ps-day today">15</div><div class="ps-day has">16</div><div class="ps-day has">17</div><div class="ps-day">18</div><div class="ps-day">19</div>
-                  <div class="ps-day has">20</div><div class="ps-day has">21</div><div class="ps-day has">22</div><div class="ps-day has">23</div><div class="ps-day has">24</div><div class="ps-day">25</div><div class="ps-day">26</div>
-                  <div class="ps-day has">27</div><div class="ps-day has">28</div><div class="ps-day has">29</div><div class="ps-day has">30</div><div class="ps-day empty"></div><div class="ps-day empty"></div><div class="ps-day empty"></div>
-                </div>
-              </div>
-              <!-- selected day -->
-              <div class="ps-section-label">📅 Martes 15 — detalle</div>
-              <div class="ps-card">
-                <div class="ps-card-label">🍽️ Comida</div>
-                <div class="ps-card-name">Lentejas estofadas con verduras</div>
-              </div>
-              <div class="ps-card">
-                <div class="ps-card-label gray">🌙 Cena</div>
-                <div class="ps-card-name">Merluza al horno con patatas</div>
-              </div>
-              <div class="ps-card" style="background:var(--green-50); border-color:var(--green-200);">
-                <div style="font-size:.48rem; color:var(--green-700); font-weight:700; text-align:center;">✨ Menú automático activo</div>
-              </div>
-            </div>
-            <div class="ps-nav">
-              <div class="ps-nav-item active"><div class="ps-nav-dot active"></div><div class="ps-nav-label">Plan</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Platos</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Tickets</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Lista</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Gastos</div></div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <strong>Plan mensual</strong>
-          Calendario con comida y cena para cada día
-        </div>
+<!-- ── RECIPE STRIPE ── -->
+<section class="recipe-stripe">
+  <div class="recipe-layout">
+    <div class="spot-phones">
+      <div class="float-shot" style="max-width:420px;">
+        <img src="/screenshots/preparacion.jpg" alt="Instrucciones del plato" />
       </div>
-
-      <!-- Phone 3: Lista de la compra -->
-      <div class="phone-wrap">
-        <div class="phone-shell">
-          <div class="phone-screen">
-            <div class="ps-status"><span>9:41</span><span>●●●</span></div>
-            <div class="ps-header">
-              <div class="ps-title">🛒 Lista de la Compra</div>
-              <div class="ps-sub">9 artículos · generada del plan</div>
-            </div>
-            <div class="ps-body">
-              <div class="ps-section-label">🥩 Carnes y pescados</div>
-              <div class="ps-card">
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Merluza (600g)</div></div>
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Pechuga de pollo</div></div>
-              </div>
-              <div class="ps-section-label">🥦 Verduras y frutas</div>
-              <div class="ps-card">
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Tomates (1kg)</div></div>
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Patatas (2kg)</div></div>
-                <div class="ps-row"><div class="ps-dot" style="background:#9ca3af;"></div><div class="ps-row-text" style="text-decoration:line-through;color:var(--gray-400);">Cebolla (ya tienes)</div></div>
-              </div>
-              <div class="ps-section-label">🫙 Legumbres y secos</div>
-              <div class="ps-card">
-                <div class="ps-row"><div class="ps-dot" style="background:#16a34a;"></div><div class="ps-row-text">Lentejas (500g)</div></div>
-              </div>
-            </div>
-            <div class="ps-nav">
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Plan</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Platos</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Tickets</div></div>
-              <div class="ps-nav-item active"><div class="ps-nav-dot active"></div><div class="ps-nav-label">Lista</div></div>
-              <div class="ps-nav-item"><div class="ps-nav-dot"></div><div class="ps-nav-label">Gastos</div></div>
-            </div>
-          </div>
-        </div>
-        <div>
-          <strong>Lista de la compra</strong>
-          Generada del plan, sin lo que ya tienes
-        </div>
-      </div>
-
+    </div>
+    <div class="recipe-text">
+      <div class="section-label">Recetas incluidas</div>
+      <h2>Instrucciones paso a paso para cada plato</h2>
+      <p>Cada plato lleva su receta: tiempo, dificultad y pasos generados automáticamente. Si prefieres vídeo, añade el enlace de YouTube directamente al plato.</p>
     </div>
   </div>
 </section>
