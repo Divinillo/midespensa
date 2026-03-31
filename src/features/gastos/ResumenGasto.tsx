@@ -13,6 +13,21 @@ declare const window: any;
 
 const PALETTE = ['#16a34a','#7c3aed','#f59e0b','#ef4444','#3b82f6','#10b981','#f97316','#8b5cf6','#ec4899','#06b6d4','#84cc16','#14b8a6'];
 const STORE_COLOR: Record<string,string> = {Mercadona:'#16a34a',Consum:'#3b82f6',Carrefour:'#ef4444',Lidl:'#f59e0b',Aldi:'#f97316',Otro:'#6b7280'};
+const CAT_COLOR: Record<string,string> = {
+  'carnes':                '#ef4444',
+  'pescado':               '#0ea5e9',
+  'verduras':              '#10b981',
+  'legumbres':             '#f59e0b',
+  'lácteos':               '#eab308',
+  'pasta y harinas':       '#f97316',
+  'conservas':             '#64748b',
+  'fruta':                 '#fb923c',
+  'bebidas':               '#78716c',
+  'congelados':            '#06b6d4',
+  'bollería y dulces':     '#ec4899',
+  'snacks y aperitivos':   '#84cc16',
+  'especias y condimentos':'#14b8a6',
+};
 
 function SectionTitle({children}:{children:React.ReactNode}) {
   return <p style={{fontSize:'0.7rem',fontWeight:800,textTransform:'uppercase',letterSpacing:'.07em',color:'#94a3b8',marginBottom:10}}>{children}</p>;
@@ -47,7 +62,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
   const catData = useMemo(()=>{
     const s:{[k:string]:number}={};
     Object.entries(priceHistory).forEach(([id,recs])=>{ const ing=ingMap[id]; if(!ing) return; recs.forEach((r:any)=>{ s[ing.category]=(s[ing.category]||0)+r.price; }); });
-    return Object.entries(s).sort((a,b)=>b[1]-a[1]).map(([cat,v],i)=>({cat, name:`${CAT_EMOJI[cat]||''} ${cat}`, value:parseFloat(v.toFixed(2)), fill:PALETTE[i%PALETTE.length]}));
+    return Object.entries(s).sort((a,b)=>b[1]-a[1]).map(([cat,v],i)=>({cat, name:`${CAT_EMOJI[cat]||''} ${cat}`, value:parseFloat(v.toFixed(2)), fill:CAT_COLOR[cat]||PALETTE[i%PALETTE.length]}));
   },[priceHistory,ingMap]);
   const catTotal=catData.reduce((s,c)=>s+c.value,0);
 
@@ -361,7 +376,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
   const catData = useMemo(()=>{
     const s:{[k:string]:number}={};
     Object.entries(priceHistory).forEach(([id,recs])=>{ const ing=ingMap[id]; if(!ing) return; recs.forEach((r:any)=>{ s[ing.category]=(s[ing.category]||0)+r.price; }); });
-    return Object.entries(s).sort((a,b)=>b[1]-a[1]).map(([cat,v],i)=>({cat, name:`${CAT_EMOJI[cat]||''} ${cat}`, value:parseFloat(v.toFixed(2)), fill:PALETTE[i%PALETTE.length]}));
+    return Object.entries(s).sort((a,b)=>b[1]-a[1]).map(([cat,v],i)=>({cat, name:`${CAT_EMOJI[cat]||''} ${cat}`, value:parseFloat(v.toFixed(2)), fill:CAT_COLOR[cat]||PALETTE[i%PALETTE.length]}));
   },[priceHistory,ingMap]);
   const catTotal=catData.reduce((s,c)=>s+c.value,0);
 
