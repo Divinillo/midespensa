@@ -427,15 +427,18 @@ Reglas:
 - name: nombre limpio del producto en español, sin códigos ni cantidades
 TEXTO DEL TICKET:`;
 
-const GEMINI_PROMPT_IMAGE = `Esta imagen muestra un ticket de supermercado español. Extrae todos los productos que puedas ver.
-Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional):
+const GEMINI_PROMPT_IMAGE = `Esta imagen muestra un ticket de supermercado español físico (papel). Lee el ticket con cuidado aunque esté inclinado, tenga sombras o el texto sea pequeño.
+Extrae TODOS los productos que aparecen, sin omitir ninguno.
+Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional, sin markdown):
 {"date":"YYYY-MM-DD","total":0.00,"products":[{"name":"nombre","price":0.00}]}
 Reglas:
-- date: fecha en formato YYYY-MM-DD, null si no aparece
-- total: importe total pagado, null si no aparece
-- products: SOLO artículos físicos (comida, bebida, higiene, hogar). Excluye bolsas, descuentos, vales, comisiones, IVA, cambio.
-- price: precio final pagado por ese artículo
-- name: nombre limpio del producto en español, sin códigos`;
+- date: fecha del ticket en formato YYYY-MM-DD, null si no aparece
+- total: importe total pagado (busca "TOTAL", "A PAGAR", "IMPORTE"), null si no aparece
+- products: TODOS los artículos físicos (alimentación, bebidas, higiene, limpieza, hogar). NO excluyas productos aunque tengan nombres abreviados o en mayúsculas.
+  Excluye SOLO: bolsas, descuentos/vales/cupones, líneas de IVA/impuestos, cambio, subtotales, y líneas sin producto.
+- price: precio final pagado por ese artículo (columna más a la derecha del producto, o el importe total si hay precio por kg)
+- name: nombre limpio del producto en español, en minúsculas, sin códigos de barras ni números de artículo
+Importante: es normal que haya 20-40 productos en un ticket grande. Extráelos TODOS.`;
 
 async function callGemini(parts) {
   if (!GEMINI_KEY) return null;
@@ -445,13 +448,17 @@ async function callGemini(parts) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts }],
-        generationConfig: { responseMimeType: 'application/json', temperature: 0, maxOutputTokens: 4096 },
+        generationConfig: { responseMimeType: 'application/json', temperature: 0, maxOutputTokens: 8192 },
       }),
     });
-    if (!res.ok) { console.warn('Gemini error:', res.status); return null; }
+    if (!res.ok) {
+      const errText = await res.text().catch(()=>'');
+      console.error('Gemini HTTP error:', res.status, errText);
+      return null;
+    }
     const data = await res.json();
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) return null;
+    if (!text) { console.warn('Gemini: respuesta vacía', JSON.stringify(data).slice(0,300)); return null; }
     const parsed = JSON.parse(text);
     const products = (parsed.products || [])
       .filter(p => p.name && typeof p.price === 'number' && p.price > 0 && p.price < 1000)
@@ -461,9 +468,10 @@ async function callGemini(parts) {
         price: p.price,
         normalizedName: normalizeName(String(p.name).trim()),
       }));
+    console.log(`Gemini OK: ${products.length} productos`);
     return { products, total: parsed.total || null, date: parsed.date || null };
   } catch(e) {
-    console.warn('Gemini parse error:', e);
+    console.error('Gemini parse error:', e);
     return null;
   }
 }
@@ -473,19 +481,52 @@ async function geminiParsePdfText(rows) {
   return callGemini([{ text: GEMINI_PROMPT_TEXT + '\n' + rows.join('\n') }]);
 }
 
+// Redimensiona y comprime la imagen para Gemini (max 1600px, JPEG 85%)
+// Mejora la legibilidad y reduce el tamaño sin perder detalle del texto
+async function resizeForGemini(file): Promise<{ blob: Blob, mimeType: string }> {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1800;
+      let w = img.naturalWidth, h = img.naturalHeight;
+      if (Math.max(w, h) > MAX) {
+        const s = MAX / Math.max(w, h);
+        w = Math.round(w * s); h = Math.round(h * s);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d')!;
+      // Fondo blanco por si la imagen tiene transparencia
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, w, h);
+      ctx.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => resolve({ blob: blob!, mimeType: 'image/jpeg' }), 'image/jpeg', 0.88);
+    };
+    img.onerror = () => {
+      // Si no se puede procesar, usar el archivo original
+      URL.revokeObjectURL(url);
+      resolve({ blob: file, mimeType: file.type || 'image/jpeg' });
+    };
+    img.src = url;
+  });
+}
+
 // Foto: recibe el File directamente (mucho mejor que Tesseract)
 async function geminiParseImage(file): Promise<any> {
+  const { blob, mimeType } = await resizeForGemini(file);
   return new Promise(resolve => {
     const reader = new FileReader();
     reader.onload = async (e: any) => {
       const base64 = e.target.result.split(',')[1];
       const result = await callGemini([
         { text: GEMINI_PROMPT_IMAGE },
-        { inline_data: { mime_type: file.type || 'image/jpeg', data: base64 } },
+        { inline_data: { mime_type: mimeType, data: base64 } },
       ]);
       resolve(result);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -517,6 +558,28 @@ export async function processImageTicket(file, onProgress) {
   const enhanced = await enhanceImageForOCR(file);
   const text = await ocrImageFile(enhanced, onProgress);
   const rows = ocrTextToRows(text);
+
+  // ── Fallback secundario: Gemini sobre el texto OCR ──
+  // Si Gemini no pudo leer la imagen directamente, intentar con el texto extraído por Tesseract
+  if (GEMINI_KEY && rows.length > 3) {
+    const aiFromOcr = await geminiParsePdfText(rows);
+    if (aiFromOcr && aiFromOcr.products.length >= 3) {
+      const total = aiFromOcr.total || aiFromOcr.products.reduce((s,p)=>s+(p.price||0),0);
+      return {
+        id: 'tk'+uid(),
+        filename: (file.name && file.name !== 'image.jpg'
+          ? file.name
+          : 'foto-ticket-'+new Date().toISOString().slice(0,10)+'.jpg'),
+        date: aiFromOcr.date || new Date().toISOString().slice(0,10),
+        products: aiFromOcr.products,
+        total,
+        store: 'Otro',
+        fromCamera: true,
+        parsedByAI: true,
+      };
+    }
+  }
+
   const parsed = isMercadonaOnline(rows) ? parseMercadonaOnline(rows)
                : isConsum(rows)           ? parseConsumReceipt(rows)
                :                            parseTraditionalReceipt(rows);
