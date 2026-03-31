@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import type { Ingredient, Dish, Plan, Ticket } from '../../data/types';
 import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from '../../data/categories';
 import { Modal } from '../../components/ui/Modal';
+import { supabase } from '../../utils/supabase';
 
 
 export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, onDismiss}) {
@@ -186,7 +187,10 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra,
             <button onClick={async()=>{
                 const tier=isUltraTier?'ultra':'pro';
                 try{
-                  const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tier, ...(userEmail ? {email: userEmail} : {})})});
+                  const { data: { session: s } } = await supabase.auth.getSession();
+                  const token = s?.access_token;
+                  if (!token) { alert('Sesión expirada. Por favor recarga la página.'); return; }
+                  const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({tier})});
                   const data=await res.json();
                   if(data.url) window.location.href=data.url;
                   else alert('Error al iniciar el pago. Inténtalo de nuevo.');

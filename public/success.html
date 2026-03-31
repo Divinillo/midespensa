@@ -141,23 +141,15 @@ async function activate() {
     const res = await fetch(`/api/get-license?session_id=${encodeURIComponent(sessionId)}`);
     const data = await res.json();
 
-    if (!data.clave || !data.email) {
+    if (!data.ok) {
       // El webhook puede tardar 1-2 segundos — reintentamos una vez
       await new Promise(r => setTimeout(r, 2000));
       setProgress(50);
       const res2 = await fetch(`/api/get-license?session_id=${encodeURIComponent(sessionId)}`);
       const data2 = await res2.json();
-      if (!data2.clave) { showError('La licencia está siendo procesada. Revisa tu email en unos minutos.'); return; }
+      if (!data2.ok) { showError('La licencia está siendo procesada. Revisa tu email en unos minutos.'); return; }
       Object.assign(data, data2);
     }
-
-    setProgress(70);
-
-    // 2. Guardar en localStorage para activación automática
-    localStorage.setItem('despensa_pro_v1',   JSON.stringify(true));
-    localStorage.setItem('despensa_ultra_v1', JSON.stringify(data.tier === 'ultra'));
-    localStorage.setItem('despensa_email_v1', JSON.stringify(data.email));
-    localStorage.setItem('despensa_clave_v1', JSON.stringify(data.clave));
 
     setProgress(90);
 
