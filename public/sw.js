@@ -1,4 +1,4 @@
-const CACHE = 'midespensa-v9';
+const CACHE = 'midespensa-v10';
 // success.html excluded: it's only visited once post-payment and must always be fresh
 const PRECACHE = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
@@ -30,16 +30,10 @@ self.addEventListener('fetch', e => {
   // Solo cachear peticiones GET (la Cache API no soporta POST)
   if (e.request.method !== 'GET') return;
 
-  // Peticiones de navegación (SPA): servir index.html cacheado
-  // Evita el error "redirect mode is not follow" en navegaciones
-  if (e.request.mode === 'navigate') {
-    e.respondWith(
-      caches.match('./index.html')
-        .then(cached => cached || fetch('./index.html'))
-        .catch(() => fetch('./index.html'))
-    );
-    return;
-  }
+  // Peticiones de navegación: dejar pasar sin interceptar
+  // Cloudflare gestiona el routing (_redirects) y evitamos el error
+  // "redirect mode is not follow" que ocurre al hacer fetch() de navegaciones
+  if (e.request.mode === 'navigate') return;
 
   // Archivos propios: cache-first con fallback a red
   e.respondWith(
