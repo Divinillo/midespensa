@@ -348,20 +348,20 @@
 
 
 <!-- ── PROMO VIDEO ── -->
-<section style="background:#fff;padding:64px 24px 56px;text-align:center;">
-  <div class="section-inner">
+<section style="background:#fff;padding:64px 0 56px;text-align:center;">
+  <div class="section-inner" style="padding:0 24px;">
     <div class="section-label">Vídeo de presentación</div>
     <h2 class="section-title" style="margin-bottom:8px;">Mira cómo funciona</h2>
     <p class="section-sub" style="margin:0 auto 36px;max-width:520px;">Todas las funciones de MiDespensa en 35 segundos.</p>
-    <div style="max-width:900px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 16px 52px rgba(0,0,0,0.18);">
-      <iframe
-        src="/promo"
-        style="width:100%;aspect-ratio:900/560;border:none;display:block;background:#020c0c;"
-        scrolling="no"
-        loading="lazy"
-        title="MiDespensa – presentación"
-      ></iframe>
-    </div>
+  </div>
+  <div style="max-width:900px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 16px 52px rgba(0,0,0,0.18);">
+    <iframe
+      src="/promo"
+      style="width:100%;aspect-ratio:900/560;border:none;display:block;background:#020c0c;"
+      scrolling="no"
+      loading="lazy"
+      title="MiDespensa – presentación"
+    ></iframe>
   </div>
 </section>
 
@@ -523,164 +523,6 @@
 
 
 <!-- ── INSTALAR PWA ── -->
-<section id="instalar" style="background:linear-gradient(160deg,#f0fdfa 0%,#fff 100%);padding:72px 24px;">
-  <div class="section-inner">
-    <div class="center">
-      <div class="section-label">Sin tienda de apps</div>
-      <h2 class="section-title">Añádela a tu pantalla de inicio</h2>
-      <p class="section-sub center" id="pwa-intro-text" style="margin:0 auto 48px;">MiDespensa funciona como una app nativa en iOS y Android. Sin pasar por Play Store ni App Store.</p>
-    </div>
-
-    <!-- Tabs para selección de SO (visibles si no se detecta) -->
-    <div id="pwa-tabs" style="display:flex;justify-content:center;gap:10px;margin-bottom:32px;">
-      <button onclick="showPWA('android')" id="tab-android" style="padding:8px 20px;border-radius:100px;border:2px solid #ccfbf1;background:#fff;font-size:0.85rem;font-weight:600;color:#374151;cursor:pointer;transition:all .15s;">Android</button>
-      <button onclick="showPWA('ios')" id="tab-ios" style="padding:8px 20px;border-radius:100px;border:2px solid #ccfbf1;background:#fff;font-size:0.85rem;font-weight:600;color:#374151;cursor:pointer;transition:all .15s;">iPhone / iPad</button>
-      <button onclick="showPWA('desktop')" id="tab-desktop" style="padding:8px 20px;border-radius:100px;border:2px solid #ccfbf1;background:#fff;font-size:0.85rem;font-weight:600;color:#374151;cursor:pointer;transition:all .15s;">Escritorio</button>
-    </div>
-
-    <div style="max-width:580px;margin:0 auto;display:flex;flex-direction:column;gap:20px;">
-
-      <!-- Android / Chrome -->
-      <div id="pwa-android" class="pwa-card" style="background:#fff;border:1.5px solid #ccfbf1;border-radius:20px;padding:28px;display:none;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-          
-          <div>
-            <div style="font-weight:800;font-size:0.95rem;color:#1e293b;">Android · Chrome</div>
-            <div style="font-size:0.75rem;color:#94a3b8;">Google Play próximamente</div>
-          </div>
-        </div>
-        <ol style="display:flex;flex-direction:column;gap:14px;padding:0;margin:0;list-style:none;">
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">1</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Abre <strong>midespensa.app</strong> en Chrome</span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">2</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Toca el menú <strong>⋮</strong> (tres puntos) en la esquina superior derecha</span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">3</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Selecciona <strong>"Añadir a pantalla de inicio"</strong> o <strong>"Instalar app"</strong></span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">4</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Pulsa <strong>"Añadir"</strong> en el diálogo de confirmación</span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#d97706;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">✓</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">¡Listo! El icono aparece en tu pantalla de inicio</span>
-          </li>
-        </ol>
-        <p style="font-size:0.78rem;color:#94a3b8;margin-top:16px;">💡 En algunos dispositivos también aparece un banner de instalación automático en la parte inferior de Chrome.</p>
-      </div>
-
-      <!-- iOS / Safari -->
-      <div id="pwa-ios" class="pwa-card" style="background:#fff;border:1.5px solid #ccfbf1;border-radius:20px;padding:28px;display:none;">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
-          
-          <div>
-            <div style="font-weight:800;font-size:0.95rem;color:#1e293b;">iPhone / iPad · Safari</div>
-            <div style="font-size:0.75rem;color:#94a3b8;">App Store próximamente</div>
-          </div>
-        </div>
-        <ol style="display:flex;flex-direction:column;gap:14px;padding:0;margin:0;list-style:none;">
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">1</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Abre <strong>midespensa.app</strong> en Safari <em style="color:#94a3b8;">(no Chrome)</em></span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">2</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Toca el icono <strong>Compartir ⬆</strong> en la barra inferior (o los tres puntos <strong>···</strong> junto a la barra de dirección)</span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">3</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Desplázate en el menú y pulsa <strong>"Añadir a pantalla de inicio"</strong></span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#d97706;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">✓</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Confirma con <strong>"Añadir"</strong> — ya aparece en tu pantalla de inicio</span>
-          </li>
-        </ol>
-        <p style="font-size:0.78rem;color:#94a3b8;margin-top:16px;">💡 En iOS solo funciona con Safari. Chrome en iPhone no permite instalar PWAs.</p>
-      </div>
-
-      <!-- Desktop / PC -->
-      <div id="pwa-desktop" class="pwa-card" style="background:#fff;border:1.5px solid #ccfbf1;border-radius:20px;padding:28px;display:none;">
-        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-          
-          <div>
-            <div style="font-weight:800;font-size:0.95rem;color:#1e293b;">Escritorio · Chrome / Edge</div>
-            <div style="font-size:0.75rem;color:#94a3b8;">Funciona como app de escritorio</div>
-          </div>
-        </div>
-        <ol style="display:flex;flex-direction:column;gap:14px;padding:0;margin:0;list-style:none;">
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">1</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Abre <strong>midespensa.app</strong> en Chrome o Edge</span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">2</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Busca el icono <strong>⊕</strong> o el símbolo de instalación al final de la barra de direcciones</span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">3</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Haz clic y pulsa <strong>"Instalar"</strong></span>
-          </li>
-          <li style="display:flex;gap:12px;align-items:flex-start;">
-            <div style="width:24px;height:24px;background:#d97706;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">✓</div>
-            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">MiDespensa se abre en su propia ventana, sin pestañas del navegador</span>
-          </li>
-        </ol>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<script>
-(function() {
-  var ua = navigator.userAgent;
-  var isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-  var isAndroid = /Android/.test(ua);
-  var isMac = /Mac/.test(ua) && !isIOS;
-  var detected = isIOS ? 'ios' : isAndroid ? 'android' : 'desktop';
-  showPWA(detected, true);
-})();
-
-function showPWA(os, auto) {
-  var cards = document.querySelectorAll('.pwa-card');
-  cards.forEach(function(c) { c.style.display = 'none'; });
-  var target = document.getElementById('pwa-' + os);
-  if (target) target.style.display = 'block';
-
-  var tabs = ['android','ios','desktop'];
-  tabs.forEach(function(t) {
-    var btn = document.getElementById('tab-' + t);
-    if (!btn) return;
-    if (t === os) {
-      btn.style.background = '#0f766e';
-      btn.style.color = '#fff';
-      btn.style.borderColor = '#0f766e';
-    } else {
-      btn.style.background = '#fff';
-      btn.style.color = '#374151';
-      btn.style.borderColor = '#ccfbf1';
-    }
-  });
-
-  if (auto) {
-    var introText = document.getElementById('pwa-intro-text');
-    if (introText) {
-      var msgs = {
-        android: 'Hemos detectado que estás en <strong>Android</strong>. Sigue estos pasos para instalar MiDespensa como app:',
-        ios: 'Hemos detectado que estás en <strong>iOS</strong>. Sigue estos pasos para instalar MiDespensa en tu iPhone o iPad:',
-        desktop: 'Hemos detectado que estás en <strong>escritorio</strong>. Instala MiDespensa como app de escritorio en Chrome o Edge:'
-      };
-      introText.innerHTML = msgs[os] || introText.innerHTML;
-    }
-  }
-}
-</script>
 
 <!-- ── CTA FINAL ── -->
 <div class="cta-final">
