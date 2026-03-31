@@ -1,5 +1,6 @@
 // @ts-nocheck
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { supabase } from '../../utils/supabase';
 
 /* ── Redimensionar imagen a max 600px y devolver base64 ─────── */
 function resizeImage(file: File, maxPx = 600): Promise<string> {
@@ -134,41 +135,32 @@ function matchRecipeIng(recipeIng, catalogIngs) {
 }
 
 /* ── Gemini: sugerir recetas con ingredientes disponibles ───
-   Límite silencioso: 5 llamadas/mes por dispositivo.
+   La clave Gemini está en el servidor — nunca en el bundle.
+   Límite silencioso: 5 llamadas/mes por dispositivo (UX soft-limit).
    Al agotarse, vuelve al scoring por reglas sin avisar.
 ──────────────────────────────────────────────────────── */
-const _GK = () => (import.meta as any).env?.VITE_GEMINI_KEY;
 const _sKey = () => `gds_${new Date().toISOString().slice(0,7)}`;
 const _getU  = () => parseInt(localStorage.getItem(_sKey()) || '0', 10);
 const _incU  = () => localStorage.setItem(_sKey(), String(_getU() + 1));
 const _canAI = () => _getU() < 5;
 
 async function _geminiRecipes(availIngs, recipeNames, qty, diet) {
-  const key = _GK();
-  if (!key || !recipeNames.length) return [];
-  const dietStr = diet !== 'omnivora' ? `Solo recetas de tipo "${diet}". ` : '';
-  const prompt =
-    `Ingredientes disponibles: ${availIngs.slice(0,50).join(', ')}.\n` +
-    `${dietStr}` +
-    `De estas recetas: ${recipeNames.slice(0,80).join(' | ')}.\n` +
-    `Selecciona las ${qty} más adecuadas que pueda preparar principalmente con lo que tengo, ` +
-    `priorizando las que necesiten menos ingredientes extra.\n` +
-    `Devuelve ÚNICAMENTE un array JSON con los nombres exactos tal como aparecen: ["Nombre1","Nombre2"]`;
-  for (const model of ['gemini-2.5-flash-lite','gemini-2.5-flash']) {
-    try {
-      const r = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
-        { method:'POST', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ contents:[{parts:[{text:prompt}]}], generationConfig:{temperature:0,maxOutputTokens:512} }) }
-      );
-      const d = await r.json();
-      if (d.error?.code === 429) continue;
-      const raw = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const m = raw.match(/\[[\s\S]*\]/);
-      if (m) { const names = JSON.parse(m[0]); if (Array.isArray(names) && names.length) return names; }
-    } catch {}
+  if (!recipeNames.length) return [];
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) return [];
+  try {
+    const r = await fetch('/api/gemini-recipes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ availIngs, recipeNames, qty, diet }),
+    });
+    if (!r.ok) return [];
+    const d = await r.json();
+    return Array.isArray(d.names) ? d.names : [];
+  } catch {
+    return [];
   }
-  return [];
 }
 
 /* ═══════════════════════════════════════

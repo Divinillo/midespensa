@@ -406,96 +406,49 @@ function ocrTextToRows(text) {
 
 /* ═══════════════════════════════════════
    GEMINI AI — PARSER INTELIGENTE DE TICKETS
-   API gratuita de Google (1500 peticiones/día).
-   Se usa como fallback en PDF y como motor
-   principal para fotos de ticket.
-   Configura VITE_GEMINI_KEY en las variables
-   de entorno de Cloudflare Pages.
+   La clave está en el servidor (/api/gemini-ticket).
+   El cliente envía texto/imagen al proxy autenticado.
 ═══════════════════════════════════════ */
 
-const GEMINI_KEY: string | undefined = (import.meta as any).env?.VITE_GEMINI_KEY;
-const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-// Modelos en orden de preferencia — 1.5 retirados, usar 2.5+ (cada uno con cuota independiente)
-const GEMINI_MODELS = [
-  'gemini-2.5-flash-lite',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash-lite',
-  'gemini-2.0-flash',
-];
+import { supabase } from './supabase';
 
-const GEMINI_PROMPT_TEXT = `Analiza este texto de un ticket de supermercado español y extrae todos los productos comprados.
-Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional):
-{"date":"YYYY-MM-DD","total":0.00,"products":[{"name":"nombre","price":0.00}]}
-Reglas:
-- date: fecha en formato YYYY-MM-DD, null si no aparece
-- total: importe total pagado, null si no aparece
-- products: SOLO artículos físicos (comida, bebida, higiene, hogar). Excluye bolsas, descuentos, vales, comisiones, IVA, cambio, líneas de total o subtotal.
-- price: precio final pagado por ese artículo (para productos por peso, el importe total de esa línea)
-- name: nombre limpio del producto en español, sin códigos ni cantidades
-TEXTO DEL TICKET:`;
+async function _getToken(): Promise<string | null> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ?? null;
+}
 
-const GEMINI_PROMPT_IMAGE = `Desglosa ingrediente por ingrediente su importe y la suma del total de este ticket de supermercado.
-Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional, sin markdown):
-{"date":"YYYY-MM-DD","total":0.00,"products":[{"name":"nombre","price":0.00}]}
-- date: fecha del ticket en formato YYYY-MM-DD, null si no aparece
-- total: importe total final pagado
-- products: cada línea de producto con su importe final (si hay descuento aplicado, usa el precio ya descontado). Incluye todos los artículos sin excepción.
-- name: nombre del producto en minúsculas, limpio, sin códigos`;
-
-async function callGemini(parts) {
-  if (!GEMINI_KEY) return null;
-  // Intentar cada modelo en orden hasta que uno responda (cuotas independientes)
-  for (const model of GEMINI_MODELS) {
-    try {
-      const url = `${GEMINI_BASE}/${model}:generateContent?key=${GEMINI_KEY}`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts }],
-          // Sin responseMimeType: más compatible con todos los modelos y con imágenes
-          generationConfig: { temperature: 0, maxOutputTokens: 8192 },
-        }),
-      });
-      if (res.status === 429) {
-        console.warn(`Gemini ${model}: cuota agotada, probando siguiente modelo...`);
-        continue;
-      }
-      if (!res.ok) {
-        const errText = await res.text().catch(()=>'');
-        console.error(`Gemini ${model} error ${res.status}:`, errText.slice(0,200));
-        continue;
-      }
-      const data = await res.json();
-      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      if (!rawText) { console.warn(`Gemini ${model}: respuesta vacía`); continue; }
-
-      // Extraer el bloque JSON de la respuesta (puede venir con ```json ... ``` o solo el JSON)
-      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) { console.warn(`Gemini ${model}: no hay JSON en respuesta`, rawText.slice(0,200)); continue; }
-      const parsed = JSON.parse(jsonMatch[0]);
-
-      const products = (parsed.products || [])
-        .filter(p => p.name && typeof p.price === 'number' && p.price > 0 && p.price < 1000)
+async function callGeminiServer(mode: 'text' | 'image', payload: Record<string, unknown>) {
+  const token = await _getToken();
+  if (!token) return null;
+  try {
+    const res = await fetch('/api/gemini-ticket', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ mode, ...payload }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (!data.products) return null;
+    return {
+      products: (data.products as Array<{name: string; price: number}>)
+        .filter(p => p.name && typeof p.price === 'number' && p.price > 0)
         .map(p => ({
           id: uid(),
           rawName: String(p.name).trim(),
           price: p.price,
           normalizedName: normalizeName(String(p.name).trim()),
-        }));
-      console.log(`Gemini ${model} OK: ${products.length} productos`);
-      return { products, total: parsed.total || null, date: parsed.date || null };
-    } catch(e) {
-      console.error(`Gemini ${model} excepción:`, e);
-    }
+        })),
+      total: data.total ?? null,
+      date: data.date ?? null,
+    };
+  } catch {
+    return null;
   }
-  console.error('Todos los modelos Gemini fallaron o tienen cuota agotada');
-  return null;
 }
 
 // PDF: recibe las filas ya extraídas por PDF.js
 async function geminiParsePdfText(rows) {
-  return callGemini([{ text: GEMINI_PROMPT_TEXT + '\n' + rows.join('\n') }]);
+  return callGeminiServer('text', { rows });
 }
 
 // Redimensiona y comprime la imagen para Gemini (max 1600px, JPEG 85%)
@@ -537,10 +490,7 @@ async function geminiParseImage(file): Promise<any> {
     const reader = new FileReader();
     reader.onload = async (e: any) => {
       const base64 = e.target.result.split(',')[1];
-      const result = await callGemini([
-        { text: GEMINI_PROMPT_IMAGE },
-        { inline_data: { mime_type: mimeType, data: base64 } },
-      ]);
+      const result = await callGeminiServer('image', { base64, mimeType });
       resolve(result);
     };
     reader.readAsDataURL(blob);
@@ -551,10 +501,6 @@ async function geminiParseImage(file): Promise<any> {
 // Usa Gemini como motor principal (OCR/Tesseract comentado — peor calidad)
 export async function processImageTicket(file, onProgress) {
   onProgress && onProgress(-1);
-
-  if (!GEMINI_KEY) {
-    throw new Error('No hay clave de IA configurada. Contacta con el administrador.');
-  }
 
   const aiResult = await geminiParseImage(file);
   if (aiResult && aiResult.products.length > 0) {
@@ -616,7 +562,7 @@ export async function processPdf(file) {
   if (!parsed.products) throw new Error('No se reconoció el formato del ticket.');
 
   // ── Gemini fallback: si el regex encontró menos de 3 productos ──
-  if (GEMINI_KEY && parsed.products.length < 3) {
+  if (parsed.products.length < 3) {
     const aiResult = await geminiParsePdfText(rows);
     if (aiResult && aiResult.products.length > parsed.products.length) {
       parsed = { ...parsed, ...aiResult };
