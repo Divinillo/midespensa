@@ -1,7 +1,5 @@
 # MiDespensa – Cloudflare Pages redirects
 # / → landing page (rewrite)
-# /app → React SPA (served as physical file dist/app/index.html via build script)
-# /app/* → handles any deep links within the SPA
+# /app and /app/* → handled by Pages Functions (functions/app/)
 
 /           /landing.html   200
-/app/*      /app/index.html 200
