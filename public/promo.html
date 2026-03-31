@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=900px">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mi Despensa – App Promo</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -1202,6 +1202,21 @@ document.body.addEventListener('click', (e) => {
 // Animate first scene on load
 setTimeout(() => animateScene(allScenes[0]), 80);
 tick();
+
+// ── Responsive scale ──
+(function scaleBody() {
+  var W = 900, H = 560;
+  function resize() {
+    var scale = Math.min(window.innerWidth / W, window.innerHeight / H, 1);
+    document.body.style.transform = 'scale(' + scale + ')';
+    document.body.style.transformOrigin = 'top left';
+    document.documentElement.style.width  = Math.round(W * scale) + 'px';
+    document.documentElement.style.height = Math.round(H * scale) + 'px';
+    document.documentElement.style.overflow = 'hidden';
+  }
+  resize();
+  window.addEventListener('resize', resize);
+})();
 </script>
 
 
