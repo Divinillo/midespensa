@@ -49,9 +49,9 @@ function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
   }
 
   // Icono de indicación en esquina superior derecha según modo
-  const actionIcon = mode === 'catalog' ? '🛒'
-                   : mode === 'cart'    ? '✓'
-                   : mode === 'pantry'  ? '🧺'
+  const actionIcon = mode === 'catalog' ? 'cart'
+                   : mode === 'cart'    ? 'check'
+                   : mode === 'pantry'  ? 'pantry'
                    : null;
 
   const actionBg = mode === 'catalog' ? '#fff'
@@ -114,13 +114,11 @@ function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
           border: '2px solid ' + actionBorder,
           boxShadow: '0 1px 4px rgba(0,0,0,.15)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: mode === 'cart' ? '0.65rem' : '0.58rem',
           color: actionColor,
-          fontWeight: 900,
           pointerEvents: 'none',
           zIndex: 2,
         }}>
-          {actionIcon}
+          {actionIcon === 'cart' ? <ShoppingCart size={12} weight="fill"/> : actionIcon === 'check' ? '✓' : <Basket size={12} weight="fill"/>}
         </div>
       )}
 
@@ -134,15 +132,17 @@ function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
             background: '#fff', border: '1px solid #e2e8f0',
             boxShadow: '0 1px 3px rgba(0,0,0,.1)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.48rem', color: '#94a3b8', cursor: 'pointer', zIndex: 2,
+            color: '#94a3b8', cursor: 'pointer', zIndex: 2, padding: 0
           }}
-        >✕</button>
+        >×</button>
       )}
     </div>
   );
 }
 
 /* ── Cabecera de sección colapsable ────────────────────────────── */
+import { MagnifyingGlass, Basket, ShoppingCart } from '@phosphor-icons/react';
+
 function SectionHeader({ label, count, isCollapsed, onToggle, badge }) {
   return (
     <button
@@ -255,13 +255,13 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
 
       {/* ── Header ── */}
       <div style={{ marginBottom: 16 }}>
-        <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: '#1e293b', letterSpacing: '-0.02em', margin: '0 0 12px 0' }}>
-          Mi despensa 🧺
+        <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: '#1e293b', letterSpacing: '-0.02em', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Basket size={28} weight="fill" color="#0f766e"/> Mi despensa
         </h1>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Buscador */}
           <div style={{ flex: 1, position: 'relative' }}>
-            <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', fontSize: '0.85rem', color: '#94a3b8', pointerEvents: 'none' }}>🔍</span>
+            <span style={{ position: 'absolute', left: 11, top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }}><MagnifyingGlass size={16}/></span>
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
@@ -276,8 +276,8 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
             {search && (
               <button
                 onClick={() => setSearch('')}
-                style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '0.75rem', color: '#94a3b8', padding: 2 }}
-              >✕</button>
+                style={{ position: 'absolute', right: 9, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', padding: 2 }}
+              >×</button>
             )}
           </div>
           {/* Botón añadir */}
@@ -298,7 +298,7 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
       {!searchActive && neededIngs.length > 0 && (
         <section style={{ marginBottom: 8 }}>
           <SectionHeader
-            label="🛒 A comprar"
+            label="A comprar"
             isCollapsed={collapsed['acomprar']}
             onToggle={() => toggleSection('acomprar')}
             badge={
@@ -331,7 +331,7 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
       {!searchActive && recentIngs.length > 0 && (
         <section style={{ marginBottom: 8 }}>
           <SectionHeader
-            label="🕓 Utilizados recientemente"
+            label="Utilizados recientemente"
             isCollapsed={collapsed['recientes']}
             onToggle={() => toggleSection('recientes')}
             badge={null}
@@ -350,7 +350,7 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
       {!searchActive && availableIngs.length > 0 && (
         <section style={{ marginBottom: 8 }}>
           <SectionHeader
-            label="🧺 En despensa"
+            label="En despensa"
             isCollapsed={collapsed['endespensa']}
             onToggle={() => toggleSection('endespensa')}
             badge={
@@ -411,20 +411,20 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
 
       {searchActive && byCategory.length === 0 && (
         <div style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
-          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🔍</div>
+          <div style={{ fontSize: '2.5rem', marginBottom: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MagnifyingGlass size={56}/></div>
           <p style={{ fontSize: '0.85rem' }}>Sin resultados para "<strong>{search}</strong>"</p>
         </div>
       )}
 
       {!searchActive && ingredients.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#cbd5e1' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>🧺</div>
+          <div style={{ fontSize: '3rem', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Basket size={64} weight="fill" color="#cbd5e1"/></div>
           <p style={{ fontSize: '0.9rem' }}>Sin ingredientes aún.<br/>Pulsa <strong>+</strong> para añadir.</p>
         </div>
       )}
 
       {/* ── Modal añadir ── */}
-      <Modal open={addModal} onClose={() => setAddModal(false)} title="🌿 Nuevo ingrediente">
+      <Modal open={addModal} onClose={() => setAddModal(false)} title="Nuevo ingrediente">
         <div className="space-y-4">
           <div>
             <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>

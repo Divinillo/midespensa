@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import type { Ingredient, Dish, Plan, PriceHistory } from '../../data/types';
 import { CAT_BG, CAT_TEXT, CAT_EMOJI, MONTH_NAMES, CATEGORIES } from '../../data/categories';
+import { ShoppingCart } from '@phosphor-icons/react';
 
 export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory}) {
   const now=new Date();
@@ -48,8 +49,8 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
 
       {/* ── Header ── */}
       <div className="mb-5">
-        <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-          Lista de compra 🛒
+        <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em',display:'flex',alignItems:'center',gap:8}}>
+          <ShoppingCart size={24} weight="fill" color="#0f766e"/> Lista de compra
         </h1>
         <p className="text-sm text-gray-400 mt-1">Genera lo que te falta según tu plan</p>
       </div>
@@ -69,8 +70,8 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
         </div>
         <button onClick={generate}
           className="w-full text-white rounded-2xl py-3.5 font-bold text-sm"
-          style={{background:'#0d9488',boxShadow:'0 2px 10px rgba(13,148,136,.35)'}}>
-          🛒 Generar lista de la compra
+          style={{background:'#0d9488',boxShadow:'0 2px 10px rgba(13,148,136,.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+          <ShoppingCart size={18} weight="fill"/> Generar lista de la compra
         </button>
       </div>
 

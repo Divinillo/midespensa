@@ -7,6 +7,7 @@ import { FREE_TICKET_LIMIT, CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES } from '../.
 import { processImageTicket, processPdf, applyTicket } from '../../utils/ticketProcess';
 import { normalizeName } from '../../utils/helpers';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
+import { Receipt, Trash, X } from '@phosphor-icons/react';
 
 // CDN globals
 declare const window: any;
@@ -299,13 +300,13 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       {tickets.length>0&&(
         <div className="flex justify-between items-center mb-3">
           <p className="text-sm text-gray-400">{tickets.length} ticket{tickets.length>1?'s':''} subido{tickets.length>1?'s':''}</p>
-          <button onClick={()=>setConfirm('__all__')} className="text-xs text-rose-400 hover:text-rose-600 border border-rose-200 hover:border-rose-400 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 transition-all">
-            🗑️ Limpiar todos
+          <button onClick={()=>setConfirm('__all__')} className="text-xs text-rose-400 hover:text-rose-600 border border-rose-200 hover:border-rose-400 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 transition-all" style={{display:'flex',alignItems:'center',gap:6}}>
+            <Trash size={14}/> Limpiar todos
           </button>
         </div>
       )}
       {!tickets.length
-        ? <div className="text-center py-10 text-gray-300"><div className="text-5xl mb-3">🧾</div><p className="text-sm">Sin tickets subidos</p></div>
+        ? <div className="text-center py-10 text-gray-300"><div className="text-5xl mb-3"><Receipt size={56}/></div><p className="text-sm">Sin tickets subidos</p></div>
         : <div className="space-y-3">
             {[...tickets].reverse().map(tk=>{
               const matchedCount=(tk.matched||[]).length;
@@ -315,24 +316,24 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold text-gray-800 truncate">🧾 {tk.filename}</p>
+                        <p className="text-sm font-semibold text-gray-800 truncate" style={{display:'flex',alignItems:'center',gap:6}}><Receipt size={16}/> {tk.filename}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{tk.date} · {(tk.products||[]).length} líneas · <span className="font-medium text-gray-600">{tk.total?.toFixed(2)}€</span></p>
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <button onClick={()=>setDetail(tk.id)} className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-100 font-medium">Ver</button>
-                        <button onClick={()=>setConfirm(tk.id)} className="text-xs text-gray-300 hover:text-rose-400 px-2">✕</button>
+                        <button onClick={()=>setConfirm(tk.id)} className="text-xs text-gray-300 hover:text-rose-400 px-2" style={{display:'flex',alignItems:'center'}}><X size={14}/></button>
                       </div>
                     </div>
                     {/* Resumen de resultados */}
                     <div className="flex gap-2 mt-3 flex-wrap">
                       {matchedCount>0&&(
-                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium">
-                          ✓ {matchedCount} ingrediente{matchedCount>1?'s':''} añadido{matchedCount>1?'s':''}
+                        <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium" style={{display:'flex',alignItems:'center',gap:4}}>
+                          {matchedCount} ingrediente{matchedCount>1?'s':''} añadido{matchedCount>1?'s':''}
                         </span>
                       )}
                       {unmatchedCount>0&&(
-                        <button onClick={()=>setDetail(tk.id)} className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium hover:bg-amber-200">
-                          ⚠ {unmatchedCount} sin identificar
+                        <button onClick={()=>setDetail(tk.id)} className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium hover:bg-amber-200" style={{display:'flex',alignItems:'center',gap:4}}>
+                          {unmatchedCount} sin identificar
                         </button>
                       )}
                       {matchedCount===0&&unmatchedCount===0&&(
@@ -367,7 +368,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             {/* Productos reconocidos */}
             {(activeTicket.matched||[]).length>0&&(
               <div>
-                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:8}}>✅ Añadidos a la despensa ({activeTicket.matched.length})</h3>
+                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:8}}>Añadidos a la despensa ({activeTicket.matched.length})</h3>
                 <div style={{display:'flex',flexDirection:'column',gap:4}}>
                   {(activeTicket.matched||[]).map((m,i)=>(
                     <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f0fdf4',borderRadius:10,padding:'8px 12px',border:'1px solid #99f6e4'}}>
@@ -385,9 +386,9 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             {/* Productos no reconocidos */}
             {(activeTicket.unmatched||[]).length>0&&(
               <div>
-                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:4}}>⚠️ Sin identificar ({activeTicket.unmatched.length})</h3>
+                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:4}}>Sin identificar ({activeTicket.unmatched.length})</h3>
                 <p style={{fontSize:'0.7rem',color:'#94a3b8',marginBottom:10,lineHeight:1.5}}>
-                  <strong style={{color:'#374151'}}>➕ Nuevo</strong> crea el ingrediente ·
+                  <strong style={{color:'#374151'}}>Nuevo</strong> crea el ingrediente ·
                   <strong style={{color:'#374151'}}> Asignar</strong> vincula a uno existente ·
                   <strong style={{color:'#374151'}}> Quitar</strong> descarta el producto (limpieza, etc.)
                 </p>
@@ -408,17 +409,17 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                             setAddModal({ticketId:activeTicket.id, productId:prod.id});
                           }}
                           style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'none',cursor:'pointer',background:'#10b981',color:'#fff'}}>
-                          ➕ Nuevo
+                          Nuevo
                         </button>
                         <button
                           onClick={()=>{setMapModal({ticketId:activeTicket.id,productId:prod.id});setMapTarget('');}}
                           style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'none',cursor:'pointer',background:'#f59e0b',color:'#fff'}}>
-                          🔗 Asignar
+                          Asignar
                         </button>
                         <button
                           onClick={()=>dismissUnmatched(activeTicket.id,prod.id)}
-                          style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'1px solid #e2e8f0',cursor:'pointer',background:'#f8fafc',color:'#64748b'}}>
-                          ✕ Quitar
+                          style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'1px solid #e2e8f0',cursor:'pointer',background:'#f8fafc',color:'#64748b',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
+                          Quitar
                         </button>
                       </div>
                     </div>
@@ -431,7 +432,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       </Modal>
 
       {/* Modal: añadir nuevo ingrediente al catálogo */}
-      <Modal open={!!addModal} onClose={()=>setAddModal(null)} title="➕ Añadir al catálogo">
+      <Modal open={!!addModal} onClose={()=>setAddModal(null)} title="Añadir al catálogo">
         <div className="space-y-4">
           {addModal&&(()=>{
             const tk=tickets.find(t=>t.id===addModal.ticketId);
@@ -467,7 +468,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 style={addForm.name.trim()
                   ? {background:'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.25)'}
                   : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
-                ✓ Añadir a la despensa y marcar disponible
+                Añadir a la despensa y marcar disponible
               </button>
               <p className="text-xs text-gray-300 text-center">El precio ({prod.price?.toFixed(2)}€) se guardará en el historial automáticamente</p>
             </>):null;
@@ -494,7 +495,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               <input
                 value={mapSearch}
                 onChange={e=>{setMapSearch(e.target.value);setMapTarget('');}}
-                placeholder="🔍 Buscar ingrediente..."
+                placeholder="Buscar ingrediente..."
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-200"
                 style={{fontSize:'16px'}}
                 autoFocus
@@ -510,7 +511,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                           ${mapTarget===ing.name?'bg-teal-600 text-white':'hover:bg-gray-50 text-gray-700'}`}>
                         <span className={`text-sm shrink-0 ${mapTarget===ing.name?'opacity-80':''}`}>{CAT_EMOJI[ing.category]}</span>
                         <span className="text-sm font-medium">{ing.name}</span>
-                        {mapTarget===ing.name&&<span className="ml-auto text-xs opacity-80">✓ seleccionado</span>}
+                        {mapTarget===ing.name&&<span className="ml-auto text-xs opacity-80">seleccionado</span>}
                       </button>
                     ))
                   }

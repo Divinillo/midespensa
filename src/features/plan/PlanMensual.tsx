@@ -135,7 +135,7 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
   const withFoodSel=selected.filter(d=>daysWithFood.includes(d)).length;
 
   return (
-    <Modal open={open} onClose={onClose} title="🗑️ Limpiar días" wide>
+    <Modal open={open} onClose={onClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><Trash size={18}/> Limpiar días</div>} wide>
       <div className="space-y-4">
         {/* Acciones rápidas */}
         <div className="flex flex-wrap gap-2">
@@ -157,7 +157,7 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
         <button onClick={doClear} disabled={selCount===0}
           className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all
             ${selCount===0?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-red-500 text-white hover:bg-red-600 active:scale-95 shadow-sm'}`}>
-          {selCount===0?'Selecciona días para borrar':`🗑️ Borrar ${selCount} día${selCount!==1?'s':''} ${withFoodSel>0?`(${withFoodSel} con comida)`:''}`}
+          {selCount===0?'Selecciona días para borrar':<span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={16}/> Borrar {selCount} día{selCount!==1?'s':''} {withFoodSel>0?`(${withFoodSel} con comida)`:''}</span>}
         </button>
       </div>
     </Modal>
@@ -339,14 +339,14 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
   const canGenerate=dishes.length>=2&&(range!=='custom'||customDays.length>0);
 
   return (
-    <Modal open={open} onClose={handleClose} title="✨ Menú automático">
+    <Modal open={open} onClose={handleClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><Sparkle size={18} weight="fill"/> Menú automático</div>}>
       {!result?(
         <div className="space-y-5">
           {/* Selector de rango */}
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-2">¿Para qué período?</p>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              {[['hoy','📅 Hoy','solo hoy'],['semana','🗓️ Semana','lun → dom'],['mes',`📆 Mes`,MONTH_NAMES[month]],['custom','🎯 Personalizado','elige días']].map(([r,label,sub])=>(
+              {[['hoy','Hoy','solo hoy'],['semana','Semana','lun → dom'],['mes',`Mes`,MONTH_NAMES[month]],['custom','Personalizado','elige días']].map(([r,label,sub])=>(
                 <button key={r} type="button" onClick={()=>setRange(r)}
                   className={`py-2.5 px-1 rounded-xl border-2 text-center transition-all ${range===r?'border-teal-500 bg-teal-50':'border-gray-200 bg-white hover:border-teal-300'}`}
                   style={{boxShadow: range===r?'0 3px 10px rgba(13,148,136,.15)':'0 2px 6px rgba(0,0,0,.07)'}}>
@@ -388,7 +388,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
 
           {dishes.length===0&&(
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-              ⚠️ No tienes platos guardados. Añade platos en la pestaña <strong>Platos</strong> primero.
+              <span style={{display:'flex',alignItems:'center',gap:6}}><Sparkle size={16} weight="fill"/> No tienes platos guardados. Añade platos en la pestaña <strong>Platos</strong> primero.</span>
             </p>
           )}
           {dishes.length===1&&(
@@ -423,14 +423,14 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
 
           {result.missing.length===0?(
             <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 text-center">
-              <p className="text-3xl mb-1.5">✅</p>
+              <div className="text-3xl mb-1.5"><Sparkle size={32} weight="fill" color="#10b981"/></div>
               <p className="font-semibold text-teal-700 text-sm">¡Tienes todos los ingredientes!</p>
               <p className="text-xs text-teal-600 mt-0.5">No necesitas comprar nada extra para este menú.</p>
             </div>
           ):(
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-gray-700">🛒 Te faltan {result.missing.length} ingredientes</p>
+                <p className="text-sm font-semibold text-gray-700" style={{display:'flex',alignItems:'center',gap:6}}>Te faltan {result.missing.length} ingredientes</p>
               </div>
               <div className="max-h-44 overflow-y-auto space-y-1.5 pr-0.5">
                 {result.missing.map(({ing,dishNames},idx)=>(
@@ -450,7 +450,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
                 }}
                   className="mt-2.5 w-full rounded-xl py-2.5 text-sm font-semibold active:scale-95 transition-all"
                   style={{background:'#f59e0b',color:'#fff',boxShadow:'0 3px 10px rgba(245,158,11,.35)'}}>
-                  🛒 Agregar a lista de la compra
+                  Agregar a lista de la compra
                 </button>
               )}
             </div>
@@ -543,7 +543,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   });
 
   return (
-    <Modal open={open} onClose={onClose} title="📊 Informe nutricional" wide>
+    <Modal open={open} onClose={onClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={18} weight="fill"/> Informe nutricional</div>} wide>
       {!showReport?(
         <div className="space-y-4">
           <p className="text-xs text-gray-500">Selecciona los días para generar el informe con estimación de macronutrientes.</p>
@@ -558,7 +558,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
             style={{width:'100%',padding:'10px',borderRadius:12,fontWeight:700,fontSize:'0.875rem',border:'none',cursor:selected.length===0?'not-allowed':'pointer',
               background:selected.length===0?'#e2e8f0':'#7c3aed',color:selected.length===0?'#94a3b8':'#fff',
               boxShadow:selected.length===0?'none':'0 2px 8px rgba(124,58,237,.3)'}}>
-            {selected.length===0?'Selecciona días':'📊 Generar informe'}
+            {selected.length===0?'Selecciona días':<span style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> Generar informe</span>}
           </button>
         </div>
       ):report&&(()=>{
@@ -578,7 +578,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
         return (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-gray-800">📊 {report.rows.length} días · {MONTH_NAMES[month]} {year}</p>
+              <p className="text-sm font-bold text-gray-800" style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> {report.rows.length} días · {MONTH_NAMES[month]} {year}</p>
               <button onClick={()=>setShowReport(false)} className="text-xs text-gray-400 hover:text-gray-600">← Volver</button>
             </div>
 
@@ -824,7 +824,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       {/* ── Header ── */}
       <div className="mb-4">
         <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-          Plan mensual 🗓️
+          <span style={{display:'flex',alignItems:'center',gap:8}}>Plan mensual</span>
         </h1>
         <p className="text-sm text-gray-400 mt-1">
           {planned>0
@@ -1050,7 +1050,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               </div>
               <button onClick={()=>setSelDay(null)}
                 style={{width:32,height:32,borderRadius:10,background:'rgba(255,255,255,.2)',border:'1px solid rgba(255,255,255,.25)',color:'#fff',fontSize:'1rem',display:'flex',alignItems:'center',justifyContent:'center'}}>
-                ✕
+                <X size={16}/>
               </button>
             </div>
 
@@ -1084,14 +1084,14 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               {/* Warnings */}
               {!sameDayDup && repeatWarning && (
                 <div style={{borderRadius:12,padding:'10px 14px',background:'#fffbeb',border:'1px solid #fde68a',display:'flex',alignItems:'flex-start',gap:8}}>
-                  <span style={{fontSize:'1rem',flexShrink:0}}>⚠️</span>
+                  <span style={{fontSize:'1rem',flexShrink:0}}><Sparkle size={20} weight="fill" color="#f59e0b"/></span>
                   <div>
                     <div style={{fontSize:'0.75rem',color:'#d97706',fontWeight:700,marginBottom:2}}>
                       {repeatWarning.names.join(', ')} ya {repeatWarning.names.length===1?'aparece':'aparecen'} este mes
                     </div>
                     {repeatWarning.fewDishes && (
                       <div style={{fontSize:'0.7rem',color:'#92400e'}}>
-                        Tienes pocos platos disponibles. Compra más ingredientes para tener más variedad 🛒
+                        Tienes pocos platos disponibles. Compra más ingredientes para tener más variedad
                       </div>
                     )}
                   </div>
@@ -1111,7 +1111,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                         .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : d.id!==dayMeal.lunch)
                         .map(d=>{
                           const isRepeat = isExcessive(d.id);
-                          return <option key={d.id} value={d.id}>{isRepeat?'⚠️ ':''}{d.name}</option>;
+                          return <option key={d.id} value={d.id}>{d.name}</option>;
                         })
                       }
                     </select>
@@ -1143,7 +1143,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                 </button>
                 <button onClick={()=>setConfirmDayClear(true)}
                   style={{padding:'14px 18px',borderRadius:14,fontSize:'0.85rem',fontWeight:700,color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fecaca',cursor:'pointer'}}>
-                  🗑️ Limpiar
+                  <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> Limpiar</span>
                 </button>
               </div>
 

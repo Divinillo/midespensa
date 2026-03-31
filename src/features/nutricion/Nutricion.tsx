@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import { useLS } from '../../hooks/useLS';
+import { ChartPie, ShoppingCart, MagnifyingGlass } from '@phosphor-icons/react';
 
 /* ── Colores Nutri-Score ───────────────────────────────────────── */
 const NUTRI_COLOR = { a:'#038141', b:'#85bb2f', c:'#fecb02', d:'#ee8100', e:'#e63e11' };
@@ -266,7 +267,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
   if (!isUltra) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', textAlign: 'center', minHeight: '60vh' }}>
-        <div style={{ fontSize: '3.5rem', marginBottom: 16 }}>🔬</div>
+        <div style={{ fontSize: '3.5rem', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChartPie size={72} weight="fill" color="#0f766e"/></div>
         <h2 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#1e293b', marginBottom: 8 }}>
           Escáner nutricional
         </h2>
@@ -314,7 +315,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
             <img src={product.image} alt={product.name}
               style={{ width:72, height:72, borderRadius:12, objectFit:'contain', background:'#f8fafc', border:'1px solid #f1f5f9', flexShrink:0 }} />
           ) : (
-            <div style={{ width:72, height:72, borderRadius:12, background:'#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'2rem', flexShrink:0 }}>🛒</div>
+            <div style={{ width:72, height:72, borderRadius:12, background:'#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><ShoppingCart size={36} color="#94a3b8"/></div>
           )}
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontWeight:900, fontSize:'1rem', color:'#1e293b', marginBottom:2 }}>{product.name}</div>
@@ -358,7 +359,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
         {product.nutriments && Object.keys(product.nutriments).length > 0 && (
           <div style={{ borderRadius:16, background:'#fff', border:'1.5px solid #e2e8f0', overflow:'hidden', marginBottom:12, boxShadow:'0 1px 6px rgba(0,0,0,.05)' }}>
             <div style={{ padding:'10px 14px', background:'#f8fafc', borderBottom:'1px solid #f1f5f9' }}>
-              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b' }}>📊 Valores nutricionales</div>
+              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}><ChartPie size={16} weight="fill"/> Valores nutricionales</div>
               <div style={{ fontSize:'0.65rem', color:'#94a3b8', marginTop:1 }}>Por 100g / 100ml</div>
             </div>
             {NUTRI_FIELDS.map(f => {
@@ -393,7 +394,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
         {/* Aditivos */}
         {addCount > 0 && (
           <div style={{ borderRadius:16, background:'#fff3e0', border:'1.5px solid #fde68a', padding:'12px 14px', marginBottom:12 }}>
-            <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#92400e', marginBottom:8 }}>⚠️ Aditivos detectados ({addCount})</div>
+            <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#92400e', marginBottom:8 }}>Aditivos detectados ({addCount})</div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
               {product.additives!.slice(0,15).map(a => (
                 <span key={a} style={{ fontSize:'0.68rem', padding:'3px 8px', borderRadius:8, background:'#fff', border:'1px solid #fde68a', color:'#92400e', fontWeight:600 }}>
@@ -507,8 +508,8 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
           )}
 
           <div style={{ position:'absolute', bottom:12, left:0, right:0, textAlign:'center' }}>
-            <span style={{ fontSize:'0.72rem', color:'#fff', background:'rgba(0,0,0,.55)', padding:'4px 14px', borderRadius:20, fontWeight:600 }}>
-              🔍 Mantén el código dentro del marco
+            <span style={{ fontSize:'0.72rem', color:'#fff', background:'rgba(0,0,0,.55)', padding:'4px 14px', borderRadius:20, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
+              <MagnifyingGlass size={14}/> Mantén el código dentro del marco
             </span>
           </div>
         </div>
@@ -580,8 +581,8 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
           style={{ width:'100%', borderRadius:14, border:'2px solid #5eead4', padding:'14px 16px', fontSize:'1.1rem', fontWeight:700, letterSpacing:'0.08em', textAlign:'center', outline:'none', background:'#f0fdf4', boxSizing:'border-box', marginBottom:12 }}
         />
         <button onClick={() => fetchProduct(manualCode)} disabled={manualCode.length < 8}
-          style={{ width:'100%', borderRadius:14, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background: manualCode.length>=8?'#0d9488':'#d1d5db', border:'none', cursor: manualCode.length>=8?'pointer':'not-allowed', boxShadow: manualCode.length>=8?'0 4px 14px rgba(13,148,136,.35)':'none' }}>
-          🔍 Buscar producto
+          style={{ width:'100%', borderRadius:14, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background: manualCode.length>=8?'#0d9488':'#d1d5db', border:'none', cursor: manualCode.length>=8?'pointer':'not-allowed', boxShadow: manualCode.length>=8?'0 4px 14px rgba(13,148,136,.35)':'none', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+          <MagnifyingGlass size={18}/> Buscar producto
         </button>
         <div style={{ textAlign:'center', marginTop:12 }}>
           <button onClick={startScanner}
@@ -621,9 +622,9 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:20 }}>
         {[
           { emoji:'🅰️', title:'Nutri-Score', desc:'Calidad nutricional A→E' },
-          { emoji:'🔬', title:'Grupo Nova',  desc:'Nivel de procesamiento 1→4' },
-          { emoji:'⚠️', title:'Aditivos',    desc:'Conservantes, colorantes…' },
-          { emoji:'📊', title:'Nutrición',   desc:'Kcal, grasas, proteínas…' },
+          { emoji:'nova', title:'Grupo Nova',  desc:'Nivel de procesamiento 1→4' },
+          { emoji:'additives', title:'Aditivos',    desc:'Conservantes, colorantes…' },
+          { emoji:'nutrition', title:'Nutrición',   desc:'Kcal, grasas, proteínas…' },
         ].map(item => (
           <div key={item.title} style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
             <div style={{ fontSize:'1.2rem', marginBottom:4 }}>{item.emoji}</div>
@@ -651,7 +652,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
                   style={{ width:'100%', textAlign:'left', borderRadius:14, background:'#fff', border:'1.5px solid #f1f5f9', padding:'10px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:12, boxShadow:'0 1px 4px rgba(0,0,0,.06)' }}>
                   {p.image
                     ? <img src={p.image} alt={p.name} style={{ width:44, height:44, borderRadius:10, objectFit:'contain', background:'#f8fafc', flexShrink:0 }} />
-                    : <div style={{ width:44, height:44, borderRadius:10, background:'#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.4rem', flexShrink:0 }}>🛒</div>
+                    : <div style={{ width:44, height:44, borderRadius:10, background:'#f1f5f9', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}><ShoppingCart size={22} color="#94a3b8"/></div>
                   }
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontWeight:700, fontSize:'0.82rem', color:'#1e293b', whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{p.name}</div>

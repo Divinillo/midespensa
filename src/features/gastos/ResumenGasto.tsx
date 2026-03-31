@@ -2,6 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { fmt2 } from '../../utils/helpers';
 import { CAT_EMOJI, CAT_BG, CAT_TEXT, MONTH_NAMES, STORE_EMOJI } from '../../data/categories';
+import { CurrencyEur, ChartBar, X } from '@phosphor-icons/react';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -84,7 +85,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
   const allTotal=tickets.reduce((s,t)=>s+(t.total||0),0);
   const avgMonthly=monthlyData.length>0?(monthlyData.reduce((s,m)=>s+m.total,0)/monthlyData.length):0;
 
-  const TABS=[['resumen','📊 Resumen'],['meses','📅 Meses'],['categoria','🏷️ Categorías'],['super','🏪 Súpers'],['ings','🥕 Ingredientes']];
+  const TABS=[['resumen','Resumen'],['meses','Meses'],['categoria','Categorías'],['super','Súpers'],['ings','Ingredientes']];
 
   if(!open) return null;
 
@@ -103,10 +104,10 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
         {/* Header */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <div>
-            <h2 style={{fontSize:'1.2rem',fontWeight:900,color:'#111827',margin:0}}>📊 Informe completo</h2>
+            <h2 style={{fontSize:'1.2rem',fontWeight:900,color:'#111827',margin:0,display:'flex',alignItems:'center',gap:6}}><ChartBar size={20} weight="fill" color="#0f766e"/> Informe completo</h2>
             <p style={{fontSize:'0.75rem',color:'#9ca3af',margin:'2px 0 0'}}>{tickets.length} tickets · {allTotal.toFixed(2)}€ total</p>
           </div>
-          <button onClick={onClose} style={{background:'#f1f5f9',border:'none',borderRadius:'50%',width:36,height:36,fontSize:18,cursor:'pointer',color:'#6b7280'}}>✕</button>
+          <button onClick={onClose} style={{background:'#f1f5f9',border:'none',borderRadius:'50%',width:36,height:36,fontSize:18,cursor:'pointer',color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}><X size={18}/></button>
         </div>
 
         {/* Tabs */}
@@ -399,7 +400,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
     <div className="fade-in" style={{paddingBottom:32}}>
       {/* Header */}
       <div className="mb-5">
-        <h1 style={{fontSize:'1.5rem',fontWeight:900,color:'#111827',letterSpacing:'-0.02em',lineHeight:1}}>Gastos 💰</h1>
+        <h1 style={{fontSize:'1.5rem',fontWeight:900,color:'#111827',letterSpacing:'-0.02em',lineHeight:1,display:'flex',alignItems:'center',gap:8}}><CurrencyEur size={22} weight="fill" color="#0f766e"/> Gastos</h1>
         <p style={{fontSize:'0.875rem',color:'#9ca3af',marginTop:4}}>
           <span style={{fontWeight:700,color:'#0d9488'}}>{monthTotal.toFixed(2)}€</span> este mes · {tickets.length} tickets en total
         </p>
@@ -487,7 +488,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
               style={{width:'100%',padding:'13px',borderRadius:16,fontWeight:800,fontSize:'0.9rem',border:'none',cursor:'pointer',
                 background:'linear-gradient(135deg,#6d28d9,#7c3aed)',color:'#fff',
                 boxShadow:'0 4px 14px rgba(109,40,217,.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-              <span>📊</span> Ver informe completo
+              <ChartBar size={16} style={{flexShrink:0}}/> Ver informe completo
             </button>
           ):(
             <button onClick={onUpgrade}

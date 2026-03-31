@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { supabase } from '../../utils/supabase';
+import { X, Trash } from '@phosphor-icons/react';
 
 /* ── Redimensionar imagen a max 600px y devolver base64 ─────── */
 function resizeImage(file: File, maxPx = 600): Promise<string> {
@@ -47,7 +48,7 @@ function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='' }) {
   const consejo: string = recipeData?.consejo ?? '';
 
   return (
-    <Modal open={open} onClose={onClose} title={`📖 ${dishName}`} wide>
+    <Modal open={open} onClose={onClose} title={dishName} wide>
       <div className="space-y-4">
         {/* YouTube always visible */}
         <a href={ytUrl} target="_blank" rel="noopener noreferrer"
@@ -327,7 +328,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
           <button onClick={searchRecipes} disabled={loading}
             className="w-full rounded-xl py-3 font-bold text-sm transition-all"
             style={{background:loading?'#5eead4':'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.3)',opacity:loading?.85:1}}>
-            {loading?'⏳ Buscando...':'🔍 Buscar recetas'}
+            {loading?'Buscando...':'Buscar recetas'}
           </button>
         </div>
       ):(
@@ -391,7 +392,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                       </div>
                       {s.missing.length>0&&(
                         <p className="text-[10px] text-amber-600 mt-1.5 leading-snug">
-                          🛒 Faltan: {s.missing.map(m=>m.name).join(', ')}
+                          Faltan: {s.missing.map(m=>m.name).join(', ')}
                         </p>
                       )}
                       {isUltra&&(
@@ -421,7 +422,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
               boxShadow: selCount===0 ? 'none' : '0 3px 12px rgba(13,148,136,.35)',
               cursor: selCount===0 ? 'not-allowed' : 'pointer',
             }}>
-            ➕ Añadir {selCount>0?`${selCount} plato${selCount!==1?'s':''}`:' platos seleccionados'}
+            Añadir {selCount>0?`${selCount} plato${selCount!==1?'s':''}`:' platos seleccionados'}
           </button>
         </div>
       )}
@@ -503,7 +504,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-100"
           style={{fontFamily:'monospace',fontSize:'0.8rem'}}/>
         {form.youtubeUrl?.trim() && !/youtu/.test(form.youtubeUrl) && (
-          <p style={{fontSize:'0.7rem',color:'#f97316',marginTop:4}}>⚠️ No parece un enlace de YouTube</p>
+          <p style={{fontSize:'0.7rem',color:'#f97316',marginTop:4}}>No parece un enlace de YouTube</p>
         )}
       </div>
       <div>
@@ -581,7 +582,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
       {!isPro&&(
         <div className="rounded-2xl px-4 py-3 mb-4 flex items-center justify-between"
           style={{background:'#fffbeb',border:'1px solid #fde68a'}}>
-          <span className="text-xs text-amber-700 font-semibold">🔒 Plan gratuito · {dishes.length}/{FREE_DISH_LIMIT} platos</span>
+          <span className="text-xs text-amber-700 font-semibold">Plan gratuito · {dishes.length}/{FREE_DISH_LIMIT} platos</span>
           <button onClick={()=>onUpgrade('dishes')} className="text-xs font-bold text-teal-600">Desbloquear Pro →</button>
         </div>
       )}
@@ -591,7 +592,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-              Mis platos 🍳
+              Mis platos
             </h1>
             <p className="text-sm text-gray-400 mt-1">
               <span className="font-bold text-teal-600">{dishes.filter(d=>!d.example).length}</span> propios
@@ -603,13 +604,13 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
               <button onClick={()=>setConfirmClear(true)}
                 className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all"
                 style={{background:'#fef2f2',color:'#ef4444',border:'1px solid #fecaca'}}>
-                🗑️ Todos
+                <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> Todos</span>
               </button>
             )}
             <button onClick={()=>isPro?setAutoModal(true):onUpgrade('autodish')}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
               style={{background:'#f0fdf4',color:'#0d9488',border:'1px solid #99f6e4'}}>
-              {isPro ? '✨ Sugerir' : '🔒 Sugerir'}
+              {isPro ? 'Sugerir' : 'Sugerir'}
             </button>
             <button onClick={openAdd}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
@@ -618,7 +619,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                 color: atLimit ? '#94a3b8' : '#fff',
                 boxShadow: atLimit ? 'none' : '0 2px 8px rgba(13,148,136,.3)',
               }}>
-              {atLimit ? '🔒 Nuevo plato' : '➕ Nuevo plato'}
+              {atLimit ? 'Nuevo plato' : 'Nuevo plato'}
             </button>
           </div>
         </div>
@@ -671,14 +672,14 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                   style={{background:'#f8fafc',border:'1px solid #e2e8f0'}}>✏️</button>
                 <button onClick={()=>setConfirm(dish.id)}
                   className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
-                  style={{background:'#fef2f2',border:'1px solid #fecaca'}}>🗑️</button>
+                  style={{background:'#fef2f2',border:'1px solid #fecaca',display:'flex',alignItems:'center',justifyContent:'center'}}><Trash size={14}/></button>
               </div>
             </div>
           </div>
         ))}
         {!dishes.length&&(
           <div className="text-center py-12">
-            <div className="text-5xl mb-3">🍳</div>
+            <div className="text-5xl mb-3" style={{display:'flex',alignItems:'center',justifyContent:'center'}}></div>
             <p className="font-semibold text-gray-400 text-sm">Aún no tienes platos</p>
             <p className="text-xs text-gray-300 mt-1">Añade tus recetas habituales</p>
           </div>
