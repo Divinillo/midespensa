@@ -55,12 +55,12 @@
     .nav-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; }
     .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .nav-logo img { width: 32px; height: 32px; border-radius: 8px; }
-    .nav-logo span { font-weight: 700; font-size: 1.05rem; color: var(--green-700); }
+    .nav-logo span { font-weight: 700; font-size: 1.05rem; color: var(--green-600); }
     .nav-links { display: flex; align-items: center; gap: 6px; }
     .nav-links a { color: var(--gray-500); text-decoration: none; font-size: .88rem; font-weight: 500; padding: 6px 12px; border-radius: 8px; transition: background .15s; }
     .nav-links a:hover { background: var(--green-50); color: var(--green-700); }
     .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 22px; border-radius: 10px; font-weight: 600; font-size: .9rem; text-decoration: none; border: none; cursor: pointer; transition: all .15s; }
-    .btn-green { background: var(--green-600); color: #fff; box-shadow: 0 1px 3px rgba(22,101,74,.25); }
+    .btn-green { background: var(--green-600); color: #fff; box-shadow: 0 1px 3px rgba(15,118,110,.25); }
     .btn-green:hover { background: var(--green-700); transform: translateY(-1px); }
     .btn-outline-green { background: transparent; color: var(--green-700); border: 2px solid var(--green-600); }
     .btn-outline-green:hover { background: var(--green-50); }
@@ -501,6 +501,92 @@
   </div>
 </section>
 
+
+<!-- ── INSTALAR PWA ── -->
+<section id="instalar" style="background:linear-gradient(160deg,#f0fdfa 0%,#fff 100%);padding:72px 24px;">
+  <div class="section-inner">
+    <div class="center">
+      <div class="section-label">Sin tienda de apps</div>
+      <h2 class="section-title">Añádela a tu pantalla de inicio</h2>
+      <p class="section-sub center" style="margin:0 auto 48px;">MiDespensa funciona como una app nativa en iOS y Android. Sin pasar por Play Store ni App Store.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:800px;margin:0 auto;">
+
+      <!-- Android / Chrome -->
+      <div style="background:#fff;border:1.5px solid #ccfbf1;border-radius:20px;padding:28px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#134e4a,#0f766e);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🤖</div>
+          <div>
+            <div style="font-weight:800;font-size:0.95rem;color:#1e293b;">Android · Chrome</div>
+            <div style="font-size:0.75rem;color:#94a3b8;">Google Play próximamente</div>
+          </div>
+        </div>
+        <ol style="display:flex;flex-direction:column;gap:14px;padding:0;margin:0;list-style:none;">
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">1</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Abre <strong>midespensa.app</strong> en Chrome</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">2</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Toca el menú <strong>⋮</strong> (tres puntos) arriba a la derecha</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">3</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Pulsa <strong>"Añadir a pantalla de inicio"</strong> y confirma</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#d97706;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">✓</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">¡Listo! El icono aparece en tu escritorio</span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- iOS / Safari -->
+      <div style="background:#fff;border:1.5px solid #ccfbf1;border-radius:20px;padding:28px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;">
+          <div style="width:40px;height:40px;background:linear-gradient(135deg,#1e293b,#334155);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🍎</div>
+          <div>
+            <div style="font-weight:800;font-size:0.95rem;color:#1e293b;">iPhone / iPad · Safari</div>
+            <div style="font-size:0.75rem;color:#94a3b8;">App Store próximamente</div>
+          </div>
+        </div>
+        <ol style="display:flex;flex-direction:column;gap:14px;padding:0;margin:0;list-style:none;">
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">1</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Abre <strong>midespensa.app</strong> en Safari</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">2</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Toca el icono <strong>compartir ⬆</strong> en la barra inferior</span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#0f766e;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">3</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Desplázate y pulsa <strong>"Añadir a pantalla de inicio"</strong></span>
+          </li>
+          <li style="display:flex;gap:12px;align-items:flex-start;">
+            <div style="width:24px;height:24px;background:#d97706;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;margin-top:1px;">✓</div>
+            <span style="font-size:0.88rem;color:#374151;line-height:1.5;">Confirma con <strong>"Añadir"</strong> y ya aparece en tu inicio</span>
+          </li>
+        </ol>
+      </div>
+
+    </div>
+
+    <!-- Desktop / PC -->
+    <div style="max-width:800px;margin:24px auto 0;background:#fff;border:1.5px solid #ccfbf1;border-radius:20px;padding:24px 28px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="font-size:1.6rem;">🖥️</div>
+        <div>
+          <div style="font-weight:800;font-size:0.95rem;color:#1e293b;">Escritorio · Chrome / Edge</div>
+          <div style="font-size:0.75rem;color:#94a3b8;">Funciona como app de escritorio</div>
+        </div>
+      </div>
+      <p style="font-size:0.88rem;color:#374151;line-height:1.6;">En la barra de direcciones de Chrome o Edge verás un icono <strong>⊕</strong> o el símbolo de instalación. Haz clic y pulsa <strong>"Instalar"</strong>. MiDespensa se abre en su propia ventana sin pestañas del navegador.</p>
+    </div>
+
+  </div>
+</section>
+
 <!-- ── CTA FINAL ── -->
 <div class="cta-final">
   <h2>¿Lista la nevera para este mes?</h2>
@@ -515,7 +601,7 @@
     <div class="footer-links">
       <a href="/privacidad.html">Privacidad</a>
       <a href="/terminos.html">Términos</a>
-      <a href="/app">Abrir la app</a>
+      <a href="/app" style="color:#fff;font-weight:600;">Abrir la app →</a>
     </div>
   </div>
 </footer>

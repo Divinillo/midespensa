@@ -6,7 +6,7 @@
   </defs>
 
   <!-- Background -->
-  <rect width="1024" height="1024" rx="190" fill="#4b9e6e"/>
+  <rect width="1024" height="1024" rx="190" fill="#0f766e"/>
 
   <!-- ══════════════════════════════════ -->
   <!-- VEGETABLES — white outline        -->
@@ -95,7 +95,7 @@
 
   <!-- Basket rim (sits on top, covers lattice overflow) -->
   <rect x="280" y="463" width="464" height="42" rx="21"
-        fill="#4b9e6e" stroke="white" stroke-width="22"/>
+        fill="#0f766e" stroke="white" stroke-width="22"/>
 
   <!-- ══════════════════════════════════ -->
   <!-- TEXT                              -->
