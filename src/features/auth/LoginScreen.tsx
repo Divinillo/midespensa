@@ -105,14 +105,8 @@ export default function LoginScreen() {
       }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <div style={{
-            width: '72px', height: '72px',
-            background: '#4b9e6e',
-            borderRadius: '18px',
-            margin: '0 auto 12px',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <img src="/icon-midespensa.svg" alt="midespensa" style={{ width: '52px', height: '52px' }} />
+          <div style={{ margin: '0 auto 12px', width: '72px', height: '72px' }}>
+            <img src="/icon-192.png" alt="MiDespensa" style={{ width: '72px', height: '72px', borderRadius: '18px' }} />
           </div>
           <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#15803d', letterSpacing: '-0.03em' }}>
             midespensa
