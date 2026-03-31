@@ -404,17 +404,122 @@ function ocrTextToRows(text) {
     .filter(l => l.length > 1);
 }
 
+/* ═══════════════════════════════════════
+   GEMINI AI — PARSER INTELIGENTE DE TICKETS
+   API gratuita de Google (1500 peticiones/día).
+   Se usa como fallback en PDF y como motor
+   principal para fotos de ticket.
+   Configura VITE_GEMINI_KEY en las variables
+   de entorno de Cloudflare Pages.
+═══════════════════════════════════════ */
+
+const GEMINI_KEY: string | undefined = (import.meta as any).env?.VITE_GEMINI_KEY;
+const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
+
+const GEMINI_PROMPT_TEXT = `Analiza este texto de un ticket de supermercado español y extrae todos los productos comprados.
+Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional):
+{"date":"YYYY-MM-DD","total":0.00,"products":[{"name":"nombre","price":0.00}]}
+Reglas:
+- date: fecha en formato YYYY-MM-DD, null si no aparece
+- total: importe total pagado, null si no aparece
+- products: SOLO artículos físicos (comida, bebida, higiene, hogar). Excluye bolsas, descuentos, vales, comisiones, IVA, cambio, líneas de total o subtotal.
+- price: precio final pagado por ese artículo (para productos por peso, el importe total de esa línea)
+- name: nombre limpio del producto en español, sin códigos ni cantidades
+TEXTO DEL TICKET:`;
+
+const GEMINI_PROMPT_IMAGE = `Esta imagen muestra un ticket de supermercado español. Extrae todos los productos que puedas ver.
+Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional):
+{"date":"YYYY-MM-DD","total":0.00,"products":[{"name":"nombre","price":0.00}]}
+Reglas:
+- date: fecha en formato YYYY-MM-DD, null si no aparece
+- total: importe total pagado, null si no aparece
+- products: SOLO artículos físicos (comida, bebida, higiene, hogar). Excluye bolsas, descuentos, vales, comisiones, IVA, cambio.
+- price: precio final pagado por ese artículo
+- name: nombre limpio del producto en español, sin códigos`;
+
+async function callGemini(parts) {
+  if (!GEMINI_KEY) return null;
+  try {
+    const res = await fetch(`${GEMINI_URL}?key=${GEMINI_KEY}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts }],
+        generationConfig: { responseMimeType: 'application/json', temperature: 0, maxOutputTokens: 4096 },
+      }),
+    });
+    if (!res.ok) { console.warn('Gemini error:', res.status); return null; }
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) return null;
+    const parsed = JSON.parse(text);
+    const products = (parsed.products || [])
+      .filter(p => p.name && typeof p.price === 'number' && p.price > 0 && p.price < 1000)
+      .map(p => ({
+        id: uid(),
+        rawName: String(p.name).trim(),
+        price: p.price,
+        normalizedName: normalizeName(String(p.name).trim()),
+      }));
+    return { products, total: parsed.total || null, date: parsed.date || null };
+  } catch(e) {
+    console.warn('Gemini parse error:', e);
+    return null;
+  }
+}
+
+// PDF: recibe las filas ya extraídas por PDF.js
+async function geminiParsePdfText(rows) {
+  return callGemini([{ text: GEMINI_PROMPT_TEXT + '\n' + rows.join('\n') }]);
+}
+
+// Foto: recibe el File directamente (mucho mejor que Tesseract)
+async function geminiParseImage(file): Promise<any> {
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = async (e: any) => {
+      const base64 = e.target.result.split(',')[1];
+      const result = await callGemini([
+        { text: GEMINI_PROMPT_IMAGE },
+        { inline_data: { mime_type: file.type || 'image/jpeg', data: base64 } },
+      ]);
+      resolve(result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 // Procesa un ticket desde una foto → datos del ticket (mismo formato que processPdf)
 export async function processImageTicket(file, onProgress) {
-  onProgress && onProgress(-1); // señal: pre-procesando imagen
+  onProgress && onProgress(-1);
+
+  // ── Gemini (principal, si hay key) ──
+  if (GEMINI_KEY) {
+    const aiResult = await geminiParseImage(file);
+    if (aiResult && aiResult.products.length > 0) {
+      const total = aiResult.total || aiResult.products.reduce((s, p) => s + (p.price || 0), 0);
+      return {
+        id: 'tk' + uid(),
+        filename: (file.name && file.name !== 'image.jpg'
+          ? file.name
+          : 'foto-ticket-' + new Date().toISOString().slice(0, 10) + '.jpg'),
+        date: aiResult.date || new Date().toISOString().slice(0, 10),
+        products: aiResult.products,
+        total,
+        store: 'Otro',
+        fromCamera: true,
+        parsedByAI: true,
+      };
+    }
+  }
+
+  // ── Fallback: Tesseract OCR ──
   const enhanced = await enhanceImageForOCR(file);
   const text = await ocrImageFile(enhanced, onProgress);
   const rows = ocrTextToRows(text);
-
   const parsed = isMercadonaOnline(rows) ? parseMercadonaOnline(rows)
                : isConsum(rows)           ? parseConsumReceipt(rows)
                :                            parseTraditionalReceipt(rows);
-
   const totalProds = parsed.total || parsed.products.reduce((s,p)=>s+(p.price||0),0);
   const storeType = isMercadonaOnline(rows)?'Mercadona':isConsum(rows)?'Consum':'Otro';
   return {
@@ -443,11 +548,21 @@ export async function processPdf(file) {
     throw new Error(`No se pudo extraer texto del PDF: ${e?.message||e}`);
   }
   if (!rows || rows.length === 0) throw new Error('El PDF no contiene texto legible. Puede ser una imagen escaneada.');
-  const parsed = isMercadonaOnline(rows) ? parseMercadonaOnline(rows)
+
+  let parsed = isMercadonaOnline(rows) ? parseMercadonaOnline(rows)
               : isConsumOnline(rows)     ? parseConsumOnline(rows)
               : isConsum(rows)           ? parseConsumReceipt(rows)
               :                            parseTraditionalReceipt(rows);
   if (!parsed.products) throw new Error('No se reconoció el formato del ticket.');
+
+  // ── Gemini fallback: si el regex encontró menos de 3 productos ──
+  if (GEMINI_KEY && parsed.products.length < 3) {
+    const aiResult = await geminiParsePdfText(rows);
+    if (aiResult && aiResult.products.length > parsed.products.length) {
+      parsed = { ...parsed, ...aiResult };
+    }
+  }
+
   const totalProds = parsed.total || parsed.products.reduce((s,p)=>s+(p.price||0),0);
   const storeType2 = isMercadonaOnline(rows)?'Mercadona':isConsum(rows)||isConsumOnline(rows)?'Consum':'Otro';
   return {
