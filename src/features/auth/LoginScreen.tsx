@@ -50,7 +50,7 @@ export default function LoginScreen() {
         }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/app`,
         });
         if (error) msg(error.message);
         else msg('Te enviamos un correo para restablecer tu contraseña. Revisa también la carpeta de spam.', true);
@@ -74,7 +74,7 @@ export default function LoginScreen() {
     setMessage(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: `${window.location.origin}/app` },
     });
     if (error) { msg(error.message); setLoading(false); }
   }
