@@ -232,24 +232,24 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
     <div className="fade">
       {!isPro&&<div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between">
         <span className="text-xs text-amber-700 font-medium">🔒 Plan gratuito · {tickets.length}/{FREE_TICKET_LIMIT} ticket</span>
-        <button onClick={()=>onUpgrade('tickets')} className="text-xs font-bold text-green-600 hover:underline">Desbloquear Pro →</button>
+        <button onClick={()=>onUpgrade('tickets')} className="text-xs font-bold text-teal-600 hover:underline">Desbloquear Pro →</button>
       </div>}
       {/* Zona de arrastrar/subir PDF */}
       <div onDrop={ticketAtLimit?undefined:onDrop} onDragOver={ticketAtLimit?undefined:e=>e.preventDefault()}
         onClick={()=>ticketAtLimit?onUpgrade('tickets'):fileRef.current?.click()}
         className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all relative overflow-hidden
-          ${ticketAtLimit?'border-gray-200 bg-gray-50':'border-green-200 hover:bg-green-50 hover:border-green-300'}`}>
+          ${ticketAtLimit?'border-gray-200 bg-gray-50':'border-teal-200 hover:bg-teal-50 hover:border-teal-300'}`}>
         {ticketAtLimit&&<div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center z-10">
           <span className="text-4xl mb-2">🔒</span>
           <p className="font-bold text-gray-700 text-sm">Límite alcanzado</p>
           <p className="text-xs text-gray-400 mt-1">Actualiza a Pro para subir más tickets</p>
-          <button onClick={e=>{e.stopPropagation();onUpgrade('tickets');}} className="mt-3 bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-700">✨ Desbloquear Pro</button>
+          <button onClick={e=>{e.stopPropagation();onUpgrade('tickets');}} className="mt-3 bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-teal-700">✨ Desbloquear Pro</button>
         </div>}
         <div className="text-4xl mb-2">📤</div>
         <p className="font-semibold text-gray-700 text-sm">Subir ticket en PDF</p>
         <p className="text-xs text-gray-400 mt-1">Mercadona online y Consum · Arrastra o haz clic</p>
         {!pdfjsReady&&<p className="text-xs text-amber-500 mt-1">⏳ Cargando lector PDF...</p>}
-        {loading&&ocrProgress===null&&<p className="text-xs text-green-500 mt-1 animate-pulse">🔄 Procesando ticket...</p>}
+        {loading&&ocrProgress===null&&<p className="text-xs text-teal-500 mt-1 animate-pulse">🔄 Procesando ticket...</p>}
         <input ref={fileRef} type="file" accept=".pdf" multiple onChange={onFileChange} className="hidden"/>
       </div>
 
@@ -293,7 +293,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
         </button>
       )}
 
-      <p className="text-xs text-green-500 font-medium text-center mt-3 mb-5">Los ingredientes se añaden a la despensa automáticamente</p>
+      <p className="text-xs text-teal-500 font-medium text-center mt-3 mb-5">Los ingredientes se añaden a la despensa automáticamente</p>
 
       {/* Lista de tickets procesados */}
       {tickets.length>0&&(
@@ -370,7 +370,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:8}}>✅ Añadidos a la despensa ({activeTicket.matched.length})</h3>
                 <div style={{display:'flex',flexDirection:'column',gap:4}}>
                   {(activeTicket.matched||[]).map((m,i)=>(
-                    <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f0fdf4',borderRadius:10,padding:'8px 12px',border:'1px solid #bbf7d0'}}>
+                    <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f0fdf4',borderRadius:10,padding:'8px 12px',border:'1px solid #99f6e4'}}>
                       <div>
                         <span className={`text-xs px-2 py-0.5 rounded-full ${CAT_BG[m.category]} ${CAT_TEXT[m.category]}`}>{m.ingredientName}</span>
                         <span style={{fontSize:'0.7rem',color:'#94a3b8',marginLeft:6}}>← {m.rawName}</span>
@@ -465,7 +465,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               <button onClick={applyAddToCatalog} disabled={!addForm.name.trim()}
                 className="w-full rounded-xl py-3 text-sm font-bold transition-all"
                 style={addForm.name.trim()
-                  ? {background:'#16a34a',color:'#fff',boxShadow:'0 2px 8px rgba(22,163,74,.25)'}
+                  ? {background:'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.25)'}
                   : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
                 ✓ Añadir a la despensa y marcar disponible
               </button>
@@ -495,7 +495,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 value={mapSearch}
                 onChange={e=>{setMapSearch(e.target.value);setMapTarget('');}}
                 placeholder="🔍 Buscar ingrediente..."
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-200"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-200"
                 style={{fontSize:'16px'}}
                 autoFocus
               />
@@ -507,7 +507,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                     :filtered.map(ing=>(
                       <button key={ing.id} onClick={()=>setMapTarget(ing.name)}
                         className={`w-full text-left px-4 py-2.5 flex items-center gap-2.5 transition-all border-b border-gray-50 last:border-0
-                          ${mapTarget===ing.name?'bg-green-600 text-white':'hover:bg-gray-50 text-gray-700'}`}>
+                          ${mapTarget===ing.name?'bg-teal-600 text-white':'hover:bg-gray-50 text-gray-700'}`}>
                         <span className={`text-sm shrink-0 ${mapTarget===ing.name?'opacity-80':''}`}>{CAT_EMOJI[ing.category]}</span>
                         <span className="text-sm font-medium">{ing.name}</span>
                         {mapTarget===ing.name&&<span className="ml-auto text-xs opacity-80">✓ seleccionado</span>}
@@ -519,7 +519,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               <button onClick={applyManualMap} disabled={!mapTarget}
                 className="w-full rounded-xl py-2.5 text-sm font-semibold transition-all"
                 style={mapTarget
-                  ? {background:'#16a34a',color:'#fff'}
+                  ? {background:'#0d9488',color:'#fff'}
                   : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
                 {mapTarget?`Asignar a "${mapTarget}"` :'Selecciona un ingrediente'}
               </button>

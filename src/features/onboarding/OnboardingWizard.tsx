@@ -118,11 +118,11 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
   const StepWelcome = (
     <div className="flex flex-col items-center text-center px-6">
       <div className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6 mt-2"
-        style={{ background: 'linear-gradient(135deg,#15803d,#16a34a)', boxShadow: '0 8px 32px rgba(22,163,74,.35)', fontSize: '3rem' }}>
+        style={{ background: 'linear-gradient(135deg,#0f766e,#0d9488)', boxShadow: '0 8px 32px rgba(13,148,136,.35)', fontSize: '3rem' }}>
         🥗
       </div>
       <h1 className="text-3xl font-black text-gray-900 mb-2" style={{ letterSpacing: '-0.03em' }}>
-        Mi<span style={{ color: '#16a34a' }}>Despensa</span>
+        Mi<span style={{ color: '#0d9488' }}>Despensa</span>
       </h1>
       <p className="text-gray-400 text-sm mb-8 leading-relaxed">
         Organiza tu cocina, planifica tu semana<br />y simplifica la compra.
@@ -145,7 +145,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       </div>
 
       <button onClick={goNext} className="w-full py-4 rounded-2xl text-white font-bold text-base"
-        style={{ background: 'linear-gradient(135deg,#15803d,#16a34a)', boxShadow: '0 4px 16px rgba(22,163,74,.4)' }}>
+        style={{ background: 'linear-gradient(135deg,#0f766e,#0d9488)', boxShadow: '0 4px 16px rgba(13,148,136,.4)' }}>
         Empezar →
       </button>
       <p className="text-xs text-gray-300 mt-3">Configuración rápida en 2 minutos</p>
@@ -162,7 +162,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
         </h2>
         <p className="text-sm text-gray-400 leading-relaxed">
           Si tienes el PDF del super a mano, súbelo y tu despensa<br />
-          se rellenará <strong style={{ color: '#16a34a' }}>automáticamente</strong>.
+          se rellenará <strong style={{ color: '#0d9488' }}>automáticamente</strong>.
         </p>
       </div>
 
@@ -171,35 +171,35 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
         <div
           onClick={() => pdfjsReady && fileRef.current?.click()}
           style={{
-            borderRadius: 20, border: '2px dashed #86efac', background: '#f0fdf4',
+            borderRadius: 20, border: '2px dashed #5eead4', background: '#f0fdf4',
             padding: '32px 20px', textAlign: 'center', cursor: pdfjsReady ? 'pointer' : 'default',
             transition: 'all .15s', marginBottom: 16,
           }}>
           <div style={{ fontSize: '2.8rem', marginBottom: 10 }}>📄</div>
-          <div style={{ fontWeight: 800, color: '#15803d', fontSize: '0.95rem', marginBottom: 4 }}>
+          <div style={{ fontWeight: 800, color: '#0f766e', fontSize: '0.95rem', marginBottom: 4 }}>
             {pdfjsReady ? 'Toca para seleccionar PDF' : 'Cargando lector PDF…'}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#86efac' }}>Soporta tickets de Mercadona, Lidl, Carrefour…</div>
+          <div style={{ fontSize: '0.72rem', color: '#5eead4' }}>Soporta tickets de Mercadona, Lidl, Carrefour…</div>
           <input ref={fileRef} type="file" accept=".pdf" style={{ display: 'none' }}
             onChange={e => { if (e.target.files?.[0]) handleTicketFile(e.target.files[0]); e.target.value = ''; }} />
         </div>
       )}
 
       {ticketStatus === 'loading' && (
-        <div style={{ borderRadius: 20, background: '#f0fdf4', border: '1.5px solid #86efac', padding: '28px 20px', textAlign: 'center', marginBottom: 16 }}>
+        <div style={{ borderRadius: 20, background: '#f0fdf4', border: '1.5px solid #5eead4', padding: '28px 20px', textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: '2rem', marginBottom: 8 }}>⏳</div>
-          <div style={{ fontWeight: 700, color: '#15803d', fontSize: '0.9rem' }}>Procesando {ticketName}…</div>
-          <div style={{ fontSize: '0.72rem', color: '#86efac', marginTop: 4 }}>Leyendo productos del ticket</div>
+          <div style={{ fontWeight: 700, color: '#0f766e', fontSize: '0.9rem' }}>Procesando {ticketName}…</div>
+          <div style={{ fontSize: '0.72rem', color: '#5eead4', marginTop: 4 }}>Leyendo productos del ticket</div>
         </div>
       )}
 
       {ticketStatus === 'done' && (
-        <div style={{ borderRadius: 20, background: '#f0fdf4', border: '2px solid #4ade80', padding: '24px 20px', textAlign: 'center', marginBottom: 16 }}>
+        <div style={{ borderRadius: 20, background: '#f0fdf4', border: '2px solid #2dd4bf', padding: '24px 20px', textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: '2.4rem', marginBottom: 6 }}>🎉</div>
-          <div style={{ fontWeight: 900, color: '#15803d', fontSize: '1.05rem', marginBottom: 4 }}>
+          <div style={{ fontWeight: 900, color: '#0f766e', fontSize: '1.05rem', marginBottom: 4 }}>
             ¡Ticket procesado!
           </div>
-          <div style={{ fontSize: '0.8rem', color: '#16a34a', fontWeight: 600 }}>
+          <div style={{ fontSize: '0.8rem', color: '#0d9488', fontWeight: 600 }}>
             {ticketMatched} ingrediente{ticketMatched !== 1 ? 's' : ''} actualizado{ticketMatched !== 1 ? 's' : ''} en tu despensa ✓
           </div>
         </div>
@@ -240,7 +240,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
         {(ticketStatus === 'done') && (
           <button onClick={goNext}
             className="w-full py-4 rounded-2xl text-white font-bold text-base"
-            style={{ background: 'linear-gradient(135deg,#15803d,#16a34a)', boxShadow: '0 4px 16px rgba(22,163,74,.35)' }}>
+            style={{ background: 'linear-gradient(135deg,#0f766e,#0d9488)', boxShadow: '0 4px 16px rgba(13,148,136,.35)' }}>
             Continuar →
           </button>
         )}
@@ -271,10 +271,10 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
             <button key={cat} onClick={() => setCatFilter(cat)}
               className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all"
               style={{
-                background: catFilter === cat ? '#16a34a' : '#fff',
+                background: catFilter === cat ? '#0d9488' : '#fff',
                 color: catFilter === cat ? '#fff' : '#64748b',
                 border: catFilter === cat ? 'none' : '1px solid #e2e8f0',
-                boxShadow: catFilter === cat ? '0 2px 8px rgba(22,163,74,.3)' : 'none',
+                boxShadow: catFilter === cat ? '0 2px 8px rgba(13,148,136,.3)' : 'none',
               }}>
               {CAT_EMOJI[cat]} {cat}
             </button>
@@ -290,18 +290,18 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
               className="relative flex flex-col items-center justify-center py-3 px-2 rounded-2xl transition-all active:scale-95"
               style={{
                 background: ing.available ? '#f0fdf4' : '#fff',
-                border: ing.available ? '2px solid #86efac' : '1px solid #f1f5f9',
-                boxShadow: ing.available ? '0 2px 8px rgba(22,163,74,.15)' : '0 1px 3px rgba(0,0,0,.04)',
+                border: ing.available ? '2px solid #5eead4' : '1px solid #f1f5f9',
+                boxShadow: ing.available ? '0 2px 8px rgba(13,148,136,.15)' : '0 1px 3px rgba(0,0,0,.04)',
               }}>
               {ing.available && (
-                <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-green-500 flex items-center justify-center"
+                <div className="absolute top-1.5 right-1.5 w-4 h-4 rounded-full bg-teal-500 flex items-center justify-center"
                   style={{ fontSize: '0.5rem', color: '#fff', fontWeight: 800 }}>✓</div>
               )}
               <span style={{ fontSize: '1.6rem', lineHeight: 1, marginBottom: 4 }}>
                 {getIngEmoji(ing.name, ing.category)}
               </span>
               <span className="text-center leading-tight font-medium"
-                style={{ fontSize: '0.6rem', color: ing.available ? '#15803d' : '#94a3b8', wordBreak: 'break-word', maxHeight: '2.2em', overflow: 'hidden' }}>
+                style={{ fontSize: '0.6rem', color: ing.available ? '#0f766e' : '#94a3b8', wordBreak: 'break-word', maxHeight: '2.2em', overflow: 'hidden' }}>
                 {ing.name}
               </span>
             </button>
@@ -315,16 +315,16 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       {/* Footer */}
       <div className="px-5 pt-3 pb-2 border-t border-gray-50">
         {availableCount > 0 && (
-          <p className="text-xs text-green-600 font-semibold text-center mb-3">
+          <p className="text-xs text-teal-600 font-semibold text-center mb-3">
             ✓ {availableCount} ingrediente{availableCount !== 1 ? 's' : ''} seleccionado{availableCount !== 1 ? 's' : ''}
           </p>
         )}
         <button onClick={goNext} disabled={availableCount === 0}
           className="w-full py-4 rounded-2xl text-white font-bold text-base transition-all"
           style={{
-            background: availableCount > 0 ? 'linear-gradient(135deg,#15803d,#16a34a)' : '#e2e8f0',
+            background: availableCount > 0 ? 'linear-gradient(135deg,#0f766e,#0d9488)' : '#e2e8f0',
             color: availableCount > 0 ? '#fff' : '#9ca3af',
-            boxShadow: availableCount > 0 ? '0 4px 16px rgba(22,163,74,.35)' : 'none',
+            boxShadow: availableCount > 0 ? '0 4px 16px rgba(13,148,136,.35)' : 'none',
           }}>
           {availableCount > 0 ? `Continuar con ${availableCount} ingrediente${availableCount !== 1 ? 's' : ''} →` : 'Selecciona al menos uno'}
         </button>
@@ -348,7 +348,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
           value={dishName}
           onChange={e => setDishName(e.target.value)}
           placeholder="ej: Tortilla de patatas, Ensalada mixta…"
-          className="w-full rounded-2xl px-4 py-4 text-base font-medium focus:outline-none focus:ring-2 focus:ring-green-300"
+          className="w-full rounded-2xl px-4 py-4 text-base font-medium focus:outline-none focus:ring-2 focus:ring-teal-300"
           style={{ border: '2px solid #e2e8f0', background: '#f8fafc' }}
           autoFocus
         />
@@ -365,11 +365,11 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
                 style={{
                   background: dishIngs.includes(ing.id) ? '#f0fdf4' : '#f8fafc',
-                  border: dishIngs.includes(ing.id) ? '1.5px solid #86efac' : '1px solid #e2e8f0',
-                  color: dishIngs.includes(ing.id) ? '#15803d' : '#64748b',
+                  border: dishIngs.includes(ing.id) ? '1.5px solid #5eead4' : '1px solid #e2e8f0',
+                  color: dishIngs.includes(ing.id) ? '#0f766e' : '#64748b',
                 }}>
                 <span>{getIngEmoji(ing.name, ing.category)}</span> {ing.name}
-                {dishIngs.includes(ing.id) && <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>}
+                {dishIngs.includes(ing.id) && <span style={{ color: '#0d9488', fontWeight: 900 }}>✓</span>}
               </button>
             ))}
           </div>
@@ -381,9 +381,9 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
           disabled={!dishName.trim()}
           className="w-full py-4 rounded-2xl text-white font-bold text-base transition-all"
           style={{
-            background: dishName.trim() ? 'linear-gradient(135deg,#15803d,#16a34a)' : '#e2e8f0',
+            background: dishName.trim() ? 'linear-gradient(135deg,#0f766e,#0d9488)' : '#e2e8f0',
             color: dishName.trim() ? '#fff' : '#9ca3af',
-            boxShadow: dishName.trim() ? '0 4px 16px rgba(22,163,74,.35)' : 'none',
+            boxShadow: dishName.trim() ? '0 4px 16px rgba(13,148,136,.35)' : 'none',
           }}>
           {dishName.trim() ? `Guardar "${dishName}" y continuar →` : 'Escribe el nombre del plato'}
         </button>
@@ -407,11 +407,11 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
 
       <div className="w-full grid grid-cols-2 gap-3 mb-8">
         <div className="bg-white rounded-2xl p-4 text-center" style={{ border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}>
-          <div className="text-3xl font-black text-green-600 leading-none">{availableCount}</div>
+          <div className="text-3xl font-black text-teal-600 leading-none">{availableCount}</div>
           <div className="text-xs text-gray-400 font-medium mt-1">🧺 En despensa</div>
         </div>
         <div className="bg-white rounded-2xl p-4 text-center" style={{ border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}>
-          <div className="text-3xl font-black text-green-600 leading-none">{dishes.filter(d => !d.example).length || dishes.length}</div>
+          <div className="text-3xl font-black text-teal-600 leading-none">{dishes.filter(d => !d.example).length || dishes.length}</div>
           <div className="text-xs text-gray-400 font-medium mt-1">🍳 Platos</div>
         </div>
       </div>
@@ -435,7 +435,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
 
       <button onClick={onComplete}
         className="w-full py-4 rounded-2xl text-white font-bold text-base"
-        style={{ background: 'linear-gradient(135deg,#15803d,#16a34a)', boxShadow: '0 4px 16px rgba(22,163,74,.4)' }}>
+        style={{ background: 'linear-gradient(135deg,#0f766e,#0d9488)', boxShadow: '0 4px 16px rgba(13,148,136,.4)' }}>
         Empezar a usar la app →
       </button>
     </div>
@@ -457,7 +457,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
                   <div className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: step > i ? '100%' : step === i ? '50%' : '0%',
-                      background: 'linear-gradient(90deg, #16a34a, #15803d)',
+                      background: 'linear-gradient(90deg, #0d9488, #0f766e)',
                     }} />
                 </div>
               ))}

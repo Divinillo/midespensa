@@ -91,7 +91,7 @@ export default function LoginScreen() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+      background: 'linear-gradient(135deg, #f0fdf4 0%, #f0fdfa 100%)',
       padding: '24px',
       fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif',
     }}>
@@ -108,7 +108,7 @@ export default function LoginScreen() {
           <div style={{ margin: '0 auto 12px', width: '72px', height: '72px' }}>
             <img src="/icon-192.png" alt="MiDespensa" style={{ width: '72px', height: '72px', borderRadius: '18px' }} />
           </div>
-          <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#15803d', letterSpacing: '-0.03em' }}>
+          <div style={{ fontWeight: 900, fontSize: '1.5rem', color: '#0f766e', letterSpacing: '-0.03em' }}>
             midespensa
           </div>
           <div style={{ color: '#6b7280', fontSize: '0.85rem', marginTop: '4px' }}>
@@ -170,9 +170,9 @@ export default function LoginScreen() {
           {mode === 'register' && (
             <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '14px', lineHeight: 1.5 }}>
               Al crear una cuenta aceptas los{' '}
-              <a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#16a34a' }}>Términos y Condiciones</a>
+              <a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Términos y Condiciones</a>
               {' '}y la{' '}
-              <a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#16a34a' }}>Política de Privacidad</a>.
+              <a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Política de Privacidad</a>.
             </p>
           )}
 
@@ -181,8 +181,8 @@ export default function LoginScreen() {
             <div style={{
               padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', marginBottom: '16px',
               background: message.ok ? '#f0fdf4' : '#fef2f2',
-              color: message.ok ? '#15803d' : '#dc2626',
-              border: `1px solid ${message.ok ? '#bbf7d0' : '#fecaca'}`,
+              color: message.ok ? '#0f766e' : '#dc2626',
+              border: `1px solid ${message.ok ? '#99f6e4' : '#fecaca'}`,
             }}>
               {message.text}
               {message.showResend && (
@@ -199,7 +199,7 @@ export default function LoginScreen() {
 
           <button type="submit" disabled={loading} style={{
             width: '100%', padding: '12px',
-            background: loading ? '#86efac' : '#16a34a', color: '#fff',
+            background: loading ? '#5eead4' : '#0d9488', color: '#fff',
             border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700,
             cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.15s',
           }}>
@@ -252,6 +252,6 @@ const inputStyle: React.CSSProperties = {
   outline: 'none', boxSizing: 'border-box', color: '#111827', background: '#f9fafb',
 };
 const linkBtn: React.CSSProperties = {
-  background: 'none', border: 'none', color: '#16a34a', fontWeight: 600,
+  background: 'none', border: 'none', color: '#0d9488', fontWeight: 600,
   cursor: 'pointer', fontSize: '0.85rem', padding: 0,
 };

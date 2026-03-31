@@ -82,28 +82,28 @@ export function NutritionLabelModal({ ingName, existing, onSave, onClose }: Prop
               <div onClick={() => fileRef.current?.click()}
                 style={{ borderRadius: 16, border: '2px dashed #a7f3d0', background: '#f0fdf4', padding: '20px 16px', textAlign: 'center', cursor: 'pointer' }}>
                 <div style={{ fontSize: '2rem', marginBottom: 6 }}>📸</div>
-                <div style={{ fontWeight: 700, color: '#15803d', fontSize: '0.85rem' }}>Toca para hacer foto a la etiqueta</div>
-                <div style={{ fontSize: '0.68rem', color: '#86efac', marginTop: 3 }}>jpg · png · webp · heic</div>
+                <div style={{ fontWeight: 700, color: '#0f766e', fontSize: '0.85rem' }}>Toca para hacer foto a la etiqueta</div>
+                <div style={{ fontSize: '0.68rem', color: '#5eead4', marginTop: 3 }}>jpg · png · webp · heic</div>
               </div>
             )}
 
             {status === 'loading' && (
-              <div style={{ borderRadius: 16, background: '#f0fdf4', border: '1.5px solid #86efac', padding: '18px 16px', textAlign: 'center' }}>
+              <div style={{ borderRadius: 16, background: '#f0fdf4', border: '1.5px solid #5eead4', padding: '18px 16px', textAlign: 'center' }}>
                 <div style={{ fontSize: '1.5rem', marginBottom: 6 }}>⏳</div>
-                <div style={{ fontWeight: 700, color: '#15803d', fontSize: '0.85rem', marginBottom: 8 }}>Leyendo etiqueta… {progress}%</div>
-                <div style={{ height: 6, borderRadius: 6, background: '#dcfce7', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', borderRadius: 6, background: '#16a34a', width: `${progress}%`, transition: 'width .3s' }} />
+                <div style={{ fontWeight: 700, color: '#0f766e', fontSize: '0.85rem', marginBottom: 8 }}>Leyendo etiqueta… {progress}%</div>
+                <div style={{ height: 6, borderRadius: 6, background: '#f0fdfa', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', borderRadius: 6, background: '#0d9488', width: `${progress}%`, transition: 'width .3s' }} />
                 </div>
               </div>
             )}
 
             {status === 'done' && (
-              <div style={{ borderRadius: 16, background: '#f0fdf4', border: '2px solid #4ade80', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div style={{ borderRadius: 16, background: '#f0fdf4', border: '2px solid #2dd4bf', padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ fontSize: '1.4rem' }}>✅</span>
                 <div>
-                  <div style={{ fontWeight: 700, color: '#15803d', fontSize: '0.82rem' }}>Etiqueta leída — revisa los valores</div>
+                  <div style={{ fontWeight: 700, color: '#0f766e', fontSize: '0.82rem' }}>Etiqueta leída — revisa los valores</div>
                   <button onClick={() => { setStatus('idle'); fileRef.current?.click(); }}
-                    style={{ fontSize: '0.68rem', color: '#16a34a', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0, marginTop: 2 }}>
+                    style={{ fontSize: '0.68rem', color: '#0d9488', fontWeight: 600, background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', padding: 0, marginTop: 2 }}>
                     Volver a escanear
                   </button>
                 </div>
@@ -147,7 +147,7 @@ export function NutritionLabelModal({ ingName, existing, onSave, onClose }: Prop
                     placeholder="—"
                     value={values[f.key] != null ? String(values[f.key]) : ''}
                     onChange={e => set(f.key, e.target.value)}
-                    style={{ width: 68, borderRadius: 10, padding: '6px 8px', fontSize: '0.82rem', textAlign: 'right', border: `1.5px solid ${values[f.key] != null ? '#86efac' : '#e2e8f0'}`, background: values[f.key] != null ? '#f0fdf4' : '#f8fafc', outline: 'none', fontWeight: 600 }}
+                    style={{ width: 68, borderRadius: 10, padding: '6px 8px', fontSize: '0.82rem', textAlign: 'right', border: `1.5px solid ${values[f.key] != null ? '#5eead4' : '#e2e8f0'}`, background: values[f.key] != null ? '#f0fdf4' : '#f8fafc', outline: 'none', fontWeight: 600 }}
                   />
                   <span style={{ fontSize: '0.65rem', color: '#94a3b8', width: 28 }}>{f.key === 'kcal' ? 'kcal' : 'g'}</span>
                 </div>
@@ -164,7 +164,7 @@ export function NutritionLabelModal({ ingName, existing, onSave, onClose }: Prop
           {/* Actions */}
           <div style={{ display: 'flex', gap: 10, paddingTop: 4 }}>
             <button onClick={handleSave} disabled={!canSave}
-              style={{ flex: 1, borderRadius: 14, padding: '13px', fontSize: '0.9rem', fontWeight: 800, color: '#fff', background: canSave ? '#16a34a' : '#d1d5db', border: 'none', cursor: canSave ? 'pointer' : 'not-allowed', boxShadow: canSave ? '0 4px 12px rgba(22,163,74,.3)' : 'none' }}>
+              style={{ flex: 1, borderRadius: 14, padding: '13px', fontSize: '0.9rem', fontWeight: 800, color: '#fff', background: canSave ? '#0d9488' : '#d1d5db', border: 'none', cursor: canSave ? 'pointer' : 'not-allowed', boxShadow: canSave ? '0 4px 12px rgba(13,148,136,.3)' : 'none' }}>
               💾 Guardar
             </button>
             {existing && (

@@ -65,20 +65,20 @@ function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='' }) {
         </a>
 
         {steps.length > 0 ? (
-          <div style={{background:'#f0fdf4', borderRadius:14, padding:'14px', border:'1px solid #bbf7d0'}}>
+          <div style={{background:'#f0fdf4', borderRadius:14, padding:'14px', border:'1px solid #99f6e4'}}>
             {/* Time + difficulty */}
             {(tiempo || dificultad) && (
               <div style={{display:'flex', gap:8, marginBottom:14}}>
                 {tiempo && (
-                  <span style={{fontSize:'0.75rem', background:'#dcfce7', color:'#16a34a', padding:'4px 10px', borderRadius:20, fontWeight:700}}>
+                  <span style={{fontSize:'0.75rem', background:'#f0fdfa', color:'#0d9488', padding:'4px 10px', borderRadius:20, fontWeight:700}}>
                     ⏱ {tiempo}
                   </span>
                 )}
                 {dificultad && (
                   <span style={{
                     fontSize:'0.75rem', padding:'4px 10px', borderRadius:20, fontWeight:700,
-                    background: dificultad==='Fácil'?'#dcfce7': dificultad==='Media'?'#fef9c3':'#fee2e2',
-                    color: dificultad==='Fácil'?'#16a34a': dificultad==='Media'?'#ca8a04':'#dc2626',
+                    background: dificultad==='Fácil'?'#f0fdfa': dificultad==='Media'?'#fef9c3':'#fee2e2',
+                    color: dificultad==='Fácil'?'#0d9488': dificultad==='Media'?'#ca8a04':'#dc2626',
                   }}>
                     {dificultad==='Fácil'?'🟢':dificultad==='Media'?'🟡':'🔴'} {dificultad}
                   </span>
@@ -89,18 +89,18 @@ function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='' }) {
             {steps.map((paso, i) => (
               <div key={i} style={{display:'flex', gap:10, marginBottom:10, alignItems:'flex-start'}}>
                 <div style={{
-                  width:24, height:24, borderRadius:'50%', background:'#16a34a',
+                  width:24, height:24, borderRadius:'50%', background:'#0d9488',
                   color:'#fff', fontSize:'0.7rem', fontWeight:800, display:'flex',
                   alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:1,
                 }}>{i+1}</div>
-                <p style={{fontSize:'0.83rem', color:'#166534', lineHeight:1.5, margin:0}}>{paso}</p>
+                <p style={{fontSize:'0.83rem', color:'#134e4a', lineHeight:1.5, margin:0}}>{paso}</p>
               </div>
             ))}
             {/* Chef tip */}
             {consejo && (
-              <div style={{marginTop:12, padding:'10px 12px', background:'#fff', borderRadius:10, border:'1px solid #bbf7d0'}}>
-                <p style={{fontSize:'0.75rem', color:'#16a34a', fontWeight:700, margin:'0 0 3px'}}>💡 Consejo del chef</p>
-                <p style={{fontSize:'0.78rem', color:'#166534', margin:0, lineHeight:1.4}}>{consejo}</p>
+              <div style={{marginTop:12, padding:'10px 12px', background:'#fff', borderRadius:10, border:'1px solid #99f6e4'}}>
+                <p style={{fontSize:'0.75rem', color:'#0d9488', fontWeight:700, margin:'0 0 3px'}}>💡 Consejo del chef</p>
+                <p style={{fontSize:'0.78rem', color:'#134e4a', margin:0, lineHeight:1.4}}>{consejo}</p>
               </div>
             )}
           </div>
@@ -261,7 +261,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
           <div className="text-4xl">🎉</div>
           <p className="font-bold text-gray-800">¡Platos añadidos!</p>
           <p className="text-sm text-gray-500">{selCount} plato{selCount!==1?'s':''} añadido{selCount!==1?'s':''} a tu lista.</p>
-          <button onClick={onClose} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#16a34a',color:'#fff'}}>Perfecto, cerrar</button>
+          <button onClick={onClose} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#0d9488',color:'#fff'}}>Perfecto, cerrar</button>
         </div>
       ):!results?(
         <div className="space-y-4">
@@ -313,8 +313,8 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
               {[1,2,3,4,5].map(n=>(
                 <button key={n} type="button" onClick={()=>setQty(n)}
                   className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all
-                    ${qty===n?'border-green-500 bg-green-50 text-green-700':'border-gray-200 bg-white text-gray-500 hover:border-green-200'}`}
-                  style={{boxShadow: qty===n?'0 3px 10px rgba(22,163,74,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
+                    ${qty===n?'border-teal-500 bg-teal-50 text-teal-700':'border-gray-200 bg-white text-gray-500 hover:border-teal-200'}`}
+                  style={{boxShadow: qty===n?'0 3px 10px rgba(13,148,136,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
                   {n}
                 </button>
               ))}
@@ -326,7 +326,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
           </div>
           <button onClick={searchRecipes} disabled={loading}
             className="w-full rounded-xl py-3 font-bold text-sm transition-all"
-            style={{background:loading?'#86efac':'#16a34a',color:'#fff',boxShadow:'0 2px 8px rgba(22,163,74,.3)',opacity:loading?.85:1}}>
+            style={{background:loading?'#5eead4':'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.3)',opacity:loading?.85:1}}>
             {loading?'⏳ Buscando...':'🔍 Buscar recetas'}
           </button>
         </div>
@@ -341,25 +341,25 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
             {results.all.map((s)=>{
               const isSel=!!selected[s.recipe.id];
               const pctVal=pct(s.score);
-              const barColor=pctVal===100?'bg-green-500':pctVal>=60?'bg-amber-400':'bg-red-300';
+              const barColor=pctVal===100?'bg-teal-500':pctVal>=60?'bg-amber-400':'bg-red-300';
               return (
                 <button key={s.recipe.id} type="button" onClick={()=>toggleSel(s.recipe.id)}
                   className="w-full text-left rounded-2xl border-2 p-3 transition-all"
                   style={{
-                    borderColor: isSel ? '#4ade80' : '#e2e8f0',
+                    borderColor: isSel ? '#2dd4bf' : '#e2e8f0',
                     background: isSel ? '#f0fdf4' : '#fff',
-                    boxShadow: isSel ? '0 3px 12px rgba(22,163,74,.15)' : '0 2px 8px rgba(0,0,0,.07)',
+                    boxShadow: isSel ? '0 3px 12px rgba(13,148,136,.15)' : '0 2px 8px rgba(0,0,0,.07)',
                   }}>
                   <div className="flex items-start gap-2">
                     <div className={`mt-0.5 w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all
-                      ${isSel?'border-green-500 bg-green-500':'border-gray-300'}`}>
+                      ${isSel?'border-teal-500 bg-teal-500':'border-gray-300'}`}>
                       {isSel&&<span className="text-white text-[10px] font-bold">✓</span>}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2 mb-1">
                         <p className="font-semibold text-gray-800 text-sm leading-tight">{s.recipe.name}</p>
                         <span className={`text-xs font-bold shrink-0 px-1.5 py-0.5 rounded-full
-                          ${pctVal===100?'bg-green-100 text-green-700':pctVal>=60?'bg-amber-100 text-amber-700':'bg-red-100 text-red-600'}`}>
+                          ${pctVal===100?'bg-teal-100 text-teal-700':pctVal>=60?'bg-amber-100 text-amber-700':'bg-red-100 text-red-600'}`}>
                           {pctVal}%
                         </span>
                       </div>
@@ -384,7 +384,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                       <div className="flex flex-wrap gap-1">
                         {s.matched.map((m,mi)=>(
                           <span key={mi} className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium
-                            ${m.available?'bg-green-100 text-green-700':m.catIng?'bg-amber-100 text-amber-600':'bg-gray-100 text-gray-400'}`}>
+                            ${m.available?'bg-teal-100 text-teal-700':m.catIng?'bg-amber-100 text-amber-600':'bg-gray-100 text-gray-400'}`}>
                             {m.available?'✓ ':m.catIng?'⚠ ':'✗ '}{m.name}
                           </span>
                         ))}
@@ -400,8 +400,8 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                           onClick={e=>{e.stopPropagation();setRecipePreview({name:s.recipe.name,ings:s.recipe.ings});}}
                           style={{
                             marginTop:6, fontSize:'0.7rem', fontWeight:700,
-                            color:'#16a34a', background:'#f0fdf4',
-                            border:'1px solid #bbf7d0', borderRadius:8,
+                            color:'#0d9488', background:'#f0fdf4',
+                            border:'1px solid #99f6e4', borderRadius:8,
                             padding:'3px 9px', cursor:'pointer',
                           }}>
                           📖 Ver preparación
@@ -416,9 +416,9 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
           <button onClick={addSelected} disabled={selCount===0}
             className="w-full py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
             style={{
-              background: selCount===0 ? '#e5e7eb' : '#16a34a',
+              background: selCount===0 ? '#e5e7eb' : '#0d9488',
               color: selCount===0 ? '#6b7280' : '#fff',
-              boxShadow: selCount===0 ? 'none' : '0 3px 12px rgba(22,163,74,.35)',
+              boxShadow: selCount===0 ? 'none' : '0 3px 12px rgba(13,148,136,.35)',
               cursor: selCount===0 ? 'not-allowed' : 'pointer',
             }}>
             ➕ Añadir {selCount>0?`${selCount} plato${selCount!==1?'s':''}`:' platos seleccionados'}
@@ -469,11 +469,11 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
           {/* Botones */}
           <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
             <button type="button" onClick={()=>cameraRef.current?.click()}
-              style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#fff',background:'#16a34a',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+              style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#fff',background:'#0d9488',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
               📷 Hacer foto
             </button>
             <button type="button" onClick={()=>photoRef.current?.click()}
-              style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#16a34a',background:'#f0fdf4',border:'1.5px solid #86efac',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+              style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#0d9488',background:'#f0fdf4',border:'1.5px solid #5eead4',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
               🖼️ Subir imagen
             </button>
             {form.photo && (
@@ -494,7 +494,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Nombre</label>
         <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Nombre del plato..."
-          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"/>
+          className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"/>
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">▶️ Enlace YouTube <span style={{fontWeight:400,color:'#9ca3af'}}>(opcional)</span></label>
@@ -517,12 +517,12 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
             return(
               <div key={cat} className="rounded-xl overflow-hidden border border-gray-100">
                 <button type="button" onClick={()=>toggleCat(cat)}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-green-50 transition-colors">
+                  className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-teal-50 transition-colors">
                   <span className="flex items-center gap-1.5 text-xs font-bold text-gray-600 uppercase tracking-wide">
                     {CAT_EMOJI[cat]} {cat}
                   </span>
                   <span className="flex items-center gap-2">
-                    {selCount>0&&<span className="text-[10px] bg-green-100 text-green-700 font-bold px-1.5 py-0.5 rounded-full">{selCount} sel.</span>}
+                    {selCount>0&&<span className="text-[10px] bg-teal-100 text-teal-700 font-bold px-1.5 py-0.5 rounded-full">{selCount} sel.</span>}
                     <span className="text-gray-400 text-xs">{isOpen?'▲':'▼'}</span>
                   </span>
                 </button>
@@ -530,7 +530,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
                   <div className="bg-white px-2 py-1">
                     {ci.map(ing=>(
                       <label key={ing.id} className="flex items-center gap-2 py-1.5 cursor-pointer hover:bg-gray-50 rounded-lg px-2">
-                        <input type="checkbox" checked={form.ingredients.includes(ing.id)} onChange={()=>toggleIng(ing.id)} className="w-4 h-4 rounded accent-green-600"/>
+                        <input type="checkbox" checked={form.ingredients.includes(ing.id)} onChange={()=>toggleIng(ing.id)} className="w-4 h-4 rounded accent-teal-600"/>
                         <span className="text-sm text-gray-700">{ing.name}</span>
                       </label>
                     ))}
@@ -543,7 +543,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
       </div>
       <button onClick={onSave}
         className="w-full rounded-xl py-3 text-sm font-bold"
-        style={{background:'#16a34a',color:'#fff',boxShadow:'0 2px 8px rgba(22,163,74,.3)'}}>
+        style={{background:'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.3)'}}>
         💾 Guardar plato
       </button>
     </div>
@@ -582,7 +582,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
         <div className="rounded-2xl px-4 py-3 mb-4 flex items-center justify-between"
           style={{background:'#fffbeb',border:'1px solid #fde68a'}}>
           <span className="text-xs text-amber-700 font-semibold">🔒 Plan gratuito · {dishes.length}/{FREE_DISH_LIMIT} platos</span>
-          <button onClick={()=>onUpgrade('dishes')} className="text-xs font-bold text-green-600">Desbloquear Pro →</button>
+          <button onClick={()=>onUpgrade('dishes')} className="text-xs font-bold text-teal-600">Desbloquear Pro →</button>
         </div>
       )}
 
@@ -594,7 +594,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
               Mis platos 🍳
             </h1>
             <p className="text-sm text-gray-400 mt-1">
-              <span className="font-bold text-green-600">{dishes.filter(d=>!d.example).length}</span> propios
+              <span className="font-bold text-teal-600">{dishes.filter(d=>!d.example).length}</span> propios
               {dishes.some(d=>d.example) && <> · <span className="text-gray-300">{dishes.filter(d=>d.example).length} ejemplos</span></>}
             </p>
           </div>
@@ -608,15 +608,15 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
             )}
             <button onClick={()=>isPro?setAutoModal(true):onUpgrade('autodish')}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
-              style={{background:'#f0fdf4',color:'#16a34a',border:'1px solid #bbf7d0'}}>
+              style={{background:'#f0fdf4',color:'#0d9488',border:'1px solid #99f6e4'}}>
               {isPro ? '✨ Sugerir' : '🔒 Sugerir'}
             </button>
             <button onClick={openAdd}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
               style={{
-                background: atLimit ? '#e2e8f0' : '#16a34a',
+                background: atLimit ? '#e2e8f0' : '#0d9488',
                 color: atLimit ? '#94a3b8' : '#fff',
-                boxShadow: atLimit ? 'none' : '0 2px 8px rgba(22,163,74,.3)',
+                boxShadow: atLimit ? 'none' : '0 2px 8px rgba(13,148,136,.3)',
               }}>
               {atLimit ? '🔒 Nuevo plato' : '➕ Nuevo plato'}
             </button>
@@ -663,7 +663,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                     setRecipeModal({name:dish.name, ings:ingNames, youtubeUrl:dish.youtubeUrl||''});
                   }}
                     className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
-                    style={{background:'#f0fdf4',border:'1px solid #bbf7d0'}}
+                    style={{background:'#f0fdf4',border:'1px solid #99f6e4'}}
                     title="Ver receta">📖</button>
                 )}
                 <button onClick={()=>openEdit(dish)}

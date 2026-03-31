@@ -55,7 +55,7 @@ export default function MigrationModal({ onMigrate, onSkip }: Props) {
           disabled={loading}
           style={{
             width: '100%', padding: '13px',
-            background: loading ? '#86efac' : '#16a34a',
+            background: loading ? '#5eead4' : '#0d9488',
             color: '#fff', border: 'none', borderRadius: '12px',
             fontSize: '0.95rem', fontWeight: 700, cursor: loading ? 'not-allowed' : 'pointer',
             marginBottom: '10px',

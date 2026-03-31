@@ -40,15 +40,15 @@ export default function CookieBanner() {
       <span style={{ flex: 1, minWidth: '220px', fontSize: '0.82rem', lineHeight: 1.5, color: '#d1d5db' }}>
         🍪 Usamos almacenamiento local (<em>localStorage</em>) exclusivamente para guardar tus datos de la app y tu sesión. No utilizamos cookies de seguimiento ni publicidad.{' '}
         <a href="/privacidad.html" target="_blank" rel="noopener"
-          style={{ color: '#86efac', textDecoration: 'underline' }}>Política de privacidad</a>
+          style={{ color: '#5eead4', textDecoration: 'underline' }}>Política de privacidad</a>
         {' · '}
         <a href="/terminos.html" target="_blank" rel="noopener"
-          style={{ color: '#86efac', textDecoration: 'underline' }}>Términos y condiciones</a>
+          style={{ color: '#5eead4', textDecoration: 'underline' }}>Términos y condiciones</a>
       </span>
       <button
         onClick={accept}
         style={{
-          background: '#16a34a',
+          background: '#0d9488',
           color: '#fff',
           border: 'none',
           borderRadius: '8px',

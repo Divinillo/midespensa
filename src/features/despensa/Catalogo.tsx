@@ -11,11 +11,11 @@ import type { Ingredient } from '../../data/types';
 const CAT_PASTEL: Record<string, { bg: string; border: string; accent: string }> = {
   'carnes':                { bg: '#fde8e5', border: '#f5b0a0', accent: '#b83025' },
   'pescado':               { bg: '#e4f0fd', border: '#93c5ef', accent: '#1a5fa8' },
-  'verduras':              { bg: '#e5f7ea', border: '#86efac', accent: '#15803d' },
+  'verduras':              { bg: '#e5f7ea', border: '#5eead4', accent: '#0f766e' },
   'legumbres':             { bg: '#fef3c7', border: '#fcd34d', accent: '#a16207' },
   'lácteos':               { bg: '#f5e8fd', border: '#d8b4fe', accent: '#7e22ce' },
   'pasta y harinas':       { bg: '#fff0e5', border: '#fbbf87', accent: '#c2510e' },
-  'conservas':             { bg: '#e8f5ee', border: '#a7d9b8', accent: '#166534' },
+  'conservas':             { bg: '#e8f5ee', border: '#a7d9b8', accent: '#134e4a' },
   'fruta':                 { bg: '#fde8ed', border: '#f9a8c0', accent: '#be123c' },
   'bebidas':               { bg: '#eaefff', border: '#a5b4fc', accent: '#3730a3' },
   'congelados':            { bg: '#e4f5fd', border: '#7dd3fc', accent: '#0369a1' },
@@ -45,7 +45,7 @@ function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
   if (mode === 'cart') {
     bg = '#fffbeb'; border = '2px solid #f59e0b'; nameColor = '#b45309';
   } else if (mode === 'pantry') {
-    bg = '#f0fdf4'; border = '1.5px solid #86efac'; nameColor = '#15803d';
+    bg = '#f0fdf4'; border = '1.5px solid #5eead4'; nameColor = '#0f766e';
   }
 
   // Icono de indicación en esquina superior derecha según modo
@@ -56,12 +56,12 @@ function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
 
   const actionBg = mode === 'catalog' ? '#fff'
                  : mode === 'cart'    ? '#f59e0b'
-                 : mode === 'pantry'  ? '#16a34a'
+                 : mode === 'pantry'  ? '#0d9488'
                  : null;
 
   const actionBorder = mode === 'catalog' ? '#e2e8f0'
                      : mode === 'cart'    ? '#fbbf24'
-                     : mode === 'pantry'  ? '#86efac'
+                     : mode === 'pantry'  ? '#5eead4'
                      : null;
 
   const actionColor = (mode === 'cart' || mode === 'pantry') ? '#fff' : '#94a3b8';
@@ -285,10 +285,10 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
             onClick={() => setAddModal(true)}
             style={{
               width: 40, height: 40, borderRadius: 13, flexShrink: 0,
-              background: '#16a34a', color: '#fff', border: 'none',
+              background: '#0d9488', color: '#fff', border: 'none',
               fontSize: '1.6rem', lineHeight: 1,
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', boxShadow: '0 2px 10px rgba(22,163,74,.35)',
+              cursor: 'pointer', boxShadow: '0 2px 10px rgba(13,148,136,.35)',
             }}
           >+</button>
         </div>
@@ -356,8 +356,8 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
             badge={
               <span style={{
                 fontSize: '0.65rem', fontWeight: 800,
-                background: '#f0fdf4', color: '#15803d',
-                border: '1px solid #bbf7d0',
+                background: '#f0fdf4', color: '#0f766e',
+                border: '1px solid #99f6e4',
                 padding: '2px 8px', borderRadius: 20,
               }}>
                 {availableIngs.length}
@@ -455,7 +455,7 @@ export function Catalogo({ ingredients, setIngredients, isUltra }) {
           </div>
           <button
             onClick={addIng}
-            style={{ width: '100%', borderRadius: 14, padding: '14px', fontSize: '0.9rem', fontWeight: 800, border: 'none', background: '#16a34a', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(22,163,74,.35)' }}
+            style={{ width: '100%', borderRadius: 14, padding: '14px', fontSize: '0.9rem', fontWeight: 800, border: 'none', background: '#0d9488', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(13,148,136,.35)' }}
           >
             Añadir a mi despensa →
           </button>

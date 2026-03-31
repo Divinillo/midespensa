@@ -11,8 +11,8 @@ import {
 
 declare const window: any;
 
-const PALETTE = ['#16a34a','#7c3aed','#f59e0b','#ef4444','#3b82f6','#10b981','#f97316','#8b5cf6','#ec4899','#06b6d4','#84cc16','#14b8a6'];
-const STORE_COLOR: Record<string,string> = {Mercadona:'#16a34a',Consum:'#3b82f6',Carrefour:'#ef4444',Lidl:'#f59e0b',Aldi:'#f97316',Otro:'#6b7280'};
+const PALETTE = ['#0d9488','#7c3aed','#f59e0b','#ef4444','#3b82f6','#10b981','#f97316','#8b5cf6','#ec4899','#06b6d4','#84cc16','#14b8a6'];
+const STORE_COLOR: Record<string,string> = {Mercadona:'#0d9488',Consum:'#3b82f6',Carrefour:'#ef4444',Lidl:'#f59e0b',Aldi:'#f97316',Otro:'#6b7280'};
 const CAT_COLOR: Record<string,string> = {
   'carnes':                '#ef4444',
   'pescado':               '#0ea5e9',
@@ -89,8 +89,17 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
   if(!open) return null;
 
   return (
-    <div style={{position:'fixed',inset:0,zIndex:60,display:'flex',alignItems:'flex-end',background:'rgba(0,0,0,.45)'}}>
-      <div style={{width:'100%',maxHeight:'92vh',overflowY:'auto',background:'#f8fafc',borderRadius:'24px 24px 0 0',padding:'20px 16px 32px'}}>
+    <div style={{position:'fixed',inset:0,zIndex:60,display:'flex',alignItems:'flex-end',justifyContent:'center',background:'rgba(0,0,0,.5)'}}>
+      {/* Desktop: centered modal | Mobile: bottom sheet */}
+      <div style={{
+        width:'100%', maxWidth:680,
+        maxHeight:'92vh', overflowY:'auto',
+        background:'#f8fafc',
+        borderRadius:'24px 24px 0 0',
+        padding:'24px 20px 36px',
+      }}
+        className="sm:rounded-3xl sm:mb-6 sm:mx-4 sm:max-h-[88vh]"
+      >
         {/* Header */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <div>
@@ -124,7 +133,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                     <XAxis dataKey="mes" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <Tooltip content={customTooltip}/>
-                    <Bar dataKey="total" name="Gasto" fill="#16a34a" radius={[6,6,0,0]}/>
+                    <Bar dataKey="total" name="Gasto" fill="#0d9488" radius={[6,6,0,0]}/>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -193,7 +202,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                     <XAxis dataKey="mes" tick={{fontSize:11,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <Tooltip content={customTooltip}/>
-                    <Bar dataKey="total" name="Gasto" fill="#16a34a" radius={[7,7,0,0]}/>
+                    <Bar dataKey="total" name="Gasto" fill="#0d9488" radius={[7,7,0,0]}/>
                   </BarChart>
                 </ResponsiveContainer>
                 {monthlyData.length>=2&&(()=>{
@@ -202,7 +211,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                   return (
                     <div style={{marginTop:12,padding:'8px 12px',borderRadius:12,background:diff<=0?'#f0fdf4':'#fef2f2',display:'flex',alignItems:'center',gap:8}}>
                       <span style={{fontSize:'1.2rem'}}>{diff<=0?'📉':'📈'}</span>
-                      <p style={{fontSize:'0.75rem',color:diff<=0?'#15803d':'#dc2626',fontWeight:600,margin:0}}>
+                      <p style={{fontSize:'0.75rem',color:diff<=0?'#0f766e':'#dc2626',fontWeight:600,margin:0}}>
                         {diff<=0?'Bajada':'Subida'} de {Math.abs(diff).toFixed(2)}€ ({Math.abs(pct)}%) vs primer mes
                       </p>
                     </div>
@@ -392,14 +401,14 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
       <div className="mb-5">
         <h1 style={{fontSize:'1.5rem',fontWeight:900,color:'#111827',letterSpacing:'-0.02em',lineHeight:1}}>Gastos 💰</h1>
         <p style={{fontSize:'0.875rem',color:'#9ca3af',marginTop:4}}>
-          <span style={{fontWeight:700,color:'#16a34a'}}>{monthTotal.toFixed(2)}€</span> este mes · {tickets.length} tickets en total
+          <span style={{fontWeight:700,color:'#0d9488'}}>{monthTotal.toFixed(2)}€</span> este mes · {tickets.length} tickets en total
         </p>
       </div>
 
       {/* KPI cards */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:20}}>
         {[
-          {label:MONTH_NAMES[now.getMonth()],val:`${monthTotal.toFixed(2)}€`,sub:`${monthTickets.length} tickets`,bg:'linear-gradient(135deg,#15803d,#16a34a)',shadow:'rgba(22,163,74,.3)'},
+          {label:MONTH_NAMES[now.getMonth()],val:`${monthTotal.toFixed(2)}€`,sub:`${monthTickets.length} tickets`,bg:'linear-gradient(135deg,#0f766e,#0d9488)',shadow:'rgba(13,148,136,.3)'},
           {label:'Media mensual',val:`${avgMonthly.toFixed(2)}€`,sub:'últimos meses',bg:'linear-gradient(135deg,#0369a1,#0284c7)',shadow:'rgba(3,105,161,.25)'},
           {label:'Total histórico',val:`${allTotal.toFixed(2)}€`,sub:`${tickets.length} tickets`,bg:'linear-gradient(135deg,#6d28d9,#7c3aed)',shadow:'rgba(109,40,217,.25)'},
         ].map(c=>(
@@ -424,7 +433,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onU
             <div style={{marginBottom:16,padding:'10px 14px',borderRadius:14,background:monthDiff<=0?'#f0fdf4':'#fef2f2',display:'flex',alignItems:'center',gap:10}}>
               <span style={{fontSize:'1.4rem'}}>{monthDiff<=0?'📉':'📈'}</span>
               <div>
-                <p style={{margin:0,fontSize:'0.8rem',fontWeight:700,color:monthDiff<=0?'#15803d':'#dc2626'}}>
+                <p style={{margin:0,fontSize:'0.8rem',fontWeight:700,color:monthDiff<=0?'#0f766e':'#dc2626'}}>
                   {monthDiff<=0?'Gastas menos':'Gastas más'} que el mes anterior
                 </p>
                 <p style={{margin:0,fontSize:'0.7rem',color:'#9ca3af'}}>

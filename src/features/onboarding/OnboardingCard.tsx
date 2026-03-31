@@ -59,7 +59,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
   );
 
   return (
-    <div className="bg-gradient-to-br from-green-50 to-violet-50 rounded-2xl border border-green-100 mb-5 overflow-hidden fade">
+    <div className="bg-gradient-to-br from-teal-50 to-violet-50 rounded-2xl border border-teal-100 mb-5 overflow-hidden fade">
       {/* Cabecera */}
       <div className="px-5 pt-4 pb-3 flex items-center justify-between cursor-pointer" onClick={() => setExpanded(e => !e)}>
         <div className="flex items-center gap-3">
@@ -72,7 +72,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
         <div className="flex items-center gap-2">
           <div className="flex gap-1">
             {steps.map((s,i) => (
-              <div key={i} className={`w-2 h-2 rounded-full ${s.done?'bg-emerald-400':'bg-green-200'}`}/>
+              <div key={i} className={`w-2 h-2 rounded-full ${s.done?'bg-emerald-400':'bg-teal-200'}`}/>
             ))}
           </div>
           <span className="text-gray-400 text-sm ml-1">{expanded?'▲':'▼'}</span>
@@ -81,8 +81,8 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
 
       {/* Barra de progreso */}
       <div className="px-5 pb-2">
-        <div className="h-1.5 bg-green-100 rounded-full overflow-hidden">
-          <div className="h-full bg-gradient-to-r from-green-500 to-violet-500 rounded-full transition-all duration-500"
+        <div className="h-1.5 bg-teal-100 rounded-full overflow-hidden">
+          <div className="h-full bg-gradient-to-r from-teal-500 to-violet-500 rounded-full transition-all duration-500"
             style={{width:`${(doneCount/steps.length)*100}%`}}/>
         </div>
       </div>
@@ -94,7 +94,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
             <div key={i} className={`flex items-start gap-3 p-3.5 rounded-xl transition-all
               ${step.done ? 'bg-emerald-50 border border-emerald-100' : 'bg-white border border-gray-100 shadow-sm'}`}>
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-base shrink-0 mt-0.5 font-bold
-                ${step.done ? 'bg-emerald-500 text-white text-sm' : 'bg-green-100 text-green-600'}`}>
+                ${step.done ? 'bg-emerald-500 text-white text-sm' : 'bg-teal-100 text-teal-600'}`}>
                 {step.done ? '✓' : (i + 1)}
               </div>
               <div className="flex-1 min-w-0">
@@ -106,7 +106,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
               </div>
               {!step.done && (
                 <button onClick={step.action}
-                  className="text-xs bg-green-600 text-white px-3 py-1.5 rounded-lg font-semibold shrink-0 hover:bg-green-700 whitespace-nowrap mt-0.5">
+                  className="text-xs bg-teal-600 text-white px-3 py-1.5 rounded-lg font-semibold shrink-0 hover:bg-teal-700 whitespace-nowrap mt-0.5">
                   {step.actionLabel}
                 </button>
               )}
@@ -160,7 +160,7 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra,
   return (
     <Modal open={open} onClose={close} title={isUltraTier?'👨‍🍳 Desbloquear Ultra Chef':'✨ Desbloquear versión Pro'}>
       <div className="space-y-4">
-        <div className={`rounded-2xl p-5 text-center border ${isUltraTier?'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100':'bg-gradient-to-br from-green-50 to-violet-50 border-green-100'}`}>
+        <div className={`rounded-2xl p-5 text-center border ${isUltraTier?'bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-100':'bg-gradient-to-br from-teal-50 to-violet-50 border-teal-100'}`}>
           <div className="text-4xl mb-2">{r.icon}</div>
           <h3 className="font-bold text-gray-800 mb-1">{r.title}</h3>
           <p className="text-sm text-gray-500">{r.desc}</p>
@@ -199,7 +199,7 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra,
               className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md"
               style={{background: isUltraTier
                 ? 'linear-gradient(to right, #9333ea, #4f46e5)'
-                : 'linear-gradient(to right, #16a34a, #7c3aed)'}}>
+                : 'linear-gradient(to right, #0d9488, #7c3aed)'}}>
               💳 {isUltraTier?'Suscribirse a Ultra Chef · 4,99 €/mes':'Suscribirse a Pro · 2,99 €/mes'}
             </button>
             <button onClick={()=>setShowKey(true)} className="w-full border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">
@@ -212,12 +212,12 @@ export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra,
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Introduce tu clave de licencia</label>
               <input value={keyVal} onChange={e=>{setKeyVal(e.target.value.toUpperCase());setKeyErr('');}}
                 placeholder="XXXX-XXXX-XXXX-XXXX" 
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-green-200"
+                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-200"
                 onKeyDown={e=>e.key==='Enter'&&tryUnlock()}/>
               {keyErr&&<p className="text-xs text-red-500 mt-1.5">{keyErr}</p>}
             </div>
             <button onClick={tryUnlock} disabled={unlocking}
-              className={`w-full text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 ${isUltraTier?'bg-purple-600 hover:bg-purple-700':'bg-green-600 hover:bg-green-700'}`}>
+              className={`w-full text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 ${isUltraTier?'bg-purple-600 hover:bg-purple-700':'bg-teal-600 hover:bg-teal-700'}`}>
               {unlocking?'Verificando...':'Activar licencia ✨'}
             </button>
             <button onClick={()=>{setShowKey(false);setKeyErr('');}} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">← Volver</button>

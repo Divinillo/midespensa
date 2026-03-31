@@ -208,7 +208,7 @@ export function App() {
     return (
       <div style={{
         minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+        background: 'linear-gradient(135deg, #f0fdf4 0%, #f0fdfa 100%)',
       }}>
         <div style={{ fontSize: '2rem' }}>🥦</div>
       </div>
@@ -251,7 +251,7 @@ export function App() {
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
             <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Cuenta</h3>
             <p className="text-xs text-blue-600 mb-1">Sesión iniciada como <strong>{session?.user?.email}</strong></p>
-            {syncStatus && <p className="text-xs text-green-600 mb-2">{syncStatus}</p>}
+            {syncStatus && <p className="text-xs text-teal-600 mb-2">{syncStatus}</p>}
             <button
               onClick={async () => {
                 if (window.confirm('¿Cerrar sesión?')) {
@@ -272,10 +272,10 @@ export function App() {
               <div style={{fontSize:'0.7rem',color:'#b45309',lineHeight:1.5}}>Si limpias el caché del navegador o cambias de dispositivo perderás tus datos. Haz un backup periódico con el botón de abajo.</div>
             </div>
           </div>
-          <div className="bg-green-50 rounded-xl p-4 border border-green-100">
+          <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
             <h3 className="font-bold text-green-800 text-sm mb-1">📤 Exportar datos</h3>
-            <p className="text-xs text-green-600 mb-3">Descarga todos tus datos como copia de seguridad.</p>
-            <button onClick={exportData} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#16a34a',color:'#fff'}}>Descargar backup .json</button>
+            <p className="text-xs text-teal-600 mb-3">Descarga todos tus datos como copia de seguridad.</p>
+            <button onClick={exportData} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#0d9488',color:'#fff'}}>Descargar backup .json</button>
           </div>
           <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
             <h3 className="font-bold text-emerald-800 text-sm mb-1">📥 Importar datos</h3>
@@ -291,7 +291,7 @@ export function App() {
             </div>
             <button onClick={resetWizard} className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0" style={{background:'#0284c7',color:'#fff'}}>Reiniciar</button>
           </div>
-          <div className={`rounded-xl p-4 border ${isPro ? 'bg-violet-50 border-violet-100' : 'bg-green-50 border-green-100'}`}>
+          <div className={`rounded-xl p-4 border ${isPro ? 'bg-violet-50 border-violet-100' : 'bg-teal-50 border-teal-100'}`}>
             <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-violet-800' : 'text-green-800'}`}>{isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito'}</h3>
             {isPro ? (
               <div className="flex items-center justify-between">
@@ -300,8 +300,8 @@ export function App() {
               </div>
             ) : (
               <div>
-                <p className="text-xs text-green-600 mb-2">Platos: {dishes.length}/{FREE_DISH_LIMIT} · Tickets: {tickets.length}/{FREE_TICKET_LIMIT}</p>
-                <button onClick={() => { setShowSettings(false); setUpgradeModal('reports'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#16a34a',color:'#fff'}}>Desbloquear versión Pro →</button>
+                <p className="text-xs text-teal-600 mb-2">Platos: {dishes.length}/{FREE_DISH_LIMIT} · Tickets: {tickets.length}/{FREE_TICKET_LIMIT}</p>
+                <button onClick={() => { setShowSettings(false); setUpgradeModal('reports'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>Desbloquear versión Pro →</button>
               </div>
             )}
           </div>

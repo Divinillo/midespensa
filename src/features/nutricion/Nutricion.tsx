@@ -406,7 +406,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
         )}
 
         <button onClick={startScanner}
-          style={{ width:'100%', borderRadius:16, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background:'linear-gradient(135deg,#15803d,#16a34a)', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(22,163,74,.35)', marginTop:4 }}>
+          style={{ width:'100%', borderRadius:16, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background:'linear-gradient(135deg,#0f766e,#0d9488)', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(13,148,136,.35)', marginTop:4 }}>
           📷 Escanear otro producto
         </button>
       </div>
@@ -420,7 +420,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
     return (
       <div className="fade" style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'60vh', gap:16, textAlign:'center' }}>
         <div style={{ fontSize:'2.4rem', animation:'spin 1s linear infinite' }}>⏳</div>
-        <div style={{ fontWeight:700, fontSize:'1rem', color:'#15803d' }}>Buscando producto…</div>
+        <div style={{ fontWeight:700, fontSize:'1rem', color:'#0f766e' }}>Buscando producto…</div>
         <div style={{ fontSize:'0.78rem', color:'#94a3b8' }}>Consultando base de datos mundial de alimentos</div>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
@@ -437,11 +437,11 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
         <div style={{ fontWeight:800, fontSize:'1rem', color:'#dc2626' }}>{errMsg}</div>
         <div style={{ display:'flex', flexDirection:'column', gap:10, width:'100%', maxWidth:300 }}>
           <button onClick={startScanner}
-            style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#fff', background:'#16a34a', border:'none', cursor:'pointer' }}>
+            style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#fff', background:'#0d9488', border:'none', cursor:'pointer' }}>
             📷 Intentar de nuevo
           </button>
           <button onClick={() => setMode('manual')}
-            style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#16a34a', background:'#f0fdf4', border:'2px solid #86efac', cursor:'pointer' }}>
+            style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#0d9488', background:'#f0fdf4', border:'2px solid #5eead4', cursor:'pointer' }}>
             ⌨️ Introducir código manualmente
           </button>
           <button onClick={reset}
@@ -476,16 +476,16 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
           <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', pointerEvents:'none' }}>
             <div style={{ width:'78%', height:'26%', position:'relative' }}>
               {[
-                { top:0, left:0, borderTop:'3px solid #4ade80', borderLeft:'3px solid #4ade80', borderRadius:'8px 0 0 0' },
-                { top:0, right:0, borderTop:'3px solid #4ade80', borderRight:'3px solid #4ade80', borderRadius:'0 8px 0 0' },
-                { bottom:0, left:0, borderBottom:'3px solid #4ade80', borderLeft:'3px solid #4ade80', borderRadius:'0 0 0 8px' },
-                { bottom:0, right:0, borderBottom:'3px solid #4ade80', borderRight:'3px solid #4ade80', borderRadius:'0 0 8px 0' },
+                { top:0, left:0, borderTop:'3px solid #2dd4bf', borderLeft:'3px solid #2dd4bf', borderRadius:'8px 0 0 0' },
+                { top:0, right:0, borderTop:'3px solid #2dd4bf', borderRight:'3px solid #2dd4bf', borderRadius:'0 8px 0 0' },
+                { bottom:0, left:0, borderBottom:'3px solid #2dd4bf', borderLeft:'3px solid #2dd4bf', borderRadius:'0 0 0 8px' },
+                { bottom:0, right:0, borderBottom:'3px solid #2dd4bf', borderRight:'3px solid #2dd4bf', borderRadius:'0 0 8px 0' },
               ].map((s, i) => (
                 <div key={i} style={{ position:'absolute', width:22, height:22, ...s }} />
               ))}
               <div style={{
                 position:'absolute', left:0, right:0, height:2,
-                background:'linear-gradient(90deg,transparent,#4ade80,transparent)',
+                background:'linear-gradient(90deg,transparent,#2dd4bf,transparent)',
                 animation:'scanline 1.8s ease-in-out infinite',
               }} />
             </div>
@@ -520,7 +520,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
             <input
               type="range" min={1} max={zoomMax} step={0.1} value={zoom}
               onChange={e => applyZoom(Number(e.target.value))}
-              style={{ flex:1, accentColor:'#16a34a' }}
+              style={{ flex:1, accentColor:'#0d9488' }}
             />
             <span style={{ fontSize:'0.7rem', color:'#64748b', fontWeight:700, minWidth:30 }}>{zoomMax}×</span>
           </div>
@@ -577,15 +577,15 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
           inputMode="numeric"
           autoFocus
           onKeyDown={e => e.key==='Enter' && manualCode.length>=8 && fetchProduct(manualCode)}
-          style={{ width:'100%', borderRadius:14, border:'2px solid #86efac', padding:'14px 16px', fontSize:'1.1rem', fontWeight:700, letterSpacing:'0.08em', textAlign:'center', outline:'none', background:'#f0fdf4', boxSizing:'border-box', marginBottom:12 }}
+          style={{ width:'100%', borderRadius:14, border:'2px solid #5eead4', padding:'14px 16px', fontSize:'1.1rem', fontWeight:700, letterSpacing:'0.08em', textAlign:'center', outline:'none', background:'#f0fdf4', boxSizing:'border-box', marginBottom:12 }}
         />
         <button onClick={() => fetchProduct(manualCode)} disabled={manualCode.length < 8}
-          style={{ width:'100%', borderRadius:14, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background: manualCode.length>=8?'#16a34a':'#d1d5db', border:'none', cursor: manualCode.length>=8?'pointer':'not-allowed', boxShadow: manualCode.length>=8?'0 4px 14px rgba(22,163,74,.35)':'none' }}>
+          style={{ width:'100%', borderRadius:14, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background: manualCode.length>=8?'#0d9488':'#d1d5db', border:'none', cursor: manualCode.length>=8?'pointer':'not-allowed', boxShadow: manualCode.length>=8?'0 4px 14px rgba(13,148,136,.35)':'none' }}>
           🔍 Buscar producto
         </button>
         <div style={{ textAlign:'center', marginTop:12 }}>
           <button onClick={startScanner}
-            style={{ fontSize:'0.75rem', color:'#16a34a', fontWeight:700, background:'none', border:'none', cursor:'pointer' }}>
+            style={{ fontSize:'0.75rem', color:'#0d9488', fontWeight:700, background:'none', border:'none', cursor:'pointer' }}>
             📷 Volver al escáner
           </button>
         </div>
@@ -599,14 +599,14 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
   return (
     <div className="fade">
       {/* Hero */}
-      <div style={{ borderRadius:24, padding:'28px 20px', textAlign:'center', marginBottom:20, background:'linear-gradient(135deg,#15803d,#16a34a)', color:'#fff', boxShadow:'0 8px 28px rgba(22,163,74,.35)' }}>
+      <div style={{ borderRadius:24, padding:'28px 20px', textAlign:'center', marginBottom:20, background:'linear-gradient(135deg,#0f766e,#0d9488)', color:'#fff', boxShadow:'0 8px 28px rgba(13,148,136,.35)' }}>
         <div style={{ fontSize:'3rem', marginBottom:8 }}>📷</div>
         <div style={{ fontWeight:900, fontSize:'1.2rem', marginBottom:6 }}>Escáner de alimentos</div>
         <div style={{ fontSize:'0.8rem', opacity:.8, marginBottom:20, lineHeight:1.5 }}>
           Apunta la cámara al código de barras para ver Nutri-Score, Nova, aditivos y tabla nutricional
         </div>
         <button onClick={startScanner}
-          style={{ borderRadius:16, padding:'14px 32px', fontWeight:800, fontSize:'1rem', color:'#16a34a', background:'#fff', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(0,0,0,.15)', display:'inline-flex', alignItems:'center', gap:8 }}>
+          style={{ borderRadius:16, padding:'14px 32px', fontWeight:800, fontSize:'1rem', color:'#0d9488', background:'#fff', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(0,0,0,.15)', display:'inline-flex', alignItems:'center', gap:8 }}>
           <span style={{ fontSize:'1.3rem' }}>📷</span> Abrir escáner
         </button>
         <div style={{ marginTop:10 }}>

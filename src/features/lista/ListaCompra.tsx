@@ -59,17 +59,17 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
         <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-3">Generar lista para</p>
         <div className="flex gap-2 mb-4">
           <select value={selMonth} onChange={e=>setSelMonth(Number(e.target.value))}
-            className="flex-1 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-200"
+            className="flex-1 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
             style={{border:'1px solid #e2e8f0',background:'#f8fafc'}}>
             {MONTH_NAMES.map((m,i)=><option key={i} value={i}>{m}</option>)}
           </select>
           <input type="number" value={selYear} onChange={e=>setSelYear(Number(e.target.value))}
-            className="w-24 rounded-2xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-green-200"
+            className="w-24 rounded-2xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-teal-200"
             style={{border:'1px solid #e2e8f0',background:'#f8fafc'}}/>
         </div>
         <button onClick={generate}
           className="w-full text-white rounded-2xl py-3.5 font-bold text-sm"
-          style={{background:'#16a34a',boxShadow:'0 2px 10px rgba(22,163,74,.35)'}}>
+          style={{background:'#0d9488',boxShadow:'0 2px 10px rgba(13,148,136,.35)'}}>
           🛒 Generar lista de la compra
         </button>
       </div>
@@ -88,12 +88,12 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
             <div className="flex justify-between items-end mb-4">
               <div>
                 <div className="text-2xl font-black text-gray-900 leading-none">{list.items.length}</div>
-                <div className="text-xs text-gray-400 font-medium mt-0.5">ingredientes · <span className="text-green-600 font-semibold">{doneCount} en el carrito</span></div>
+                <div className="text-xs text-gray-400 font-medium mt-0.5">ingredientes · <span className="text-teal-600 font-semibold">{doneCount} en el carrito</span></div>
               </div>
               {list.estTotal>0&&(
                 <div className="text-right">
                   <div className="text-xs text-gray-400">Estimado</div>
-                  <div className="text-lg font-black text-green-600">{list.estTotal.toFixed(2)}€</div>
+                  <div className="text-lg font-black text-teal-600">{list.estTotal.toFixed(2)}€</div>
                 </div>
               )}
             </div>
@@ -101,7 +101,7 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
             {/* Progress bar */}
             {doneCount>0&&(
               <div className="mb-4 h-2 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-green-400 rounded-full transition-all"
+                <div className="h-full bg-teal-400 rounded-full transition-all"
                   style={{width:`${Math.round(doneCount/list.items.length*100)}%`}}/>
               </div>
             )}
@@ -118,13 +118,13 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
                       onClick={()=>setChecked(c=>({...c,[item.id]:!c[item.id]}))}
                       className="flex items-center justify-between bg-white rounded-2xl px-4 py-3 cursor-pointer transition-all"
                       style={{
-                        border: checked[item.id] ? '1px solid #bbf7d0' : '1px solid #f1f5f9',
+                        border: checked[item.id] ? '1px solid #99f6e4' : '1px solid #f1f5f9',
                         background: checked[item.id] ? '#f0fdf4' : '#fff',
                         boxShadow: '0 1px 3px rgba(0,0,0,.04)',
                       }}>
                       <div className="flex items-center gap-3">
                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center text-xs font-bold shrink-0 transition-all
-                          ${checked[item.id]?'bg-green-500 border-green-500 text-white':'border-gray-200'}`}>
+                          ${checked[item.id]?'bg-teal-500 border-teal-500 text-white':'border-gray-200'}`}>
                           {checked[item.id]&&'✓'}
                         </div>
                         <span className={`text-sm font-medium ${checked[item.id]?'line-through text-gray-300':'text-gray-700'}`}>
@@ -133,7 +133,7 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
                       </div>
                       <div className="text-right shrink-0">
                         {item.avgPrice
-                          ?<><div className="text-sm font-bold text-green-600">~{item.avgPrice.toFixed(2)}€</div><div className="text-[10px] text-gray-300">{item.histCount}x</div></>
+                          ?<><div className="text-sm font-bold text-teal-600">~{item.avgPrice.toFixed(2)}€</div><div className="text-[10px] text-gray-300">{item.histCount}x</div></>
                           :<span className="text-xs text-gray-300">sin datos</span>
                         }
                       </div>
