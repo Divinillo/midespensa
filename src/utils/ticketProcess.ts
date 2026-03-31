@@ -415,13 +415,12 @@ function ocrTextToRows(text) {
 
 const GEMINI_KEY: string | undefined = (import.meta as any).env?.VITE_GEMINI_KEY;
 const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
-// Modelos en orden de preferencia — cada uno tiene cuota independiente (1500 req/día gratis)
+// Modelos en orden de preferencia — 1.5 retirados, usar 2.5+ (cada uno con cuota independiente)
 const GEMINI_MODELS = [
+  'gemini-2.5-flash-lite',
+  'gemini-2.5-flash',
   'gemini-2.0-flash-lite',
-  'gemini-1.5-flash-8b',
-  'gemini-1.5-flash',
   'gemini-2.0-flash',
-  'gemini-2.0-flash-exp',
 ];
 
 const GEMINI_PROMPT_TEXT = `Analiza este texto de un ticket de supermercado español y extrae todos los productos comprados.
