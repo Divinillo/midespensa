@@ -1,5 +1,6 @@
-const CACHE = 'midespensa-v7';
-const PRECACHE = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png', './success.html'];
+const CACHE = 'midespensa-v8';
+// success.html excluded: it's only visited once post-payment and must always be fresh
+const PRECACHE = ['./index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 // Instalación: cachear solo archivos propios
 self.addEventListener('install', e => {

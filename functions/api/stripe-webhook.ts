@@ -75,9 +75,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     try {
       await createLicense(env, clave, email, tier, session.id);
-      console.log(`✅ License ${clave} → ${email} (${tier})`);
+      console.log(`✅ License created (${tier})`);
     } catch (err: any) {
-      console.error('License creation failed:', err.message);
+      console.error('License creation failed');
     }
   }
 
