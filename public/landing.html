@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MiDespensa · Planifica, compra y come mejor</title>
-  <meta name="description" content="MiDespensa organiza tu semana: plan de comidas, lista de la compra automática, control de despensa y seguimiento de gastos. Para toda la familia." />
+  <meta name="description" content="MiDespensa organiza tu mes: plan de comidas, lista de la compra automática, control de despensa y seguimiento de gastos. Para toda la familia." />
   <meta property="og:title" content="MiDespensa · Planifica, compra y come mejor" />
   <meta property="og:description" content="La app que organiza tu cocina: plan de comidas, lista automática y control de despensa para toda la familia." />
   <meta property="og:image" content="https://midespensa.app/icon-512.png" />
@@ -390,7 +390,7 @@
   <div class="hero-badge">
     ✨ &nbsp;Sin anuncios · Datos en la nube
   </div>
-  <h1>Planifica, compra y<br/><span>come mejor</span> cada semana</h1>
+  <h1>Planifica, compra y<br/><span>come mejor</span> cada mes</h1>
   <p>MiDespensa organiza el caos de la cocina familiar: plan de comidas, lista de la compra automática, control de despensa y seguimiento de gastos. Todo en una app.</p>
   <div class="hero-cta">
     <a href="/app" class="btn-primary" style="font-size:1rem; padding:12px 28px;">
@@ -440,31 +440,32 @@
     </div>
   </div>
 
-  <!-- Phone 2: Meal plan (center, bigger) -->
+  <!-- Phone 2: Monthly meal plan calendar (center, bigger) -->
   <div class="phone" style="width:200px;">
     <div class="phone-screen">
       <div class="phone-status"><span>9:41</span><span>●●●</span></div>
-      <div class="phone-header"><div class="phone-header-title">Plan Semanal</div><div class="phone-header-sub">Lun 30 Mar – Dom 5 Abr</div></div>
+      <div class="phone-header"><div class="phone-header-title">Plan Mensual</div><div class="phone-header-sub">Abril 2026</div></div>
       <div class="phone-body">
-        <div class="phone-card">
-          <div class="phone-card-title" style="color:#16a34a;">Lunes · Comida</div>
-          <div class="phone-card-text" style="font-weight:600; font-size:.58rem; color:#1f2937;">Lentejas con chorizo</div>
-          <div class="phone-card-text">450 kcal · 28g proteína</div>
-          <div class="phone-tag">Favorito</div>
+        <!-- Mini monthly calendar -->
+        <div style="padding:4px 4px 2px; background:#fff;">
+          <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:1px; margin-bottom:2px;">
+            <div style="font-size:.36rem; color:#9ca3af; text-align:center; font-weight:600;">L</div><div style="font-size:.36rem; color:#9ca3af; text-align:center; font-weight:600;">M</div><div style="font-size:.36rem; color:#9ca3af; text-align:center; font-weight:600;">X</div><div style="font-size:.36rem; color:#9ca3af; text-align:center; font-weight:600;">J</div><div style="font-size:.36rem; color:#9ca3af; text-align:center; font-weight:600;">V</div><div style="font-size:.36rem; color:#9ca3af; text-align:center; font-weight:600;">S</div><div style="font-size:.36rem; color:#9ca3af; text-align:center; font-weight:600;">D</div>
+          </div>
+          <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px;">
+            <div style="font-size:.42rem; text-align:center; padding:2px 0; color:#d1d5db;"></div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#d1d5db;"></div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#6b7280;">1</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">2</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">3</div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#6b7280;">4</div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#6b7280;">5</div>
+            <div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">6</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">7</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">8</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">9</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">10</div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#6b7280;">11</div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#6b7280;">12</div>
+            <div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">13</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">14</div><div style="font-size:.42rem; text-align:center; padding:3px 0; border-radius:3px; font-weight:700; font-size:.42rem; background:#16a34a; color:#fff;">15</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">16</div><div style="font-size:.42rem; text-align:center; padding:2px 0; background:#dcfce7; border-radius:3px; color:#15803d; font-weight:700;">17</div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#6b7280;">18</div><div style="font-size:.42rem; text-align:center; padding:2px 0; color:#6b7280;">19</div>
+          </div>
+        </div>
+        <!-- Selected day detail -->
+        <div style="padding:3px 4px 0; font-size:.44rem; font-weight:700; color:#16a34a;">Martes 15 · detalle</div>
+        <div class="phone-card" style="background:#f0fdf4; border-color:#bbf7d0; margin-top:2px;">
+          <div class="phone-card-title" style="color:#16a34a;">🍽️ Comida</div>
+          <div class="phone-card-text" style="font-weight:600; font-size:.56rem; color:#1f2937;">Pollo al horno con patatas</div>
         </div>
         <div class="phone-card">
-          <div class="phone-card-title" style="color:#6b7280;">Lunes · Cena</div>
-          <div class="phone-card-text" style="font-weight:600; font-size:.58rem; color:#1f2937;">Revuelto de champiñones</div>
-          <div class="phone-card-text">280 kcal · 18g proteína</div>
-        </div>
-        <div class="phone-card">
-          <div class="phone-card-title" style="color:#16a34a;">Martes · Comida</div>
-          <div class="phone-card-text" style="font-weight:600; font-size:.58rem; color:#1f2937;">Pollo al horno con patatas</div>
-          <div class="phone-card-text">520 kcal · 42g proteína</div>
-          <div class="phone-tag">⭐ Alta proteína</div>
-        </div>
-        <div class="phone-card" style="background:var(--green-50); border-color:var(--green-200);">
-          <div class="phone-card-text" style="color:#16a34a; font-weight:600; font-size:.5rem; text-align:center;">+ Lista generada automáticamente</div>
+          <div class="phone-card-title" style="color:#6b7280;">🌙 Cena</div>
+          <div class="phone-card-text" style="font-weight:600; font-size:.56rem; color:#1f2937;">Tortilla de patata</div>
         </div>
       </div>
       <div class="phone-nav">
@@ -518,13 +519,13 @@
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">📅</div>
-        <h3>Plan semanal de comidas</h3>
-        <p>Organiza desayunos, comidas y cenas de toda la semana. Arrastra platos, repite favoritos y ve el balance nutricional en tiempo real.</p>
+        <h3>Plan mensual de comidas</h3>
+        <p>Asigna comidas y cenas a cada día del mes. Usa el menú automático para rellenar el calendario según tus platos y lo que tienes en la despensa.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">🛒</div>
         <h3>Lista de la compra automática</h3>
-        <p>Basada en tu plan semanal, MiDespensa genera la lista de ingredientes que necesitas. Sin duplicados, con cantidades exactas.</p>
+        <p>Basada en tu plan mensual, MiDespensa genera la lista de los ingredientes que te faltan en la despensa. Sin duplicados.</p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">📷</div>
@@ -562,18 +563,18 @@
     <div class="section-header center">
       <div class="section-label">Tres pasos</div>
       <h2 class="section-title">De la nevera vacía al plato perfecto</h2>
-      <p class="section-sub">En menos de 10 minutos puedes tener organizada toda tu semana de comidas.</p>
+      <p class="section-sub">En menos de 10 minutos puedes tener organizado todo el mes de comidas.</p>
     </div>
     <div class="steps">
       <div class="step">
         <div class="step-num">1</div>
-        <h3>Crea tu plan semanal</h3>
-        <p>Elige entre cientos de platos o añade los tuyos. Asígnalos a los días de la semana con un toque.</p>
+        <h3>Crea tu plan mensual</h3>
+        <p>Añade tus platos habituales y asígnalos a los días del mes. O deja que el menú automático lo haga por ti.</p>
       </div>
       <div class="step">
         <div class="step-num">2</div>
         <h3>Genera la lista automáticamente</h3>
-        <p>MiDespensa calcula exactamente qué ingredientes necesitas para toda la semana, sin que te falte ni sobre nada.</p>
+        <p>MiDespensa cruza tu plan con lo que ya tienes en la despensa y genera la lista de lo que necesitas comprar.</p>
       </div>
       <div class="step">
         <div class="step-num">3</div>
@@ -594,32 +595,35 @@
     </div>
     <div class="screens-content">
       <div class="screens-desc">
-        <h3>Plan de comidas semanal</h3>
-        <p>Visualiza de un vistazo todas las comidas de la semana. Añade, mueve o sustituye platos en segundos y el resumen nutricional se actualiza al momento.</p>
+        <h3>Plan mensual de comidas</h3>
+        <p>Calendario mensual donde ves de un vistazo qué días están planificados. Toca cualquier día para asignar comida y cena.</p>
         <ul class="screens-check">
-          <li>Vista por días y por comidas (desayuno, comida, cena, snacks)</li>
-          <li>Cálculo automático de calorías y macros</li>
-          <li>Copia semanas anteriores con un toque</li>
-          <li>Modo rápido para añadir platos favoritos</li>
+          <li>Calendario mensual con vista rápida de días planificados</li>
+          <li>Comida y cena por día (con sugerencias por temporada)</li>
+          <li>Menú automático: rellena el mes según tu despensa</li>
+          <li>Genera la lista de la compra con un toque</li>
         </ul>
       </div>
       <div class="big-phone">
         <div class="big-phone-screen">
-          <div class="bps-header"><h4>Plan Semanal</h4><p>Lun 30 Mar – Dom 5 Abr · 1.840 kcal/día</p></div>
+          <div class="bps-header"><h4>Plan Mensual</h4><p>Abril 2026 · 18 días planificados</p></div>
           <div class="bps-body">
-            <div class="bps-week">
-              <div class="bps-day"><span>L</span><span>30</span></div>
-              <div class="bps-day today"><span>M</span><span>31</span></div>
-              <div class="bps-day"><span>X</span><span>1</span></div>
-              <div class="bps-day"><span>J</span><span>2</span></div>
-              <div class="bps-day"><span>V</span><span>3</span></div>
-              <div class="bps-day"><span>S</span><span>4</span></div>
-              <div class="bps-day"><span>D</span><span>5</span></div>
+            <!-- Monthly calendar grid -->
+            <div style="padding:8px 10px 4px;">
+              <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:1px; margin-bottom:3px;">
+                <div style="font-size:.55rem; color:#9ca3af; text-align:center; font-weight:600;">L</div><div style="font-size:.55rem; color:#9ca3af; text-align:center; font-weight:600;">M</div><div style="font-size:.55rem; color:#9ca3af; text-align:center; font-weight:600;">X</div><div style="font-size:.55rem; color:#9ca3af; text-align:center; font-weight:600;">J</div><div style="font-size:.55rem; color:#9ca3af; text-align:center; font-weight:600;">V</div><div style="font-size:.55rem; color:#9ca3af; text-align:center; font-weight:600;">S</div><div style="font-size:.55rem; color:#9ca3af; text-align:center; font-weight:600;">D</div>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:3px;">
+                <div style="font-size:.6rem; text-align:center; padding:3px 0; color:#d1d5db;"></div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#d1d5db;"></div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#6b7280; background:#f9fafb; border-radius:4px;">1</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">2</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">3</div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#6b7280; background:#f9fafb; border-radius:4px;">4</div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#6b7280; background:#f9fafb; border-radius:4px;">5</div>
+                <div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">6</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">7</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">8</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">9</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">10</div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#6b7280; background:#f9fafb; border-radius:4px;">11</div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#6b7280; background:#f9fafb; border-radius:4px;">12</div>
+                <div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">13</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">14</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#16a34a; border-radius:4px; color:#fff; font-weight:700;">15</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">16</div><div style="font-size:.6rem; text-align:center; padding:3px 0; background:#dcfce7; border-radius:4px; color:#15803d; font-weight:700;">17</div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#6b7280; background:#f9fafb; border-radius:4px;">18</div><div style="font-size:.6rem; text-align:center; padding:3px 0; color:#6b7280; background:#f9fafb; border-radius:4px;">19</div>
+              </div>
             </div>
-            <div class="bps-meal"><div class="bps-meal-label">☀️ Desayuno</div><div class="bps-meal-name">Tostadas con aguacate y huevo</div><div class="bps-meal-kcal">380 kcal · 18g prot</div></div>
-            <div class="bps-meal"><div class="bps-meal-label">🍽️ Comida</div><div class="bps-meal-name">Lentejas estofadas con verduras</div><div class="bps-meal-kcal">490 kcal · 26g prot</div></div>
-            <div class="bps-meal"><div class="bps-meal-label">🌙 Cena</div><div class="bps-meal-name">Merluza al horno con patatas</div><div class="bps-meal-kcal">380 kcal · 34g prot</div></div>
-            <div class="bps-meal" style="background:#f0fdf4; border-color:#bbf7d0;"><div class="bps-meal-label" style="color:#15803d;">✓ Lista de la compra lista</div><div class="bps-meal-name" style="color:#16a34a; font-size:.65rem;">14 ingredientes generados →</div></div>
+            <!-- Selected day detail -->
+            <div style="padding:2px 10px 0; font-size:.6rem; font-weight:700; color:#16a34a;">📅 Martes 15</div>
+            <div class="bps-meal"><div class="bps-meal-label">🍽️ Comida</div><div class="bps-meal-name">Lentejas estofadas con verduras</div></div>
+            <div class="bps-meal"><div class="bps-meal-label">🌙 Cena</div><div class="bps-meal-name">Merluza al horno con patatas</div></div>
+            <div class="bps-meal" style="background:#f0fdf4; border-color:#bbf7d0;"><div class="bps-meal-label" style="color:#15803d;">🛒 Lista generada</div><div class="bps-meal-name" style="color:#16a34a; font-size:.65rem;">14 ingredientes que te faltan →</div></div>
           </div>
         </div>
       </div>
@@ -643,7 +647,7 @@
         <ul class="pricing-features">
           <li>🍽️ Platos ilimitados</li>
           <li>🧾 Tickets ilimitados (subida de PDF)</li>
-          <li>✨ Menú automático semanal y mensual</li>
+          <li>✨ Menú automático mensual</li>
           <li>✨ Sugerencia de platos según tu despensa</li>
         </ul>
         <a href="/app" class="btn-primary pricing-cta">Suscribirse a Pro</a>
@@ -683,7 +687,7 @@
       </details>
       <details>
         <summary>¿Funciona sin conexión a internet?</summary>
-        <div class="faq-body">MiDespensa requiere conexión a internet para funcionar, ya que todos tus datos se guardan y sincronizan en la nube en tiempo real. Esto garantiza que nunca pierdas información y que puedas acceder a tu plan desde cualquier dispositivo.</div>
+        <div class="faq-body">MiDespensa funciona sin conexión: puedes consultar tu plan, lista de la compra y despensa aunque no tengas red. Solo necesitas internet para sincronizar los datos entre dispositivos o cuando inicias sesión por primera vez.</div>
       </details>
       <details>
         <summary>¿Puedo usar la misma cuenta en varios dispositivos?</summary>
@@ -707,7 +711,7 @@
 
 <!-- ── CTA FINAL ── -->
 <div class="cta-final">
-  <h2>¿Lista la nevera para esta semana?</h2>
+  <h2>¿Lista la nevera para este mes?</h2>
   <p>Organiza tu cocina familiar en menos de 10 minutos. Sin anuncios, sin complicaciones.</p>
   <a href="/app" class="btn-primary" style="font-size:1.05rem; padding:13px 32px;">
     Empezar ahora
@@ -732,7 +736,7 @@
         <img src="/icon-192.png" alt="MiDespensa" />
         <span>MiDespensa</span>
       </div>
-      <p>Tu asistente de cocina familiar. Planifica la semana, genera la lista de la compra y controla tu despensa desde el móvil.</p>
+      <p>Tu asistente de cocina familiar. Planifica el mes, genera la lista de la compra y controla tu despensa desde el móvil.</p>
     </div>
     <div class="footer-col">
       <h4>La app</h4>
