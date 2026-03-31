@@ -353,17 +353,32 @@
     <div class="section-label">Vídeo de presentación</div>
     <h2 class="section-title" style="margin-bottom:8px;">Mira cómo funciona</h2>
     <p class="section-sub" style="margin:0 auto 36px;max-width:520px;">Todas las funciones de MiDespensa en 35 segundos.</p>
-    <div style="max-width:900px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 16px 52px rgba(0,0,0,0.18);">
+    <div id="promo-wrap" style="max-width:900px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 16px 52px rgba(0,0,0,0.18);position:relative;">
       <iframe
+        id="promo-iframe"
         src="/promo"
         width="900"
         height="560"
-        style="width:100%;aspect-ratio:900/560;border:none;display:block;background:#020c0c;"
+        style="width:900px;height:560px;border:none;display:block;background:#020c0c;transform-origin:top left;"
         scrolling="no"
         loading="lazy"
         title="MiDespensa – presentación"
       ></iframe>
     </div>
+    <script>
+    (function(){
+      var wrap = document.getElementById('promo-wrap');
+      var iframe = document.getElementById('promo-iframe');
+      function scalePromo(){
+        var w = wrap.offsetWidth;
+        var scale = Math.min(1, w / 900);
+        iframe.style.transform = 'scale(' + scale + ')';
+        wrap.style.height = Math.round(560 * scale) + 'px';
+      }
+      scalePromo();
+      window.addEventListener('resize', scalePromo);
+    })();
+    </script>
   </div>
 </section>
 
