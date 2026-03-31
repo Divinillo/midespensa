@@ -427,18 +427,13 @@ Reglas:
 - name: nombre limpio del producto en español, sin códigos ni cantidades
 TEXTO DEL TICKET:`;
 
-const GEMINI_PROMPT_IMAGE = `Esta imagen muestra un ticket de supermercado español físico (papel). Lee el ticket con cuidado aunque esté inclinado, tenga sombras o el texto sea pequeño.
-Extrae TODOS los productos que aparecen, sin omitir ninguno.
+const GEMINI_PROMPT_IMAGE = `Desglosa ingrediente por ingrediente su importe y la suma del total de este ticket de supermercado.
 Devuelve ÚNICAMENTE JSON válido con este formato exacto (sin texto adicional, sin markdown):
 {"date":"YYYY-MM-DD","total":0.00,"products":[{"name":"nombre","price":0.00}]}
-Reglas:
 - date: fecha del ticket en formato YYYY-MM-DD, null si no aparece
-- total: importe total pagado (busca "TOTAL", "A PAGAR", "IMPORTE"), null si no aparece
-- products: TODOS los artículos físicos (alimentación, bebidas, higiene, limpieza, hogar). NO excluyas productos aunque tengan nombres abreviados o en mayúsculas.
-  Excluye SOLO: bolsas, descuentos/vales/cupones, líneas de IVA/impuestos, cambio, subtotales, y líneas sin producto.
-- price: precio final pagado por ese artículo (columna más a la derecha del producto, o el importe total si hay precio por kg)
-- name: nombre limpio del producto en español, en minúsculas, sin códigos de barras ni números de artículo
-Importante: es normal que haya 20-40 productos en un ticket grande. Extráelos TODOS.`;
+- total: importe total final pagado
+- products: cada línea de producto con su importe final (si hay descuento aplicado, usa el precio ya descontado). Incluye todos los artículos sin excepción.
+- name: nombre del producto en minúsculas, limpio, sin códigos`;
 
 async function callGemini(parts) {
   if (!GEMINI_KEY) return null;
@@ -530,72 +525,52 @@ async function geminiParseImage(file): Promise<any> {
   });
 }
 
-// Procesa un ticket desde una foto → datos del ticket (mismo formato que processPdf)
+// Procesa un ticket desde una foto → datos del ticket
+// Usa Gemini como motor principal (OCR/Tesseract comentado — peor calidad)
 export async function processImageTicket(file, onProgress) {
   onProgress && onProgress(-1);
 
-  // ── Gemini (principal, si hay key) ──
-  if (GEMINI_KEY) {
-    const aiResult = await geminiParseImage(file);
-    if (aiResult && aiResult.products.length > 0) {
-      const total = aiResult.total || aiResult.products.reduce((s, p) => s + (p.price || 0), 0);
-      return {
-        id: 'tk' + uid(),
-        filename: (file.name && file.name !== 'image.jpg'
-          ? file.name
-          : 'foto-ticket-' + new Date().toISOString().slice(0, 10) + '.jpg'),
-        date: aiResult.date || new Date().toISOString().slice(0, 10),
-        products: aiResult.products,
-        total,
-        store: 'Otro',
-        fromCamera: true,
-        parsedByAI: true,
-      };
-    }
+  if (!GEMINI_KEY) {
+    throw new Error('No hay clave de IA configurada. Contacta con el administrador.');
   }
 
-  // ── Fallback: Tesseract OCR ──
+  const aiResult = await geminiParseImage(file);
+  if (aiResult && aiResult.products.length > 0) {
+    const total = aiResult.total || aiResult.products.reduce((s, p) => s + (p.price || 0), 0);
+    return {
+      id: 'tk' + uid(),
+      filename: (file.name && file.name !== 'image.jpg'
+        ? file.name
+        : 'foto-ticket-' + new Date().toISOString().slice(0, 10) + '.jpg'),
+      date: aiResult.date || new Date().toISOString().slice(0, 10),
+      products: aiResult.products,
+      total,
+      store: 'Otro',
+      fromCamera: true,
+      parsedByAI: true,
+    };
+  }
+
+  throw new Error('No se pudieron extraer productos del ticket. Prueba con mejor iluminación o más cerca.');
+
+  /* ── OCR fallback desactivado (Tesseract — peor calidad que Gemini) ──
   const enhanced = await enhanceImageForOCR(file);
   const text = await ocrImageFile(enhanced, onProgress);
   const rows = ocrTextToRows(text);
-
-  // ── Fallback secundario: Gemini sobre el texto OCR ──
-  // Si Gemini no pudo leer la imagen directamente, intentar con el texto extraído por Tesseract
-  if (GEMINI_KEY && rows.length > 3) {
-    const aiFromOcr = await geminiParsePdfText(rows);
-    if (aiFromOcr && aiFromOcr.products.length >= 3) {
-      const total = aiFromOcr.total || aiFromOcr.products.reduce((s,p)=>s+(p.price||0),0);
-      return {
-        id: 'tk'+uid(),
-        filename: (file.name && file.name !== 'image.jpg'
-          ? file.name
-          : 'foto-ticket-'+new Date().toISOString().slice(0,10)+'.jpg'),
-        date: aiFromOcr.date || new Date().toISOString().slice(0,10),
-        products: aiFromOcr.products,
-        total,
-        store: 'Otro',
-        fromCamera: true,
-        parsedByAI: true,
-      };
-    }
-  }
-
   const parsed = isMercadonaOnline(rows) ? parseMercadonaOnline(rows)
                : isConsum(rows)           ? parseConsumReceipt(rows)
                :                            parseTraditionalReceipt(rows);
   const totalProds = parsed.total || parsed.products.reduce((s,p)=>s+(p.price||0),0);
-  const storeType = isMercadonaOnline(rows)?'Mercadona':isConsum(rows)?'Consum':'Otro';
   return {
     id: 'tk'+uid(),
-    filename: (file.name && file.name !== 'image.jpg'
-                ? file.name
-                : 'foto-ticket-'+new Date().toISOString().slice(0,10)+'.jpg'),
+    filename: file.name||'foto-ticket.jpg',
     date: parsed.date || new Date().toISOString().slice(0,10),
     products: parsed.products,
     total: totalProds,
-    store: storeType,
+    store: 'Otro',
     fromCamera: true,
   };
+  */
 }
 
 /* ═══════════════════════════════════════
