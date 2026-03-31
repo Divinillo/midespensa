@@ -341,12 +341,15 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                       )}
                     </div>
                   </div>
-                  {/* Ingredientes añadidos - lista compacta */}
+                  {/* Ingredientes añadidos - cuadrícula limpia */}
                   {matchedCount>0&&(
-                    <div className="border-t border-gray-50 px-4 py-3 bg-emerald-50">
-                      <div className="flex flex-wrap gap-1">
+                    <div className="border-t border-gray-100 px-4 py-3" style={{background:'#fafafa'}}>
+                      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:'2px 8px'}}>
                         {(tk.matched||[]).map((m,i)=>(
-                          <span key={i} className={`text-xs px-2 py-0.5 rounded-full ${CAT_BG[m.category]} ${CAT_TEXT[m.category]}`}>{m.ingredientName}</span>
+                          <span key={i} style={{fontSize:'0.72rem',color:'#475569',fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',padding:'2px 0',display:'flex',alignItems:'center',gap:4}}>
+                            <span style={{width:4,height:4,borderRadius:'50%',background:'#cbd5e1',flexShrink:0}}/>
+                            {m.ingredientName}
+                          </span>
                         ))}
                       </div>
                     </div>
