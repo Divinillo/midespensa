@@ -270,7 +270,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
           <button onClick={()=>cameraRef.current?.click()} disabled={loading}
             className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 font-bold text-sm transition-all active:scale-95
               ${loading?'bg-gray-200 text-gray-500 cursor-not-allowed':'text-white'}`}
-            style={loading?{}:{background:'linear-gradient(135deg,rgba(109,40,217,0.9),rgba(88,28,135,0.95))',boxShadow:'0 4px 16px rgba(109,40,217,0.35)'}}>
+            style={loading?{}:{background:'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',boxShadow:'0 4px 16px rgba(217,119,6,0.35)'}}>
             {loading && ocrProgress!==null ? (
               <>
                 <span className="animate-spin">⏳</span>
