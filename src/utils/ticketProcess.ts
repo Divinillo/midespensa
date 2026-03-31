@@ -421,6 +421,7 @@ const GEMINI_MODELS = [
   'gemini-1.5-flash-8b',
   'gemini-1.5-flash',
   'gemini-2.0-flash',
+  'gemini-2.0-flash-exp',
 ];
 
 const GEMINI_PROMPT_TEXT = `Analiza este texto de un ticket de supermercado español y extrae todos los productos comprados.
