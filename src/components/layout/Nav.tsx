@@ -5,7 +5,7 @@ import {
   Basket,
   Receipt,
   ShoppingCart,
-  ChartPie,
+  Barcode,
   CurrencyEur,
 } from '@phosphor-icons/react';
 import type { Section } from '../../data/types';
@@ -16,7 +16,7 @@ const NAV: { id: Section; label: string; Icon: React.ElementType }[] = [
   { id: 'cat',    label: 'Despensa',  Icon: Basket        },
   { id: 'ticket', label: 'Tickets',   Icon: Receipt       },
   { id: 'lista',  label: 'Compra',    Icon: ShoppingCart  },
-  { id: 'nutri',  label: 'Nutrición', Icon: ChartPie      },
+  { id: 'nutri',  label: 'Nutrición', Icon: Barcode       },
   { id: 'gastos', label: 'Gastos',    Icon: CurrencyEur   },
 ];
 

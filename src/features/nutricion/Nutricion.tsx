@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import { useLS } from '../../hooks/useLS';
-import { ChartPie, ShoppingCart, MagnifyingGlass } from '@phosphor-icons/react';
+import { Barcode, ShoppingCart, MagnifyingGlass, Warning, Heartbeat } from '@phosphor-icons/react';
 
 /* ── Colores Nutri-Score ───────────────────────────────────────── */
 const NUTRI_COLOR = { a:'#038141', b:'#85bb2f', c:'#fecb02', d:'#ee8100', e:'#e63e11' };
@@ -267,7 +267,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
   if (!isUltra) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', textAlign: 'center', minHeight: '60vh' }}>
-        <div style={{ fontSize: '3.5rem', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><ChartPie size={72} weight="fill" color="#0f766e"/></div>
+        <div style={{ fontSize: '3.5rem', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Barcode size={72} weight="regular" color="#0f766e"/></div>
         <h2 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#1e293b', marginBottom: 8 }}>
           Escáner nutricional
         </h2>
@@ -359,7 +359,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
         {product.nutriments && Object.keys(product.nutriments).length > 0 && (
           <div style={{ borderRadius:16, background:'#fff', border:'1.5px solid #e2e8f0', overflow:'hidden', marginBottom:12, boxShadow:'0 1px 6px rgba(0,0,0,.05)' }}>
             <div style={{ padding:'10px 14px', background:'#f8fafc', borderBottom:'1px solid #f1f5f9' }}>
-              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}><ChartPie size={16} weight="fill"/> Valores nutricionales</div>
+              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}><Heartbeat size={16} weight="fill"/> Valores nutricionales</div>
               <div style={{ fontSize:'0.65rem', color:'#94a3b8', marginTop:1 }}>Por 100g / 100ml</div>
             </div>
             {NUTRI_FIELDS.map(f => {
@@ -620,18 +620,30 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
 
       {/* Leyenda */}
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:20 }}>
-        {[
-          { emoji:'🅰️', title:'Nutri-Score', desc:'Calidad nutricional A→E' },
-          { emoji:'nova', title:'Grupo Nova',  desc:'Nivel de procesamiento 1→4' },
-          { emoji:'additives', title:'Aditivos',    desc:'Conservantes, colorantes…' },
-          { emoji:'nutrition', title:'Nutrición',   desc:'Kcal, grasas, proteínas…' },
-        ].map(item => (
-          <div key={item.title} style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
-            <div style={{ fontSize:'1.2rem', marginBottom:4 }}>{item.emoji}</div>
-            <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>{item.title}</div>
-            <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>{item.desc}</div>
-          </div>
-        ))}
+        {/* Nutri-Score */}
+        <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
+          <div style={{ fontWeight:900, fontSize:'1.1rem', color:'#038141', marginBottom:4, lineHeight:1 }}>A</div>
+          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Nutri-Score</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Calidad nutricional A→E</div>
+        </div>
+        {/* NOVA */}
+        <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
+          <div style={{ fontWeight:900, fontSize:'0.9rem', color:'#ee8100', marginBottom:4, lineHeight:1.2, letterSpacing:'-0.5px' }}>1→4</div>
+          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Grupo Nova</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Nivel de procesamiento</div>
+        </div>
+        {/* Aditivos */}
+        <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
+          <div style={{ marginBottom:4 }}><Warning size={22} weight="fill" color="#f59e0b"/></div>
+          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Aditivos</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Conservantes, colorantes…</div>
+        </div>
+        {/* Nutrición */}
+        <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
+          <div style={{ marginBottom:4 }}><Heartbeat size={22} weight="fill" color="#0f766e"/></div>
+          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Nutrición</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Kcal, grasas, proteínas…</div>
+        </div>
       </div>
 
       {/* Historial */}

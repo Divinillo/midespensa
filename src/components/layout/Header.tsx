@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   CalendarBlank, CookingPot, Basket, Receipt,
-  ShoppingCart, ChartPie, CurrencyEur,
+  ShoppingCart, Barcode, CurrencyEur,
   GearSix, ShoppingCartSimple, Warning,
 } from '@phosphor-icons/react';
 import type { Section } from '../../data/types';
@@ -32,7 +32,7 @@ const SECTION_ICON: Record<Section, React.ElementType> = {
   cat:    Basket,
   ticket: Receipt,
   lista:  ShoppingCart,
-  nutri:  ChartPie,
+  nutri:  Barcode,
   gastos: CurrencyEur,
 };
 
