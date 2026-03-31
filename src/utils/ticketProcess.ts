@@ -453,12 +453,13 @@ async function callGemini(parts) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ parts }],
-          generationConfig: { responseMimeType: 'application/json', temperature: 0, maxOutputTokens: 8192 },
+          // Sin responseMimeType: más compatible con todos los modelos y con imágenes
+          generationConfig: { temperature: 0, maxOutputTokens: 8192 },
         }),
       });
       if (res.status === 429) {
         console.warn(`Gemini ${model}: cuota agotada, probando siguiente modelo...`);
-        continue; // probar el siguiente modelo
+        continue;
       }
       if (!res.ok) {
         const errText = await res.text().catch(()=>'');
@@ -466,9 +467,14 @@ async function callGemini(parts) {
         continue;
       }
       const data = await res.json();
-      const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!text) { console.warn(`Gemini ${model}: respuesta vacía`); continue; }
-      const parsed = JSON.parse(text);
+      const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!rawText) { console.warn(`Gemini ${model}: respuesta vacía`); continue; }
+
+      // Extraer el bloque JSON de la respuesta (puede venir con ```json ... ``` o solo el JSON)
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) { console.warn(`Gemini ${model}: no hay JSON en respuesta`, rawText.slice(0,200)); continue; }
+      const parsed = JSON.parse(jsonMatch[0]);
+
       const products = (parsed.products || [])
         .filter(p => p.name && typeof p.price === 'number' && p.price > 0 && p.price < 1000)
         .map(p => ({
