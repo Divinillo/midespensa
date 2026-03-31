@@ -64,7 +64,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
   } catch (err: any) {
     console.error('Webhook signature error:', err.message);
-    return new Response(`Webhook Error: ${err.message}`, { status: 400 });
+    return new Response('Webhook signature verification failed', { status: 400 });
   }
 
   if (stripeEvent.type === 'checkout.session.completed') {

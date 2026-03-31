@@ -18,7 +18,6 @@ import CookieBanner from './components/CookieBanner';
 import MigrationModal, { hasLocalDataToMigrate, markMigrationOffered } from './components/MigrationModal';
 import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
-import { validateLicenseRemote } from './utils/licenseApi';
 import { supabase } from './utils/supabase';
 import { INIT_INGS } from './data/ingredients';
 import type { Ingredient, Dish, Plan, Ticket, PriceHistory, Section } from './data/types';

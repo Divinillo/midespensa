@@ -1,23 +1,36 @@
-// @ts-nocheck
-const SUPABASE_URL  = 'https://hgglkzmknmoaznjbzaef.supabase.co';
-const SUPABASE_ANON = 'sb_publishable_-ThAyvY1LG-M_v58T3-4aQ_rpv-9ixp';
+import { supabase } from './supabase';
 
-export async function validateLicenseRemote(raw) {
+/**
+ * Validates a license key server-side (requires authenticated session).
+ * Also links the license to the current user's email so tier persists
+ * across sessions via cloud sync.
+ *
+ * Returns 'pro' | 'ultra' | null
+ */
+export async function validateLicenseRemote(raw: string): Promise<string | null> {
   const clave = raw.toUpperCase().trim();
   if (clave.length < 8) return null;
+
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/licencias?clave=eq.${encodeURIComponent(clave)}&activa=eq.true&select=tier`, {
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+    if (!token) return null;
+
+    const res = await fetch('/api/validate-license', {
+      method: 'POST',
       headers: {
-        'apikey': SUPABASE_ANON,
-        'Authorization': `Bearer ${SUPABASE_ANON}`,
-      }
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ clave }),
     });
+
+    if (!res.ok) return null;
     const data = await res.json();
-    if (Array.isArray(data) && data.length > 0) return data[0].tier; // 'pro' o 'ultra'
+    if (data.valid && data.tier) return data.tier as string;
     return null;
-  } catch(e) {
+  } catch (e) {
     console.error('Error validando licencia:', e);
     return null;
   }
 }
-
