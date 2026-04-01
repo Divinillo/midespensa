@@ -262,36 +262,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
     setManualCode('');
   };
 
-  /* ════════════════════════════════════════════════════════════
-     PAYWALL: solo Ultra
-  ════════════════════════════════════════════════════════════ */
-  if (!isPro) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', textAlign: 'center', minHeight: '60vh' }}>
-        <div style={{ fontSize: '3.5rem', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Barcode size={72} weight="regular" color="#0f766e"/></div>
-        <h2 style={{ fontWeight: 900, fontSize: '1.2rem', color: '#1e293b', marginBottom: 8 }}>
-          Escáner nutricional
-        </h2>
-        <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: 4, lineHeight: 1.5, maxWidth: 280 }}>
-          Escanea el código de barras de cualquier producto y consulta su Nutri-Score, Nova, calorías, macros y aditivos.
-        </p>
-        <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 28, lineHeight: 1.5, maxWidth: 280 }}>
-          Esta función está disponible en la versión <strong>Pro</strong>.
-        </p>
-        <button
-          onClick={() => onUpgrade && onUpgrade('upgrade')}
-          style={{
-            padding: '14px 32px', borderRadius: 16, border: 'none', cursor: 'pointer',
-            background: 'linear-gradient(135deg,#f59e0b,#d97706)',
-            color: '#fff', fontWeight: 800, fontSize: '0.95rem',
-            boxShadow: '0 4px 20px rgba(245,158,11,.4)',
-          }}
-        >
-          💎 Activar Pro
-        </button>
-      </div>
-    );
-  }
+  /* Escáner disponible para todos — historial limitado a FREE_SCAN_HISTORY en free */
 
   /* ════════════════════════════════════════════════════════════
      VISTA: resultado

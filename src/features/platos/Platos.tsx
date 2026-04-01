@@ -169,7 +169,9 @@ async function _geminiRecipes(availIngs, recipeNames, qty, diet) {
    SUGERIR PLATOS — Modal Premium
 ═══════════════════════════════════════ */
 function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrade}) {
-  const [qty,setQty]=useState(isPro ? 3 : FREE_SUGGESTION_LIMIT);
+  // Slots libres que le quedan al usuario free hasta llegar a FREE_DISH_LIMIT
+  const freeSlots = Math.max(0, FREE_DISH_LIMIT - dishes.length);
+  const [qty,setQty]=useState(isPro ? 3 : Math.max(1, freeSlots));
   const [diet,setDiet]=useState('omnivora');
   const [results,setResults]=useState(null);
   const [selected,setSelected]=useState({});
@@ -178,7 +180,12 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
   const [useGemini,setUseGemini]=useState(false);
   const [loading,setLoading]=useState(false);
 
-  React.useEffect(()=>{ if(open){setResults(null);setSelected({});setAdded(false);setLoading(false);} },[open]);
+  React.useEffect(()=>{
+    if(open){
+      setResults(null);setSelected({});setAdded(false);setLoading(false);
+      if(!isPro) setQty(Math.max(1, Math.max(0, FREE_DISH_LIMIT - dishes.length)));
+    }
+  },[open]);
 
   function scoreRecipes() {
     const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
@@ -258,7 +265,10 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
 
   function addSelected() {
     if(!results) return;
-    const toAdd=results.all.filter(s=>selected[s.recipe.id]);
+    let toAdd=results.all.filter(s=>selected[s.recipe.id]);
+    if(!toAdd.length) return;
+    // Free: nunca superar FREE_DISH_LIMIT en total
+    if(!isPro) toAdd=toAdd.slice(0, freeSlots);
     if(!toAdd.length) return;
     const newDishes=toAdd.map(s=>({
       id:'d'+uid(), name:s.recipe.name,
@@ -330,19 +340,25 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-2">
               ¿Cuántos platos?
-              {!isPro && <span className="ml-2 text-xs text-gray-400 font-normal">máx. {FREE_SUGGESTION_LIMIT} en plan gratuito</span>}
+              {!isPro && <span className="ml-2 text-xs text-gray-400 font-normal">{freeSlots > 0 ? `puedes añadir ${freeSlots} más` : 'límite alcanzado'}</span>}
             </p>
-            <div className="flex gap-2">
-              {(isPro ? [1,2,3,4,5,6,8,10] : [FREE_SUGGESTION_LIMIT]).map(n=>(
-                <button key={n} type="button" onClick={()=>isPro&&setQty(n)}
-                  className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all
-                    ${qty===n?'border-teal-500 bg-teal-50 text-teal-700':'border-gray-200 bg-white text-gray-500 hover:border-teal-200'}
-                    ${!isPro?'opacity-70 cursor-default':''}`}
-                  style={{boxShadow: qty===n?'0 3px 10px rgba(13,148,136,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
-                  {n}
-                </button>
-              ))}
-            </div>
+            {!isPro && freeSlots === 0 ? (
+              <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-3 text-center">
+                <p className="text-xs font-bold text-amber-700 mb-1">Has alcanzado el límite de {FREE_DISH_LIMIT} platos</p>
+                <button onClick={()=>onUpgrade('upgrade')} className="text-xs font-bold text-teal-600">Desbloquear Pro →</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                {(isPro ? [1,2,3,4,5,6,8,10] : Array.from({length: freeSlots}, (_,i)=>i+1)).map(n=>(
+                  <button key={n} type="button" onClick={()=>setQty(n)}
+                    className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all
+                      ${qty===n?'border-teal-500 bg-teal-50 text-teal-700':'border-gray-200 bg-white text-gray-500 hover:border-teal-200'}`}
+                    style={{boxShadow: qty===n?'0 3px 10px rgba(13,148,136,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
+                    {n}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
             📦 +100 recetas · {ingredients.filter(i=>i.available).length} ingredientes disponibles
