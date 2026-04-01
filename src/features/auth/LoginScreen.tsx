@@ -74,7 +74,10 @@ export default function LoginScreen() {
     setMessage(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/app` },
+      options: {
+        redirectTo: `${window.location.origin}/app`,
+        queryParams: { prompt: 'select_account' },
+      },
     });
     if (error) { msg(error.message); setLoading(false); }
   }

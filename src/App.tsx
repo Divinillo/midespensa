@@ -263,7 +263,7 @@ export function App() {
               onClick={async () => {
                 if (window.confirm('¿Cerrar sesión?')) {
                   await supabase.auth.signOut();
-                  setShowSettings(false);
+                  window.location.reload();
                 }
               }}
               style={{marginTop:8,borderRadius:10,padding:'8px 14px',fontSize:'0.82rem',fontWeight:700,border:'none',background:'#ef4444',color:'#fff',cursor:'pointer'}}
