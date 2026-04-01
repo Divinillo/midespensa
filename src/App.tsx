@@ -85,6 +85,8 @@ export function App() {
   const [learnedMappings, setLearnedMappings] = useLS<Record<string,string>>('despensa_learned_v1', {});
   // isPro is derived exclusively from the cloud tier — never from localStorage
   const [isPro, setIsPro] = useState<boolean>(false);
+  const [isTrial, setIsTrial] = useState<boolean>(false);
+  const [trialEnd, setTrialEnd] = useState<number | null>(null);
   const [wizardDone, setWizardDone] = useLS<boolean>('despensa_wizard_v1', false);
   const [userEmail, setUserEmail] = useLS<string>('despensa_email_v1', '');
   const [syncStatus, setSyncStatus] = useState('');
@@ -138,7 +140,11 @@ export function App() {
   }, [session]);
 
   function applyTier(cloud: any) {
-    setIsPro(cloud.tier === 'pro');
+    const paidPro = cloud.tier === 'pro';
+    const trialActive = cloud.tier === 'trial';
+    setIsPro(paidPro || trialActive);
+    setIsTrial(trialActive && !paidPro);
+    setTrialEnd(cloud.trial_end ?? null);
   }
 
   // Stripe activation URL cleanup on mount
@@ -240,8 +246,14 @@ export function App() {
     );
   }
 
+  // ── Trial helpers ─────────────────────────────────────────────
+  const now = Date.now();
+  const trialDaysLeft = trialEnd ? Math.max(0, Math.ceil((trialEnd - now) / 86400000)) : 0;
+
   // ── Plan status for Settings modal ────────────────────────────
-  const planLabel = isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito';
+  const planLabel = isTrial
+    ? `🎁 Prueba gratuita · ${trialDaysLeft} día${trialDaysLeft !== 1 ? 's' : ''} restante${trialDaysLeft !== 1 ? 's' : ''}`
+    : isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito';
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
@@ -250,6 +262,46 @@ export function App() {
         pendingCount={pendingCount} syncStatus={syncStatus}
         onSettings={() => setShowSettings(true)} onNavigate={setSection}
       />
+
+      {/* Trial banner — only visible during active trial period */}
+      {isTrial && (
+        <div style={{
+          background: trialDaysLeft <= 2 ? '#fffbeb' : '#f0fdf4',
+          borderBottom: `1px solid ${trialDaysLeft <= 2 ? '#fde68a' : '#bbf7d0'}`,
+          padding: '6px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+          fontSize: '0.74rem',
+          color: trialDaysLeft <= 2 ? '#92400e' : '#166534',
+          flexWrap: 'wrap',
+        }}>
+          <span style={{ fontWeight: 500 }}>
+            {trialDaysLeft <= 0
+              ? '⏰ Tu periodo de prueba ha terminado'
+              : trialDaysLeft === 1
+              ? '⏳ Último día de prueba gratuita'
+              : `🎁 ${trialDaysLeft} días de prueba gratuita restantes`}
+          </span>
+          <button
+            onClick={() => setUpgradeModal('trial')}
+            style={{
+              background: trialDaysLeft <= 2 ? '#d97706' : '#0d9488',
+              color: '#fff',
+              border: 'none',
+              borderRadius: 8,
+              padding: '3px 10px',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Suscribirse · 2,99€/mes →
+          </button>
+        </div>
+      )}
 
       {/* Settings Modal */}
       <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title="⚙️ Ajustes y datos">
@@ -314,9 +366,16 @@ export function App() {
             </div>
           )}
           {/* Plan status */}
-          <div className={`rounded-xl p-4 border ${isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
-            <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-amber-800' : 'text-teal-800'}`}>{planLabel}</h3>
-            {isPro ? (
+          <div className={`rounded-xl p-4 border ${isTrial ? 'bg-green-50 border-green-200' : isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
+            <h3 className={`font-bold text-sm mb-1 ${isTrial ? 'text-green-800' : isPro ? 'text-amber-800' : 'text-teal-800'}`}>{planLabel}</h3>
+            {isTrial ? (
+              <div>
+                <p className="text-xs text-green-700 mb-2">
+                  Estás disfrutando de todas las funciones Pro. Tu prueba gratuita termina en <strong>{trialDaysLeft} día{trialDaysLeft !== 1 ? 's' : ''}</strong>.
+                </p>
+                <button onClick={() => { setShowSettings(false); setUpgradeModal('trial'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>Continuar con Pro · 2,99€/mes →</button>
+              </div>
+            ) : isPro ? (
               <p className="text-xs text-amber-600">Todas las funciones desbloqueadas. Gracias por apoyar MiDespensa.</p>
             ) : (
               <div>

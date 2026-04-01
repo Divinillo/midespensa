@@ -138,7 +138,8 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
     reports:  { icon: '📊', title: 'Informes PDF — función Pro',    desc: 'Genera informes mensuales en PDF con tu historial de gasto y más.' },
     automenu: { icon: '✨', title: 'Menú automático — función Pro', desc: 'Rellena tu plan mensual automáticamente según tu despensa.' },
     autodish: { icon: '✨', title: 'Sugerir platos — función Pro',  desc: 'Sugiere recetas compatibles con tu despensa y añádelas directamente.' },
-    upgrade:  { icon: '🎁', title: 'Suscríbete a MiDespensa Pro',  desc: 'Accede a todas las funciones sin límites. Primera semana gratis.' },
+    upgrade:  { icon: '🎁', title: 'Suscríbete a MiDespensa Pro',  desc: 'Accede a todas las funciones sin límites.' },
+    trial:    { icon: '⏳', title: 'Tu prueba gratuita está a punto de acabar', desc: 'Suscríbete ahora para mantener acceso a platos ilimitados, escáner nutricional, informes y todo lo Pro sin interrupciones.' },
   };
   const r = REASONS[reason] || REASONS.reports;
 
