@@ -21,23 +21,22 @@ const STORAGE_KEY = 'pwa_wizard_dismissed';
 interface Step { text: React.ReactNode }
 
 const STEPS: Record<OS, { title: string; subtitle: string; steps: Step[] }> = {
+  ios: {
+    title: 'Instalar en iPhone / iPad',
+    subtitle: 'Safari',
+    steps: [
+      { text: <>Toca los <strong>tres puntos "..."</strong> al lado de la barra de navegación</> },
+      { text: <>Toca en <strong>Compartir</strong></> },
+      { text: <>Toca <strong>"Ver más"</strong> y luego <strong>"Añadir a pantalla de inicio"</strong></> },
+    ],
+  },
   android: {
     title: 'Instalar en Android',
-    subtitle: 'Chrome · Google Play próximamente',
+    subtitle: 'Chrome',
     steps: [
       { text: <>Toca el menú <strong>⋮</strong> (tres puntos) arriba a la derecha</> },
       { text: <>Selecciona <strong>"Añadir a pantalla de inicio"</strong> o <strong>"Instalar app"</strong></> },
       { text: <>Pulsa <strong>"Añadir"</strong> en el diálogo de confirmación</> },
-    ],
-  },
-  ios: {
-    title: 'Instalar en iPhone / iPad',
-    subtitle: 'Safari · App Store próximamente',
-    steps: [
-      { text: <>Abre midespensa.app en <strong>Safari</strong> <em style={{ color: '#94a3b8', fontStyle: 'normal' }}>(no Chrome)</em></> },
-      { text: <>Toca el icono <strong>Compartir ⬆</strong> en la barra inferior o los <strong>···</strong> junto a la barra de dirección</> },
-      { text: <>Desplázate y pulsa <strong>"Añadir a pantalla de inicio"</strong></> },
-      { text: <>Confirma con <strong>"Añadir"</strong></> },
     ],
   },
   desktop: {
@@ -84,8 +83,8 @@ export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; 
 
   const current = STEPS[activeTab];
   const TABS: { key: OS; label: string }[] = [
-    { key: 'android', label: 'Android' },
     { key: 'ios', label: 'iPhone / iPad' },
+    { key: 'android', label: 'Android' },
     { key: 'desktop', label: 'Escritorio' },
   ];
 
@@ -158,15 +157,6 @@ export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; 
                 <span style={{ fontSize: '0.84rem', color: '#374151', lineHeight: 1.5 }}>{step.text}</span>
               </li>
             ))}
-            <li style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-              <div style={{
-                width: 22, height: 22, borderRadius: '50%',
-                background: '#d97706', color: '#fff',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '0.72rem', fontWeight: 800, flexShrink: 0, marginTop: 1,
-              }}>✓</div>
-              <span style={{ fontSize: '0.84rem', color: '#374151', lineHeight: 1.5 }}>¡Listo! El icono aparece en tu pantalla de inicio</span>
-            </li>
           </ol>
           {activeTab === 'ios' && (
             <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 12 }}>
