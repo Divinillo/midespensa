@@ -197,7 +197,10 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
     });
 
     scored.sort((a,b)=>b.score-a.score||a.recipe.name.localeCompare(b.recipe.name));
-    const top=scored.slice(0,Math.min(qty*3,scored.length));
+    // Free: solo ve exactamente FREE_SUGGESTION_LIMIT resultados (sin extras para elegir)
+    // Pro: ve qty*3 para poder seleccionar entre más opciones
+    const showCount = isPro ? Math.min(qty*3, scored.length) : Math.min(FREE_SUGGESTION_LIMIT, scored.length);
+    const top=scored.slice(0,showCount);
     setResults({all:top,requested:qty});
     const pre={};
     top.slice(0,qty).forEach(s=>pre[s.recipe.id]=true);
@@ -240,8 +243,10 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
             return{recipe,matched,total:matched.length,availCnt,missing:matched.filter(m=>!m.available),score:matched.length?availCnt/matched.length:0};
           });
           setLoading(false);
-          setResults({all:scored,requested:qty});
-          const pre={};scored.forEach(s=>{pre[s.recipe.id]=true;});setSelected(pre);
+          // Free: limitar también los resultados Gemini a FREE_SUGGESTION_LIMIT
+          const visibleScored = isPro ? scored : scored.slice(0, FREE_SUGGESTION_LIMIT);
+          setResults({all:visibleScored,requested:qty});
+          const pre={};visibleScored.forEach(s=>{pre[s.recipe.id]=true;});setSelected(pre);
           return;
         }
       } catch {}
