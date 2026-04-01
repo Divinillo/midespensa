@@ -58,10 +58,6 @@ const TITLES: Record<Section, string> = {
   nutri: 'Valor nutricional', gastos: 'Resumen de gasto',
 };
 
-/** Días restantes de prueba (negativo si expirada) */
-function trialDaysLeft(trialEnd: number): number {
-  return Math.ceil((trialEnd - Date.now()) / (1000 * 60 * 60 * 24));
-}
 
 export function App() {
   // ── Supabase auth session ─────────────────────────────────────
@@ -89,8 +85,6 @@ export function App() {
   const [learnedMappings, setLearnedMappings] = useLS<Record<string,string>>('despensa_learned_v1', {});
   // isPro is derived exclusively from the cloud tier — never from localStorage
   const [isPro, setIsPro] = useState<boolean>(false);
-  const [isTrial, setIsTrial] = useState<boolean>(false);
-  const [trialEnd, setTrialEnd] = useState<number>(0);
   const [wizardDone, setWizardDone] = useLS<boolean>('despensa_wizard_v1', false);
   const [userEmail, setUserEmail] = useLS<string>('despensa_email_v1', '');
   const [syncStatus, setSyncStatus] = useState('');
@@ -144,17 +138,7 @@ export function App() {
   }, [session]);
 
   function applyTier(cloud: any) {
-    if (cloud.tier === 'pro') {
-      setIsPro(true);
-      setIsTrial(false);
-    } else if (cloud.tier === 'trial') {
-      setIsPro(true);
-      setIsTrial(true);
-      if (cloud.trial_end) setTrialEnd(cloud.trial_end);
-    } else {
-      setIsPro(false);
-      setIsTrial(false);
-    }
+    setIsPro(cloud.tier === 'pro');
   }
 
   // Stripe activation URL cleanup on mount
@@ -257,12 +241,7 @@ export function App() {
   }
 
   // ── Plan status for Settings modal ────────────────────────────
-  const daysLeft = isTrial && trialEnd ? trialDaysLeft(trialEnd) : 0;
-  const planLabel = isPro && !isTrial
-    ? '✨ Versión Pro activa'
-    : isTrial
-      ? `🎁 Prueba gratuita · ${daysLeft > 0 ? `${daysLeft} día${daysLeft !== 1 ? 's' : ''} restante${daysLeft !== 1 ? 's' : ''}` : 'Expirada'}`
-      : '🔒 Plan gratuito';
+  const planLabel = isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito';
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
@@ -335,15 +314,10 @@ export function App() {
             </div>
           )}
           {/* Plan status */}
-          <div className={`rounded-xl p-4 border ${isPro && !isTrial ? 'bg-amber-50 border-amber-100' : isTrial ? 'bg-purple-50 border-purple-100' : 'bg-teal-50 border-teal-100'}`}>
-            <h3 className={`font-bold text-sm mb-1 ${isPro && !isTrial ? 'text-amber-800' : isTrial ? 'text-purple-800' : 'text-teal-800'}`}>{planLabel}</h3>
-            {isPro && !isTrial ? (
+          <div className={`rounded-xl p-4 border ${isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
+            <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-amber-800' : 'text-teal-800'}`}>{planLabel}</h3>
+            {isPro ? (
               <p className="text-xs text-amber-600">Todas las funciones desbloqueadas. Gracias por apoyar MiDespensa.</p>
-            ) : isTrial ? (
-              <div>
-                <p className="text-xs text-purple-600 mb-2">Tienes acceso completo durante tu prueba. Sin compromiso.</p>
-                <button onClick={() => { setShowSettings(false); setUpgradeModal('upgrade'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#7c3aed',color:'#fff'}}>Suscribirse · desde 2,99 €/mes →</button>
-              </div>
             ) : (
               <div>
                 <p className="text-xs text-teal-600 mb-2">Platos: {dishes.length}/{FREE_DISH_LIMIT} · Tickets: {tickets.length}/{FREE_TICKET_LIMIT}</p>

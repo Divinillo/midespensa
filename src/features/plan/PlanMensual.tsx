@@ -1024,7 +1024,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
           <button onClick={()=>onUpgrade('upgrade')}
             className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm"
             style={{background:'#f5f3ff',color:'#d97706',border:'1px solid #ddd6fe'}}>
-            🔒 Nutrición <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Ultra</span>
+            🔒 Nutrición <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Pro</span>
           </button>
         )}
       </div>
@@ -1041,7 +1041,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       <ClearDaysModal open={clearModal} onClose={()=>setClearModal(false)}
         year={year} month={month} plan={plan} setPlan={setPlan}/>
 
-      {/* ── Recipe modal (Ultra) – zIndex:70 para quedar sobre el modal del día ── */}
+      {/* ── Recipe modal – zIndex:70 para quedar sobre el modal del día ── */}
       {recipeModal && (()=>{
         const rd=RECIPE_DB.find(r=>r.name.toLowerCase()===recipeModal.name.toLowerCase());
         const ytUrl=recipeModal.youtubeUrl?.trim()

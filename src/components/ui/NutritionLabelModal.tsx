@@ -75,7 +75,7 @@ export function NutritionLabelModal({ ingName, existing, onSave, onClose }: Prop
           {/* OCR scan zone */}
           <div>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.05em', marginBottom: 8 }}>
-              📷 Escanear etiqueta (Ultra)
+              📷 Escanear etiqueta (Pro)
             </div>
 
             {status === 'idle' && (

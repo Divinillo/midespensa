@@ -199,12 +199,12 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
             className={`rounded-xl p-3 border-2 text-center relative transition-all ${period === 'yearly' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white'}`}
           >
             <div className={`text-sm font-bold ${period === 'yearly' ? 'text-purple-700' : 'text-gray-700'}`}>29,99 €/año</div>
-            <div className="text-xs text-gray-400 mt-0.5">Anual · ahorra 5,89 €</div>
+            <div className="text-xs text-gray-400 mt-0.5">Facturación anual</div>
             <span className="absolute -top-2 -right-1 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', fontSize: '0.6rem' }}>MEJOR</span>
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-400">🎁 Primera semana gratis · cancela cuando quieras</p>
+        <p className="text-center text-xs text-gray-400">Cancela cuando quieras</p>
 
         <button
           onClick={handleCheckout}
@@ -212,7 +212,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
           className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md disabled:opacity-60"
           style={{ background: 'linear-gradient(to right, #0d9488, #7c3aed)' }}
         >
-          {loading ? 'Cargando...' : `💳 Empezar prueba gratuita${period === 'yearly' ? ' · 29,99 €/año' : ' · 2,99 €/mes'}`}
+          {loading ? 'Cargando...' : `💳 Suscribirse · ${period === 'yearly' ? '29,99 €/año' : '2,99 €/mes'}`}
         </button>
       </div>
     </Modal>

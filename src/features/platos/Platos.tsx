@@ -624,10 +624,10 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
                 <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> Todos</span>
               </button>
             )}
-            <button onClick={()=>isPro?setAutoModal(true):onUpgrade('autodish')}
+            <button onClick={()=>setAutoModal(true)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
               style={{background:'#f0fdf4',color:'#0d9488',border:'1px solid #99f6e4'}}>
-              {isPro ? 'Sugerir' : 'Sugerir'}
+              Sugerir
             </button>
             <button onClick={openAdd}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
@@ -672,8 +672,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
-                {isPro && (
-                  <button onClick={()=>{
+                <button onClick={()=>{
                     const recipeMatch = RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
                     const ingNames = recipeMatch
                       ? recipeMatch.ings
@@ -683,7 +682,6 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
                     className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                     style={{background:'#f0fdf4',border:'1px solid #99f6e4'}}
                     title="Ver receta">📖</button>
-                )}
                 <button onClick={()=>openEdit(dish)}
                   className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                   style={{background:'#f8fafc',border:'1px solid #e2e8f0'}}>✏️</button>

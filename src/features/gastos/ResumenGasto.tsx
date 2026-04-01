@@ -523,7 +523,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade})
               style={{width:'100%',padding:'13px',borderRadius:16,fontWeight:800,fontSize:'0.875rem',border:'none',cursor:'pointer',
                 background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#fff',
                 boxShadow:'0 4px 14px rgba(245,158,11,.3)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-              <span>⭐</span> Informe completo con gráficos — Solo Ultra
+              <span>💎</span> Informe completo con gráficos — Solo Pro
             </button>
           )}
         </>
