@@ -223,10 +223,20 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
         let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length>=4 && !(r.kcal<200&&r.prot<10));
         if(isPro&&diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
         const availIngs=ingredients.filter(i=>i.available).map(i=>i.name);
-        // Pre-filter: max 2 recipes per "main ingredient" group (first word) to avoid Gemini clustering
+        // Pre-score candidates by ingredient match so Gemini only sees high-match recipes
         const _ingGroup=(name:string)=>name.toLowerCase().split(/[\s,]+/)[0];
+        const preScored=candidates
+          .map(r=>{
+            const avail=r.ings.filter(ri=>{ const c=matchRecipeIng(ri,ingredients); return c?.available; }).length;
+            return { r, score: r.ings.length ? avail/r.ings.length : 0 };
+          })
+          .filter(({score})=>score>0)           // at least 1 ingredient available
+          .sort((a,b)=>b.score-a.score)         // best match first
+          .slice(0,80)                           // top 80 → Gemini picks the most varied
+          .map(({r})=>r);
+        // Diversity filter: max 2 per ingredient group
         const _groupCount=new Map<string,number>();
-        const diverseCandidates=candidates.filter(r=>{
+        const diverseCandidates=preScored.filter(r=>{
           const g=_ingGroup(r.name); const n=_groupCount.get(g)||0;
           if(n>=2) return false; _groupCount.set(g,n+1); return true;
         });
@@ -241,8 +251,8 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
           if(ordered.length<qty){
             const usedIds=new Set(ordered.map(r=>r.id));
             const _usedGroups2=new Set(ordered.map(r=>_ingGroup(r.name)));
-            // fill with diverse candidates not yet used
-            const fills=candidates.filter(r=>!usedIds.has(r.id)&&!_usedGroups2.has(_ingGroup(r.name)));
+            // fill with best-matching candidates not yet used (preScored is already sorted by match%)
+            const fills=preScored.filter(r=>!usedIds.has(r.id)&&!_usedGroups2.has(_ingGroup(r.name)));
             ordered=[...ordered,...fills.slice(0,qty-ordered.length)];
           }
           const scored=ordered.map(recipe=>{
