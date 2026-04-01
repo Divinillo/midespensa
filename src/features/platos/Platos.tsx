@@ -32,7 +32,7 @@ import type { Ingredient, Dish } from '../../data/types';
 /* ═══════════════════════════════════════
    RECIPE MODAL — Ultra: pasos estáticos + YouTube
 ═══════════════════════════════════════ */
-function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='' }) {
+function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='', customSteps=[] }) {
   const recipeData = React.useMemo(() => {
     if (!dishName) return null;
     return RECIPE_DB.find(r => r.name.toLowerCase() === dishName.toLowerCase()) ?? null;
@@ -42,10 +42,11 @@ function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='' }) {
   const ytUrl = youtubeUrl?.trim()
     ? youtubeUrl.trim()
     : `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar ' + dishName)}`;
-  const steps: string[] = recipeData?.steps ?? [];
-  const tiempo: string = recipeData?.tiempo ?? '';
-  const dificultad: string = recipeData?.dificultad ?? '';
-  const consejo: string = recipeData?.consejo ?? '';
+  // Pasos del usuario tienen prioridad sobre los del RECIPE_DB
+  const steps: string[] = (customSteps && customSteps.length > 0) ? customSteps : (recipeData?.steps ?? []);
+  const tiempo: string = customSteps?.length ? '' : (recipeData?.tiempo ?? '');
+  const dificultad: string = customSteps?.length ? '' : (recipeData?.dificultad ?? '');
+  const consejo: string = customSteps?.length ? '' : (recipeData?.consejo ?? '');
 
   return (
     <Modal open={open} onClose={onClose} title={dishName} wide>
@@ -529,6 +530,42 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
           <p style={{fontSize:'0.7rem',color:'#f97316',marginTop:4}}>No parece un enlace de YouTube</p>
         )}
       </div>
+
+      {/* ── Preparación ── */}
+      <div>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
+          <label className="block text-sm font-medium text-gray-700">🍳 Preparación <span style={{fontWeight:400,color:'#9ca3af'}}>(opcional)</span></label>
+          <button type="button"
+            onClick={()=>setForm(f=>({...f,steps:[...(f.steps||[]),'']}))}
+            style={{fontSize:'0.72rem',fontWeight:700,color:'#0d9488',background:'#f0fdf4',border:'1.5px solid #5eead4',borderRadius:8,padding:'3px 10px',cursor:'pointer'}}>
+            + Paso
+          </button>
+        </div>
+        {(form.steps||[]).length===0 && (
+          <p style={{fontSize:'0.75rem',color:'#9ca3af',padding:'8px 0'}}>Sin pasos — pulsa "+ Paso" para añadir instrucciones</p>
+        )}
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {(form.steps||[]).map((step,i)=>(
+            <div key={i} style={{display:'flex',gap:6,alignItems:'flex-start'}}>
+              <div style={{width:22,height:22,borderRadius:'50%',background:'#0d9488',color:'#fff',fontSize:'0.7rem',fontWeight:800,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:6}}>{i+1}</div>
+              <textarea
+                value={step}
+                onChange={e=>{const s=[...(form.steps||[])];s[i]=e.target.value;setForm(f=>({...f,steps:s}));}}
+                placeholder={`Paso ${i+1}...`}
+                rows={2}
+                style={{flex:1,borderRadius:10,border:'1.5px solid #e2e8f0',padding:'7px 10px',fontSize:'0.82rem',resize:'vertical',lineHeight:1.4,fontFamily:'inherit'}}
+                className="focus:outline-none focus:ring-2 focus:ring-teal-200"
+              />
+              <button type="button"
+                onClick={()=>setForm(f=>({...f,steps:(f.steps||[]).filter((_,j)=>j!==i)}))}
+                style={{color:'#ef4444',background:'none',border:'none',cursor:'pointer',fontSize:'1rem',padding:'4px',marginTop:4}}>
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Ingredientes ({form.ingredients.length} sel.)</label>
         <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
@@ -584,15 +621,16 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
 
   const openAdd=()=>{
     if(!isPro && dishes.length >= FREE_DISH_LIMIT){ onUpgrade('dishes'); return; }
-    setForm({name:'',ingredients:[],photo:'',youtubeUrl:''});setModal('add');
+    setForm({name:'',ingredients:[],photo:'',youtubeUrl:'',steps:[]});setModal('add');
   };
-  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients],photo:d.photo||'',youtubeUrl:d.youtubeUrl||''});setModal(d.id);};
+  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients],photo:d.photo||'',youtubeUrl:d.youtubeUrl||'',steps:d.steps||[]});setModal(d.id);};
   const toggleIng=id=>setForm(f=>({...f,ingredients:f.ingredients.includes(id)?f.ingredients.filter(x=>x!==id):[...f.ingredients,id]}));
   const save=()=>{
     if(!form.name.trim()) return;
     const yt=form.youtubeUrl?.trim()||undefined;
-    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients,photo:form.photo||undefined,youtubeUrl:yt}]);
-    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim(),photo:form.photo||undefined,youtubeUrl:yt}:d));
+    const st=(form.steps||[]).map(s=>s.trim()).filter(Boolean);
+    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients,photo:form.photo||undefined,youtubeUrl:yt,steps:st.length?st:undefined}]);
+    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim(),photo:form.photo||undefined,youtubeUrl:yt,steps:st.length?st:undefined}:d));
     setModal(null);
   };
   const atLimit = !isPro && dishes.length >= FREE_DISH_LIMIT;
@@ -682,7 +720,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
                     const ingNames = recipeMatch
                       ? recipeMatch.ings
                       : dish.ingredients.map((iid:string)=>ingMap[iid]?.name).filter(Boolean);
-                    setRecipeModal({name:dish.name, ings:ingNames, youtubeUrl:dish.youtubeUrl||''});
+                    setRecipeModal({name:dish.name, ings:ingNames, youtubeUrl:dish.youtubeUrl||'', steps:dish.steps||[]});
                   }}
                     className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                     style={{background:'#f0fdf4',border:'1px solid #99f6e4'}}
@@ -724,6 +762,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
         dishName={recipeModal?.name ?? ''}
         ings={recipeModal?.ings ?? []}
         youtubeUrl={recipeModal?.youtubeUrl ?? ''}
+        customSteps={recipeModal?.steps ?? []}
       />
     </div>
   );

@@ -25,7 +25,9 @@ export interface Dish {
   example?: boolean;
   diet?: string;
   notes?: string;
-  photo?: string; // base64 data URL
+  photo?: string;       // base64 data URL
+  youtubeUrl?: string;
+  steps?: string[];     // pasos de preparación escritos por el usuario
 }
 
 export interface Recipe {
