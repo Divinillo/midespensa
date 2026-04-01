@@ -276,10 +276,10 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
           Escanea el código de barras de cualquier producto y consulta su Nutri-Score, Nova, calorías, macros y aditivos.
         </p>
         <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: 28, lineHeight: 1.5, maxWidth: 280 }}>
-          Esta función está disponible a partir de la versión <strong>ULTRA</strong>.
+          Esta función está disponible en la versión <strong>Pro</strong>.
         </p>
         <button
-          onClick={() => onUpgrade onUpgrade && onUpgrade('ultra')onUpgrade && onUpgrade('ultra') onUpgrade('upgrade')}
+          onClick={() => onUpgrade && onUpgrade('upgrade')}
           style={{
             padding: '14px 32px', borderRadius: 16, border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg,#f59e0b,#d97706)',
@@ -287,7 +287,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             boxShadow: '0 4px 20px rgba(245,158,11,.4)',
           }}
         >
-          👑 Activar ULTRA
+          💎 Activar Pro
         </button>
       </div>
     );

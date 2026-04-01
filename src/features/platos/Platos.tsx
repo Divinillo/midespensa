@@ -212,14 +212,27 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
         let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length>=4 && !(r.kcal<200&&r.prot<10));
         if(isPro&&diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
         const availIngs=ingredients.filter(i=>i.available).map(i=>i.name);
-        const geminiNames=await _geminiRecipes(availIngs, candidates.map(r=>r.name), qty, diet);
+        // Pre-filter: max 2 recipes per "main ingredient" group (first word) to avoid Gemini clustering
+        const _ingGroup=(name:string)=>name.toLowerCase().split(/[\s,]+/)[0];
+        const _groupCount=new Map<string,number>();
+        const diverseCandidates=candidates.filter(r=>{
+          const g=_ingGroup(r.name); const n=_groupCount.get(g)||0;
+          if(n>=2) return false; _groupCount.set(g,n+1); return true;
+        });
+        const geminiNames=await _geminiRecipes(availIngs, diverseCandidates.map(r=>r.name), qty, diet);
         if(geminiNames.length){
           _incU();
           const map=new Map(candidates.map(r=>[r.name.toLowerCase(),r]));
           let ordered=geminiNames.map(n=>map.get(n.toLowerCase())).filter(Boolean);
+          // Post-dedup: remove recipes that share the same main ingredient as an earlier pick
+          const _usedGroups=new Set<string>();
+          ordered=ordered.filter(r=>{ const g=_ingGroup(r.name); if(_usedGroups.has(g)) return false; _usedGroups.add(g); return true; });
           if(ordered.length<qty){
             const usedIds=new Set(ordered.map(r=>r.id));
-            ordered=[...ordered,...candidates.filter(r=>!usedIds.has(r.id)).slice(0,qty-ordered.length)];
+            const _usedGroups2=new Set(ordered.map(r=>_ingGroup(r.name)));
+            // fill with diverse candidates not yet used
+            const fills=candidates.filter(r=>!usedIds.has(r.id)&&!_usedGroups2.has(_ingGroup(r.name)));
+            ordered=[...ordered,...fills.slice(0,qty-ordered.length)];
           }
           const scored=ordered.map(recipe=>{
             const matched=recipe.ings.map(ri=>{const cat=matchRecipeIng(ri,ingredients);return{name:ri,catIng:cat||null,available:cat?cat.available:false};});

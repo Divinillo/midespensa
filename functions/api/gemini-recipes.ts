@@ -52,9 +52,11 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     `Ingredientes disponibles: ${availIngs.slice(0, 50).join(', ')}.\n` +
     `${dietStr}` +
     `De estas recetas: ${recipeNames.slice(0, 80).join(' | ')}.\n` +
-    `Selecciona las ${qty} más adecuadas que pueda preparar principalmente con lo que tengo, ` +
+    `Selecciona exactamente ${qty} receta(s) distintas que pueda preparar principalmente con lo que tengo, ` +
     `priorizando las que necesiten menos ingredientes extra.\n` +
-    `Devuelve ÚNICAMENTE un array JSON con los nombres exactos tal como aparecen: ["Nombre1","Nombre2"]`;
+    `IMPORTANTE: elige recetas con ingredientes PRINCIPALES DIFERENTES entre sí (no repitas el mismo ingrediente estrella, por ejemplo no selecciones dos platos de lentejas, ni dos de pollo, etc.). ` +
+    `Busca variedad de proteínas, verduras y tipos de plato.\n` +
+    `Devuelve ÚNICAMENTE un array JSON con exactamente ${qty} nombre(s) exacto(s) tal como aparecen: ["Nombre1","Nombre2"]`;
 
   // ── Call Gemini (server-side — key never reaches the client) ─
   for (const model of ['gemini-2.5-flash-lite', 'gemini-2.5-flash']) {
@@ -66,7 +68,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0, maxOutputTokens: 512 },
+            generationConfig: { temperature: 0.6, maxOutputTokens: 512 },
           }),
         },
       );
