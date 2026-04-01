@@ -2,7 +2,8 @@
 import React, { useState, useMemo } from 'react';
 import { fmt2 } from '../../utils/helpers';
 import { CAT_EMOJI, CAT_BG, CAT_TEXT, MONTH_NAMES, STORE_EMOJI } from '../../data/categories';
-import { CurrencyEur, ChartBar, X } from '@phosphor-icons/react';
+import { CurrencyEur, ChartBar, X, FilePdf } from '@phosphor-icons/react';
+import { generateGastoPDF } from '../../utils/pdfReport';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -51,7 +52,15 @@ const customTooltip=({active,payload,label})=>{
 ───────────────────────────────────────────────────────────────── */
 function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory}) {
   const [tab,setTab]=useState('resumen');
+  const [pdfLoading,setPdfLoading]=useState(false);
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
+
+  async function handleDownloadPDF() {
+    setPdfLoading(true);
+    try { await generateGastoPDF(tickets, priceHistory, ingredients); }
+    catch(e) { alert('Error al generar el PDF. Comprueba tu conexion.'); }
+    finally { setPdfLoading(false); }
+  }
 
   const monthlyData = useMemo(()=>{
     const map:{[k:string]:number}={};
@@ -114,7 +123,20 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
             <h2 style={{fontSize:'1.2rem',fontWeight:900,color:'#111827',margin:0,display:'flex',alignItems:'center',gap:6}}><ChartBar size={20} weight="fill" color="#0f766e"/> Informe completo</h2>
             <p style={{fontSize:'0.75rem',color:'#9ca3af',margin:'2px 0 0'}}>{tickets.length} tickets · {allTotal.toFixed(2)}€ total</p>
           </div>
-          <button onClick={onClose} style={{background:'#f1f5f9',border:'none',borderRadius:'50%',width:36,height:36,fontSize:18,cursor:'pointer',color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}><X size={18}/></button>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <button
+              onClick={handleDownloadPDF}
+              disabled={pdfLoading}
+              style={{
+                display:'flex',alignItems:'center',gap:6,
+                padding:'7px 13px',borderRadius:12,border:'none',cursor:pdfLoading?'not-allowed':'pointer',
+                background:pdfLoading?'#e2e8f0':'#0d9488',color:pdfLoading?'#94a3b8':'#fff',
+                fontWeight:700,fontSize:'0.75rem',
+              }}>
+              <FilePdf size={15}/>{pdfLoading?'Generando...':'Descargar PDF'}
+            </button>
+            <button onClick={onClose} style={{background:'#f1f5f9',border:'none',borderRadius:'50%',width:36,height:36,fontSize:18,cursor:'pointer',color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}><X size={18}/></button>
+          </div>
         </div>
 
         {/* Tabs */}
