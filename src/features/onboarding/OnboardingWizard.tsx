@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import type { Ingredient, Dish, Ticket } from '../../data/types';
 import { CATEGORIES, CAT_EMOJI, CAT_BG, CAT_TEXT, getIngEmoji } from '../../data/categories';
 import { uid } from '../../utils/helpers';
-import { processPdf, applyTicket } from '../../utils/ticketProcess';
+import { processPdf, processImageTicket, applyTicket } from '../../utils/ticketProcess';
 
 /* ── Quick-pick ingredient categories for step 2 ─────────────────── */
 const WIZARD_CATS = [
@@ -91,15 +91,20 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
   };
 
   const handleTicketFile = async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.pdf')) {
+    const name = file.name.toLowerCase();
+    const isPdf = name.endsWith('.pdf');
+    const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/.test(name);
+    if (!isPdf && !isImage) {
       setTicketStatus('error');
       return;
     }
-    if (!pdfjsReady) { alert('PDF aún cargando, espera un momento.'); return; }
+    if (isPdf && !pdfjsReady) { alert('PDF aún cargando, espera un momento.'); return; }
     setTicketStatus('loading');
     setTicketName(file.name);
     try {
-      const ticket = await processPdf(file);
+      const ticket = isPdf
+        ? await processPdf(file)
+        : await processImageTicket(file, () => {});
       const { updatedIngs, newHistory, matched } = applyTicket(ticket, ingredients, priceHistory || {});
       setIngredients(() => updatedIngs);
       setPriceHistory(() => newHistory);
@@ -177,10 +182,10 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
           }}>
           <div style={{ fontSize: '2.8rem', marginBottom: 10 }}>📄</div>
           <div style={{ fontWeight: 800, color: '#0f766e', fontSize: '0.95rem', marginBottom: 4 }}>
-            {pdfjsReady ? 'Toca para seleccionar PDF' : 'Cargando lector PDF…'}
+            {pdfjsReady ? 'PDF o foto del ticket' : 'Cargando lector PDF…'}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#5eead4' }}>Soporta tickets de Mercadona, Lidl, Carrefour…</div>
-          <input ref={fileRef} type="file" accept=".pdf" style={{ display: 'none' }}
+          <div style={{ fontSize: '0.72rem', color: '#5eead4' }}>Soporta PDF, JPG, PNG · Mercadona, Lidl, Carrefour…</div>
+          <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,image/*" style={{ display: 'none' }}
             onChange={e => { if (e.target.files?.[0]) handleTicketFile(e.target.files[0]); e.target.value = ''; }} />
         </div>
       )}
@@ -209,7 +214,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
         <div style={{ borderRadius: 20, background: '#fef2f2', border: '1.5px solid #fca5a5', padding: '24px 20px', textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: '2rem', marginBottom: 6 }}>⚠️</div>
           <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem', marginBottom: 4 }}>No se pudo leer el ticket</div>
-          <div style={{ fontSize: '0.72rem', color: '#f87171' }}>Asegúrate de subir un PDF válido</div>
+          <div style={{ fontSize: '0.72rem', color: '#f87171' }}>Asegúrate de subir un PDF o imagen válida (JPG, PNG…)</div>
           <button onClick={() => setTicketStatus('idle')}
             style={{ marginTop: 10, fontSize: '0.75rem', fontWeight: 700, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
             Intentar de nuevo
@@ -219,20 +224,12 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
 
       {/* Explanation chips */}
       {ticketStatus === 'idle' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-            {['PDF del email del Super'].map(t => (
-              <span key={t} style={{ fontSize: '0.68rem', fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: '#fff', border: '1px solid #e2e8f0', color: '#64748b' }}>
-                {t}
-              </span>
-            ))}
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderRadius: 12, background: 'linear-gradient(135deg,#fef3c7,#fef9ee)', border: '1px solid #fcd34d' }}>
-            <span style={{ fontSize: '1rem' }}>👑</span>
-            <span style={{ fontSize: '0.68rem', color: '#92400e', fontWeight: 600, lineHeight: 1.4 }}>
-              Con la versión <strong>ULTRA</strong> podrás además hacerle fotos a tus tickets físicos
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+          {['PDF del email del Super', 'Foto del ticket físico', 'JPG · PNG · PDF'].map(t => (
+            <span key={t} style={{ fontSize: '0.68rem', fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: '#fff', border: '1px solid #e2e8f0', color: '#64748b' }}>
+              {t}
             </span>
-          </div>
+          ))}
         </div>
       )}
 

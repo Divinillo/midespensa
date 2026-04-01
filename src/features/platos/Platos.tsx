@@ -42,6 +42,14 @@ function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='', customSteps
   const ytUrl = youtubeUrl?.trim()
     ? youtubeUrl.trim()
     : `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar ' + dishName)}`;
+
+  // Abre YouTube en el navegador externo / app de YouTube en Android
+  const openYoutube = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // En Android PWA standalone, window.open fuerza apertura fuera de la WebView
+    const w = window.open(ytUrl, '_blank', 'noopener,noreferrer');
+    if (!w) { window.location.href = ytUrl; } // fallback por si el popup fue bloqueado
+  };
   // Pasos del usuario tienen prioridad sobre los del RECIPE_DB
   const steps: string[] = (customSteps && customSteps.length > 0) ? customSteps : (recipeData?.steps ?? []);
   const tiempo: string = customSteps?.length ? '' : (recipeData?.tiempo ?? '');
@@ -52,7 +60,7 @@ function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='', customSteps
     <Modal open={open} onClose={onClose} title={dishName} wide>
       <div className="space-y-4">
         {/* YouTube always visible */}
-        <a href={ytUrl} target="_blank" rel="noopener noreferrer"
+        <a href={ytUrl} target="_blank" rel="noopener noreferrer" onClick={openYoutube}
           style={{
             display:'flex', alignItems:'center', gap:10, padding:'10px 14px',
             borderRadius:14, background:'#fef2f2', border:'1.5px solid #fecaca',

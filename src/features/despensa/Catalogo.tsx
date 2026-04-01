@@ -226,7 +226,9 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
 
   /* ── Datos derivados ───────────────────────────────────────── */
   const searchActive = search.trim().length > 0;
-  const searchLower  = search.toLowerCase();
+  // Normaliza quitando tildes/diacríticos → búsqueda sin acento (brocoli → brócoli, etc.)
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const searchNorm   = norm(search);
 
   const neededIngs   = useMemo(() => ingredients.filter(i => i.needed),   [ingredients]);
   const availableIngs = useMemo(() => ingredients.filter(i => i.available), [ingredients]);
@@ -242,11 +244,11 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
         cat,
         items: ingredients.filter(i =>
           i.category === cat &&
-          (!searchActive || i.name.toLowerCase().includes(searchLower))
+          (!searchActive || norm(i.name).includes(searchNorm))
         ),
       }))
       .filter(({ items }) => items.length > 0),
-    [ingredients, searchActive, searchLower]
+    [ingredients, searchActive, searchNorm]
   );
 
   /* ── Render ────────────────────────────────────────────────── */

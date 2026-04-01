@@ -1047,6 +1047,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         const ytUrl=recipeModal.youtubeUrl?.trim()
           ? recipeModal.youtubeUrl.trim()
           : `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar '+recipeModal.name)}`;
+        // Abre YouTube en navegador externo / app nativa en Android
+        const openYt=(e:React.MouseEvent)=>{ e.preventDefault(); const w=window.open(ytUrl,'_blank','noopener,noreferrer'); if(!w) window.location.href=ytUrl; };
         return (
           <div style={{position:'fixed',inset:0,zIndex:70,background:'rgba(0,0,0,.55)',backdropFilter:'blur(6px)',WebkitBackdropFilter:'blur(6px)',display:'flex',alignItems:'flex-end',justifyContent:'center',padding:'0'}}
             onClick={()=>setRecipeModal(null)}>
@@ -1065,7 +1067,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               {/* Body */}
               <div style={{padding:'16px 20px',display:'flex',flexDirection:'column',gap:14}}>
                 {/* YouTube link */}
-                <a href={ytUrl} target="_blank" rel="noopener noreferrer"
+                <a href={ytUrl} target="_blank" rel="noopener noreferrer" onClick={openYt}
                   style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:14,background:'#fef2f2',border:'1.5px solid #fecaca',textDecoration:'none',color:'#dc2626',fontWeight:700,fontSize:'0.85rem'}}>
                   <span style={{fontSize:'1.4rem',flexShrink:0}}>▶️</span>
                   <div>

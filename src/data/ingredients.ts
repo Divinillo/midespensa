@@ -153,6 +153,8 @@ export const INIT_INGS = [
   {id:'i18', name:'mozzarella',               category:'lácteos', available:false},
   {id:'i23', name:'huevos',                   category:'lácteos', available:false},
   {id:'i77', name:'leche',                    category:'lácteos', available:false},
+  {id:'i544',name:'leche entera',             category:'lácteos', available:false},
+  {id:'i545',name:'leche semidesnatada',      category:'lácteos', available:false},
   {id:'i78', name:'nata',                     category:'lácteos', available:false},
   {id:'i79', name:'mantequilla',              category:'lácteos', available:false},
   {id:'i80', name:'yogur',                    category:'lácteos', available:false},
@@ -312,6 +314,7 @@ export const INIT_INGS = [
   {id:'i499',name:'naranja sanguina',         category:'fruta', available:false},
   {id:'i500',name:'pomelo rosa',              category:'fruta', available:false},
   // BEBIDAS
+  {id:'i543',name:'agua',                     category:'bebidas', available:false},
   {id:'i266',name:'café molido',              category:'bebidas', available:false},
   {id:'i267',name:'café en grano',            category:'bebidas', available:false},
   {id:'i268',name:'café soluble',             category:'bebidas', available:false},
