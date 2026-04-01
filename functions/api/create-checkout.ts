@@ -2,8 +2,8 @@ import Stripe from 'stripe';
 
 interface Env {
   STRIPE_SECRET_KEY: string;
-  STRIPE_PRICE_PRO: string;
-  STRIPE_PRICE_ULTRA: string;
+  STRIPE_PRICE_MONTHLY: string;
+  STRIPE_PRICE_YEARLY: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
 }
@@ -41,24 +41,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // Use verified email from JWT — ignore any email in request body
   const verifiedEmail = authUser.email;
 
-  const { tier = 'pro' } = await request.json() as any;
-  const safeTier = tier === 'ultra' ? 'ultra' : 'pro';
+  const { period = 'monthly' } = await request.json() as any;
+  const safePeriod = period === 'yearly' ? 'yearly' : 'monthly';
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-04-10' as any,
   });
 
-  const priceId = safeTier === 'ultra' ? env.STRIPE_PRICE_ULTRA : env.STRIPE_PRICE_PRO;
+  const priceId = safePeriod === 'yearly' ? env.STRIPE_PRICE_YEARLY : env.STRIPE_PRICE_MONTHLY;
   const origin  = new URL(request.url).origin;
 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}&tier=${safeTier}`,
+      success_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url:  `${origin}/`,
       allow_promotion_codes: true,
-      metadata: { tier: safeTier },
+      metadata: { period: safePeriod },
       // Lock the email to the authenticated Supabase account
       customer_email: verifiedEmail,
     });

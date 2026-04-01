@@ -35,9 +35,7 @@ function reconcileAvailability(ingredients: Ingredient[], tickets: Ticket[]): In
   const matchedNames = new Set<string>();
   for (const t of tickets) {
     for (const item of (t.matched || [])) {
-      // Los matched items se guardan como { ingredientName: string, ... }
       if (item.ingredientName) matchedNames.add(item.ingredientName.toLowerCase());
-      // Compatibilidad con formato antiguo { ing: { id } }
       if (item.ing?.id) {
         const ing = ingredients.find(i => i.id === item.ing.id);
         if (ing) matchedNames.add(ing.name.toLowerCase());
@@ -54,12 +52,16 @@ const INIT_DISHES: Dish[] = [
   { id: 'd12', name: 'Salmón con espárragos', ingredients: ['i3', 'i24'], example: true },
 ];
 
-
 const TITLES: Record<Section, string> = {
   plan: 'Plan mensual', platos: 'Platos habituales', cat: 'Catálogo de ingredientes',
   ticket: 'Tickets del supermercado', lista: 'Lista de la compra',
   nutri: 'Valor nutricional', gastos: 'Resumen de gasto',
 };
+
+/** Días restantes de prueba (negativo si expirada) */
+function trialDaysLeft(trialEnd: number): number {
+  return Math.ceil((trialEnd - Date.now()) / (1000 * 60 * 60 * 24));
+}
 
 export function App() {
   // ── Supabase auth session ─────────────────────────────────────
@@ -85,10 +87,10 @@ export function App() {
   const [tickets, setTickets] = useLS<Ticket[]>('despensa_tickets_v4', []);
   const [priceHistory, setPriceHistory] = useLS<PriceHistory>('despensa_prices_v4', {});
   const [learnedMappings, setLearnedMappings] = useLS<Record<string,string>>('despensa_learned_v1', {});
-  // isPro/isUltra are derived exclusively from the cloud tier — never from localStorage
-  // to prevent trivial bypass via localStorage manipulation.
+  // isPro is derived exclusively from the cloud tier — never from localStorage
   const [isPro, setIsPro] = useState<boolean>(false);
-  const [isUltra, setIsUltra] = useState<boolean>(false);
+  const [isTrial, setIsTrial] = useState<boolean>(false);
+  const [trialEnd, setTrialEnd] = useState<number>(0);
   const [wizardDone, setWizardDone] = useLS<boolean>('despensa_wizard_v1', false);
   const [userEmail, setUserEmail] = useLS<string>('despensa_email_v1', '');
   const [syncStatus, setSyncStatus] = useState('');
@@ -112,24 +114,22 @@ export function App() {
     if (!session?.user?.email) return;
     const email = session.user.email;
     setUserEmail(email);
-    if (cloudLoadedRef.current) return; // only load once per session
+    if (cloudLoadedRef.current) return;
     cloudLoadedRef.current = true;
     loadFromCloud(email).then(cloud => {
-      // No cloud data yet → first login. Offer to migrate local data.
       if (!cloud || cloud.error === 'No data found') {
-        if (hasLocalDataToMigrate()) {
-          setShowMigration(true);
-        }
+        if (hasLocalDataToMigrate()) setShowMigration(true);
         markMigrationOffered();
         return;
       }
       const localTs = parseInt(localStorage.getItem('despensa_local_ts') || '0');
       const cloudTs = cloud.updated_at || 0;
-      if (cloudTs <= localTs) {
-        if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
-        else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
-        return;
-      }
+
+      // Always apply tier/trial from cloud regardless of timestamp
+      applyTier(cloud);
+
+      if (cloudTs <= localTs) return;
+
       if (cloud.dishes?.length > 0) setDishes(cloud.dishes);
       if (cloud.tickets?.length > 0) setTickets(cloud.tickets);
       if (cloud.ingredients?.length > 0) {
@@ -138,12 +138,24 @@ export function App() {
       }
       if (cloud.price_history && Object.keys(cloud.price_history).length > 0) setPriceHistory(cloud.price_history);
       if (cloud.plan && Object.keys(cloud.plan).length > 0) setPlan(cloud.plan);
-      if (cloud.tier === 'ultra') { setIsPro(true); setIsUltra(true); }
-      else if (cloud.tier === 'pro') { setIsPro(true); setIsUltra(false); }
       setSyncStatus('☁️ Sincronizado');
       setTimeout(() => setSyncStatus(''), 3000);
     });
   }, [session]);
+
+  function applyTier(cloud: any) {
+    if (cloud.tier === 'pro') {
+      setIsPro(true);
+      setIsTrial(false);
+    } else if (cloud.tier === 'trial') {
+      setIsPro(true);
+      setIsTrial(true);
+      if (cloud.trial_end) setTrialEnd(cloud.trial_end);
+    } else {
+      setIsPro(false);
+      setIsTrial(false);
+    }
+  }
 
   // Stripe activation URL cleanup on mount
   useEffect(() => {
@@ -166,7 +178,7 @@ export function App() {
     }
   }, []);
 
-  // Auto-sync to cloud on data change (incluye PIN hash si está configurado)
+  // Auto-sync to cloud on data change
   useEffect(() => {
     if (!userEmail) return;
     const ts = Date.now();
@@ -225,7 +237,6 @@ export function App() {
   }
   if (!session) return <LoginScreen />;
 
-  // ── Show wizard for first-time users ──────────────────────────
   if (!wizardDone) {
     return (
       <OnboardingWizard
@@ -245,10 +256,18 @@ export function App() {
     );
   }
 
+  // ── Plan status for Settings modal ────────────────────────────
+  const daysLeft = isTrial && trialEnd ? trialDaysLeft(trialEnd) : 0;
+  const planLabel = isPro && !isTrial
+    ? '✨ Versión Pro activa'
+    : isTrial
+      ? `🎁 Prueba gratuita · ${daysLeft > 0 ? `${daysLeft} día${daysLeft !== 1 ? 's' : ''} restante${daysLeft !== 1 ? 's' : ''}` : 'Expirada'}`
+      : '🔒 Plan gratuito';
+
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
       <Header
-        section={section} isPro={isPro} isUltra={isUltra} neededCount={neededCount}
+        section={section} isPro={isPro} neededCount={neededCount}
         pendingCount={pendingCount} syncStatus={syncStatus}
         onSettings={() => setShowSettings(true)} onNavigate={setSection}
       />
@@ -315,12 +334,15 @@ export function App() {
               </button>
             </div>
           )}
-          <div className={`rounded-xl p-4 border ${isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
-            <h3 className={`font-bold text-sm mb-1 ${isPro ? 'text-amber-800' : 'text-green-800'}`}>{isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito'}</h3>
-            {isPro ? (
-              <div className="flex items-center justify-between">
-                <p className="text-xs text-amber-600">Todas las funciones desbloqueadas</p>
-                <button onClick={async () => { if (window.confirm('¿Cerrar sesión?')) { await supabase.auth.signOut(); setShowSettings(false); } }} className="text-xs text-gray-400 hover:text-red-500 underline ml-2">Cerrar sesión</button>
+          {/* Plan status */}
+          <div className={`rounded-xl p-4 border ${isPro && !isTrial ? 'bg-amber-50 border-amber-100' : isTrial ? 'bg-purple-50 border-purple-100' : 'bg-teal-50 border-teal-100'}`}>
+            <h3 className={`font-bold text-sm mb-1 ${isPro && !isTrial ? 'text-amber-800' : isTrial ? 'text-purple-800' : 'text-teal-800'}`}>{planLabel}</h3>
+            {isPro && !isTrial ? (
+              <p className="text-xs text-amber-600">Todas las funciones desbloqueadas. Gracias por apoyar MiDespensa.</p>
+            ) : isTrial ? (
+              <div>
+                <p className="text-xs text-purple-600 mb-2">Tienes acceso completo durante tu prueba. Sin compromiso.</p>
+                <button onClick={() => { setShowSettings(false); setUpgradeModal('upgrade'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#7c3aed',color:'#fff'}}>Suscribirse · desde 2,99 €/mes →</button>
               </div>
             ) : (
               <div>
@@ -332,11 +354,14 @@ export function App() {
         </div>
       </Modal>
 
-      <UpgradeModal open={!!upgradeModal} reason={upgradeModal || 'reports'} onClose={() => setUpgradeModal(null)}
-        onUnlockPro={() => setIsPro(true)} onUnlockUltra={() => { setIsPro(true); setIsUltra(true); }}
-        userEmail={userEmail} />
+      <UpgradeModal
+        open={!!upgradeModal}
+        reason={upgradeModal || 'reports'}
+        onClose={() => setUpgradeModal(null)}
+        onUnlockPro={() => setIsPro(true)}
+        userEmail={userEmail}
+      />
 
-      {/* Migration modal: offer to upload local data on first login */}
       {showMigration && (
         <MigrationModal
           onMigrate={async () => {
@@ -365,13 +390,13 @@ export function App() {
       {showPWAWizard && <PWAInstallWizard forceOpen onClose={() => setShowPWAWizard(false)} />}
 
       <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-28" style={{ paddingTop: 20 }}>
-        {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'platos' && <Platos dishes={dishes} setDishes={setDishes} ingredients={ingredients} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'cat' && <Catalogo ingredients={ingredients} setIngredients={setIngredients} isUltra={isUltra} />}
-        {section === 'ticket' && <Tickets tickets={tickets} setTickets={setTickets} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} setPriceHistory={setPriceHistory} learnedMappings={learnedMappings} setLearnedMappings={setLearnedMappings} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'platos' && <Platos dishes={dishes} setDishes={setDishes} ingredients={ingredients} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'cat' && <Catalogo ingredients={ingredients} setIngredients={setIngredients} />}
+        {section === 'ticket' && <Tickets tickets={tickets} setTickets={setTickets} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} setPriceHistory={setPriceHistory} learnedMappings={learnedMappings} setLearnedMappings={setLearnedMappings} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
         {section === 'lista' && <ListaCompra plan={plan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} />}
-        {section === 'nutri' && <Nutricion isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'gastos' && <ResumenGasto tickets={tickets} ingredients={ingredients} priceHistory={priceHistory} isPro={isPro} isUltra={isUltra} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'nutri' && <Nutricion isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+        {section === 'gastos' && <ResumenGasto tickets={tickets} ingredients={ingredients} priceHistory={priceHistory} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
       </main>
 
       <Nav section={section} neededCount={neededCount} pendingCount={pendingCount} isPro={isPro} onNavigate={setSection} />

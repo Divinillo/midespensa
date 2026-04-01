@@ -728,7 +728,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   );
 }
 
-export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tickets,isPro,isUltra,onUpgrade}) {
+export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tickets,isPro,onUpgrade}) {
   const now=new Date();
   const [year,setYear]=useState(now.getFullYear());
   const [month,setMonth]=useState(now.getMonth());
@@ -937,14 +937,14 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
             🔒 Menú auto <span className="font-normal text-xs" style={{color:'#5eead4'}}>Pro</span>
           </button>
         )}
-        {isUltra?(
+        {isPro?(
           <button onClick={()=>setNutriModal(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm"
             style={{background:'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',color:'#fff',boxShadow:'0 3px 10px rgba(124,58,237,.28)'}}>
             <ChartBar size={16} weight="fill"/> Nutrición
           </button>
         ):(
-          <button onClick={()=>onUpgrade('ultra')}
+          <button onClick={()=>onUpgrade('upgrade')}
             className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm"
             style={{background:'#f5f3ff',color:'#d97706',border:'1px solid #ddd6fe'}}>
             🔒 Nutrición <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Ultra</span>
@@ -1065,7 +1065,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                       <div style={{fontSize:'0.65rem',fontWeight:700,color:textC,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:4}}>{icon} {lbl}</div>
                       <div style={{fontSize:'0.78rem',fontWeight:600,color:dish?textC:'#cbd5e1',minHeight:32,display:'flex',alignItems:'center',justifyContent:'space-between',gap:6}}>
                         <span>{dish?dish.name:'Sin asignar'}</span>
-                        {isUltra && dish && (
+                        {isPro && dish && (
                           <button
                             onClick={()=>{
                               const recipeMatch=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
@@ -1100,7 +1100,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
 
               {/* Selects + macros */}
               {[['lunch','🍽️ Comida'],['dinner','🌙 Cena']].map(([k,label])=>{
-                const macros=(isPro||isUltra)?getMacros100(dayMeal[k]):null;
+                const macros=(isPro||isPro)?getMacros100(dayMeal[k]):null;
                 return (
                   <div key={k}>
                     <label style={{display:'block',fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:'#94a3b8',marginBottom:6}}>{label}</label>

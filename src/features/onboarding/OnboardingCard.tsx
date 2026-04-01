@@ -126,103 +126,94 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
 ═══════════════════════════════════════ */
 
 
-export function UpgradeModal({open, onClose, reason, onUnlockPro, onUnlockUltra, userEmail = ''}) {
-  const [showKey, setShowKey]=useState(false);
-  const [keyVal, setKeyVal]=useState('');
-  const [keyErr, setKeyErr]=useState('');
+export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '' }) {
+  const [period, setPeriod] = useState<'monthly' | 'yearly'>('yearly');
+  const [loading, setLoading] = useState(false);
 
-  const isUltraReason = reason==='ultra';
-  const close=()=>{ onClose(); setShowKey(false); setKeyVal(''); setKeyErr(''); };
-  const [unlocking, setUnlocking]=useState(false);
-  const tryUnlock=async()=>{
-    const clave=keyVal.trim();
-    if(!clave){ setKeyErr('Introduce tu clave de licencia.'); return; }
-    setUnlocking(true);
-    setKeyErr('');
-    const tier = await validateLicenseRemote(clave);
-    setUnlocking(false);
-    if(tier==='ultra'){ onUnlockUltra(); close(); }
-    else if(tier==='pro'){ onUnlockPro(); close(); }
-    else setKeyErr('Clave inválida o inactiva. Comprueba que la has introducido correctamente.');
-  };
+  const close = () => { onClose(); };
 
-  const REASONS={
-    dishes: {icon:'🍽️', tier:'pro',   title:'Límite de platos alcanzado', desc:`Con el plan gratuito puedes guardar hasta ${FREE_DISH_LIMIT} platos. Actualiza a Pro para platos ilimitados.`},
-    tickets:{icon:'🧾', tier:'pro',   title:'Límite de tickets alcanzado', desc:`Con el plan gratuito puedes subir ${FREE_TICKET_LIMIT} ticket. Actualiza a Pro para tickets ilimitados.`},
-    reports:{icon:'📊', tier:'pro',   title:'Informes PDF — función Pro',  desc:'Genera informes mensuales en PDF con tu historial de gasto, lista de ingredientes y más.'},
-    automenu:{icon:'✨',tier:'pro',   title:'Menú automático — función Pro',desc:'Rellena automáticamente tu plan semanal o mensual según los ingredientes disponibles en tu despensa.'},
-    autodish:{icon:'✨',tier:'pro',   title:'Sugerir platos — función Pro', desc:'Sugiere recetas compatibles con tu despensa. Añádelas directamente a tu lista de platos.'},
-    ultra:   {icon:'👨‍🍳',tier:'ultra', title:'Ultra Chef — macros y dietas', desc:'Filtra recetas por tipo de dieta, obtén estimación de macronutrientes e informes nutricionales por días.'},
+  const REASONS = {
+    dishes:   { icon: '🍽️', title: 'Límite de platos alcanzado',  desc: `Con el plan gratuito puedes guardar hasta ${FREE_DISH_LIMIT} platos. Actualiza a Pro para platos ilimitados.` },
+    tickets:  { icon: '🧾', title: 'Límite de tickets alcanzado',  desc: `Con el plan gratuito puedes subir ${FREE_TICKET_LIMIT} tickets. Actualiza a Pro para tickets ilimitados.` },
+    reports:  { icon: '📊', title: 'Informes PDF — función Pro',    desc: 'Genera informes mensuales en PDF con tu historial de gasto y más.' },
+    automenu: { icon: '✨', title: 'Menú automático — función Pro', desc: 'Rellena tu plan mensual automáticamente según tu despensa.' },
+    autodish: { icon: '✨', title: 'Sugerir platos — función Pro',  desc: 'Sugiere recetas compatibles con tu despensa y añádelas directamente.' },
+    upgrade:  { icon: '🎁', title: 'Suscríbete a MiDespensa Pro',  desc: 'Accede a todas las funciones sin límites. Primera semana gratis.' },
   };
-  const r=REASONS[reason]||REASONS.reports;
-  const isUltraTier=r.tier==='ultra';
+  const r = REASONS[reason] || REASONS.reports;
+
+  const handleCheckout = async () => {
+    setLoading(true);
+    try {
+      const { data: { session: s } } = await supabase.auth.getSession();
+      const token = s?.access_token;
+      if (!token) { alert('Sesión expirada. Por favor recarga la página.'); setLoading(false); return; }
+      const res = await fetch('/api/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ period }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+      else { alert('Error al iniciar el pago. Inténtalo de nuevo.'); setLoading(false); }
+    } catch { alert('Error de conexión. Inténtalo de nuevo.'); setLoading(false); }
+  };
 
   return (
-    <Modal open={open} onClose={close} title={isUltraTier?'👨‍🍳 Desbloquear Ultra Chef':'✨ Desbloquear versión Pro'}>
+    <Modal open={open} onClose={close} title="💎 Desbloquear versión Pro">
       <div className="space-y-4">
-        <div className={`rounded-2xl p-5 text-center border ${isUltraTier?'bg-gradient-to-br from-amber-50 to-teal-50 border-amber-100':'bg-gradient-to-br from-teal-50 to-amber-50 border-teal-100'}`}>
-          <div className="text-4xl mb-2">{r.icon}</div>
-          <h3 className="font-bold text-gray-800 mb-1">{r.title}</h3>
-          <p className="text-sm text-gray-500">{r.desc}</p>
+        <div className="rounded-2xl p-4 text-center border bg-gradient-to-br from-teal-50 to-purple-50 border-teal-100">
+          <div className="text-3xl mb-1.5">{r.icon}</div>
+          <h3 className="font-bold text-gray-800 text-sm mb-1">{r.title}</h3>
+          <p className="text-xs text-gray-500">{r.desc}</p>
         </div>
 
-        {isUltraTier?(
-          <div className="bg-white rounded-2xl border border-amber-100 p-4 space-y-2.5">
-            <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-2">👨‍🍳 Ultra Chef incluye (además de Pro)</p>
-            {[['🥗','6 sets de dieta: saludable, vegano, vegetariano, paleo, foodie…'],['🔥','Macronutrientes y kcal por plato'],['📊','Informes nutricionales con selección de días'],['🔒','Todas las funciones Pro incluidas']].map(([e,t])=>(
-              <div key={t} className="flex items-start gap-2.5"><span className="text-base mt-0.5">{e}</span><span className="text-sm text-gray-700">{t}</span></div>
-            ))}
-          </div>
-        ):(
-          <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2.5">
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">✨ La versión Pro incluye</p>
-            {[['🍽️','Platos ilimitados'],['🧾','Tickets ilimitados'],['✨','Menú automático'],['✨','Sugerir platos'],['📊','Informes mensuales PDF'],['🔄','Exportación e importación']].map(([e,t])=>(
-              <div key={t} className="flex items-center gap-2.5"><span className="text-base">{e}</span><span className="text-sm text-gray-700">{t}</span></div>
-            ))}
-          </div>
-        )}
-
-        {!showKey?(
-          <div className="space-y-2">
-            <button onClick={async()=>{
-                const tier=isUltraTier?'ultra':'pro';
-                try{
-                  const { data: { session: s } } = await supabase.auth.getSession();
-                  const token = s?.access_token;
-                  if (!token) { alert('Sesión expirada. Por favor recarga la página.'); return; }
-                  const res=await fetch('/api/create-checkout',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify({tier})});
-                  const data=await res.json();
-                  if(data.url) window.location.href=data.url;
-                  else alert('Error al iniciar el pago. Inténtalo de nuevo.');
-                }catch(e){ alert('Error de conexión. Inténtalo de nuevo.'); }
-              }}
-              className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md"
-              style={{background: isUltraTier
-                ? 'linear-gradient(135deg,#b45309,#d97706,#fbbf24)'
-                : 'linear-gradient(to right, #0d9488, #d97706)'}}>
-              💳 {isUltraTier?'Suscribirse a Ultra Chef · 4,99 €/mes':'Suscribirse a Pro · 2,99 €/mes'}
-            </button>
-            <button onClick={()=>setShowKey(true)} className="w-full border border-gray-200 text-gray-600 rounded-xl py-2.5 text-sm font-medium hover:bg-gray-50">
-              🔑 Ya tengo una clave de licencia
-            </button>
-          </div>
-        ):(
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Introduce tu clave de licencia</label>
-              <input value={keyVal} onChange={e=>{setKeyVal(e.target.value.toUpperCase());setKeyErr('');}}
-                placeholder="XXXX-XXXX-XXXX-XXXX" 
-                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-teal-200"
-                onKeyDown={e=>e.key==='Enter'&&tryUnlock()}/>
-              {keyErr&&<p className="text-xs text-red-500 mt-1.5">{keyErr}</p>}
+        <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">✨ Pro incluye todo, sin límites</p>
+          {[
+            ['🍽️', 'Platos ilimitados'],
+            ['🧾', 'Tickets ilimitados'],
+            ['✨', 'Menú automático'],
+            ['🍳', 'Sugerir platos con IA'],
+            ['🥗', 'Filtros de dieta y macros'],
+            ['📊', 'Informes de gasto en PDF'],
+            ['☁️', 'Sincronización en la nube'],
+          ].map(([e, t]) => (
+            <div key={t} className="flex items-center gap-2.5">
+              <span className="text-base">{e}</span>
+              <span className="text-sm text-gray-700">{t}</span>
             </div>
-            <button onClick={tryUnlock} disabled={unlocking}
-              className={`w-full text-white rounded-xl py-2.5 text-sm font-semibold disabled:opacity-60 ${isUltraTier?'bg-amber-600 hover:bg-amber-700':'bg-teal-600 hover:bg-teal-700'}`}>
-              {unlocking?'Verificando...':'Activar licencia ✨'}
-            </button>
-            <button onClick={()=>{setShowKey(false);setKeyErr('');}} className="w-full text-xs text-gray-400 hover:text-gray-600 py-1">← Volver</button>
-          </div>
-        )}
+          ))}
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setPeriod('monthly')}
+            className={`rounded-xl p-3 border-2 text-center transition-all ${period === 'monthly' ? 'border-teal-500 bg-teal-50' : 'border-gray-200 bg-white'}`}
+          >
+            <div className={`text-sm font-bold ${period === 'monthly' ? 'text-teal-700' : 'text-gray-700'}`}>2,99 €/mes</div>
+            <div className="text-xs text-gray-400 mt-0.5">Mensual</div>
+          </button>
+          <button
+            onClick={() => setPeriod('yearly')}
+            className={`rounded-xl p-3 border-2 text-center relative transition-all ${period === 'yearly' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white'}`}
+          >
+            <div className={`text-sm font-bold ${period === 'yearly' ? 'text-purple-700' : 'text-gray-700'}`}>29,99 €/año</div>
+            <div className="text-xs text-gray-400 mt-0.5">Anual · ahorra 5,89 €</div>
+            <span className="absolute -top-2 -right-1 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', fontSize: '0.6rem' }}>MEJOR</span>
+          </button>
+        </div>
+
+        <p className="text-center text-xs text-gray-400">🎁 Primera semana gratis · cancela cuando quieras</p>
+
+        <button
+          onClick={handleCheckout}
+          disabled={loading}
+          className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md disabled:opacity-60"
+          style={{ background: 'linear-gradient(to right, #0d9488, #7c3aed)' }}
+        >
+          {loading ? 'Cargando...' : `💳 Empezar prueba gratuita${period === 'yearly' ? ' · 29,99 €/año' : ' · 2,99 €/mes'}`}
+        </button>
       </div>
     </Modal>
   );

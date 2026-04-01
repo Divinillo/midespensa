@@ -167,7 +167,7 @@ async function _geminiRecipes(availIngs, recipeNames, qty, diet) {
 /* ═══════════════════════════════════════
    SUGERIR PLATOS — Modal Premium
 ═══════════════════════════════════════ */
-function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgrade}) {
+function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrade}) {
   const [qty,setQty]=useState(3);
   const [diet,setDiet]=useState('omnivora');
   const [results,setResults]=useState(null);
@@ -183,7 +183,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
     const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
     // Solo recetas completas: 4+ ings y no son guarniciones/caldos ligeros (< 200 kcal Y < 10g prot)
     let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length >= 4 && !(r.kcal < 200 && r.prot < 10));
-    if(isUltra && diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
+    if(isPro && diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
 
     const scored=candidates.map(recipe=>{
       const matched=recipe.ings.map(ri=>{
@@ -210,7 +210,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
       try {
         const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
         let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length>=4 && !(r.kcal<200&&r.prot<10));
-        if(isUltra&&diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
+        if(isPro&&diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
         const availIngs=ingredients.filter(i=>i.available).map(i=>i.name);
         const geminiNames=await _geminiRecipes(availIngs, candidates.map(r=>r.name), qty, diet);
         if(geminiNames.length){
@@ -267,7 +267,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
       ):!results?(
         <div className="space-y-4">
           {/* Diet selector — Ultra only */}
-          {isUltra?(
+          {isPro?(
             <div>
               <p className="text-sm font-semibold text-gray-700 mb-2">Tipo de dieta</p>
               <div className="grid grid-cols-2 gap-1.5">
@@ -284,7 +284,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
               </div>
             </div>
           ):(
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('ultra')}>
+            <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('upgrade')}>
               <span className="text-lg">👨‍🍳</span>
               <div className="flex-1">
                 <p className="text-xs font-bold text-amber-700">Filtros de dieta — Ultra Chef</p>
@@ -323,7 +323,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
           </div>
           <div className="text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
             📦 +100 recetas · {ingredients.filter(i=>i.available).length} ingredientes disponibles
-            {isUltra&&diet!=='omnivora'&&<span className="ml-1 text-amber-600 font-semibold">· {DIET_SETS.find(d=>d.id===diet)?.label}</span>}
+            {isPro&&diet!=='omnivora'&&<span className="ml-1 text-amber-600 font-semibold">· {DIET_SETS.find(d=>d.id===diet)?.label}</span>}
           </div>
           <button onClick={searchRecipes} disabled={loading}
             className="w-full rounded-xl py-3 font-bold text-sm transition-all"
@@ -365,7 +365,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                         </span>
                       </div>
                       {/* Macros — solo Ultra */}
-                      {isUltra&&s.recipe.kcal&&(
+                      {isPro&&s.recipe.kcal&&(
                         <>
                         <div className="flex flex-wrap gap-1.5 mb-1">
                           <span className="text-[10px] bg-orange-50 text-orange-600 px-1.5 py-0.5 rounded-full font-semibold">🔥 {s.recipe.kcal} kcal</span>
@@ -395,7 +395,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isUltra,onUpgr
                           Faltan: {s.missing.map(m=>m.name).join(', ')}
                         </p>
                       )}
-                      {isUltra&&(
+                      {isPro&&(
                         <button
                           type="button"
                           onClick={e=>{e.stopPropagation();setRecipePreview({name:s.recipe.name,ings:s.recipe.ings});}}
@@ -551,7 +551,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
   );
 }
 
-export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
+export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
   const [modal,setModal]=useState(null);
   const [form,setForm]=useState({name:'',ingredients:[]});
   const [confirm,setConfirm]=useState(null);
@@ -655,7 +655,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
-                {isUltra && (
+                {isPro && (
                   <button onClick={()=>{
                     const recipeMatch = RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
                     const ingNames = recipeMatch
@@ -697,7 +697,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,isUltra,onUpgrade}) {
         onCancel={()=>setConfirmClear(false)}/>
       <AutoDishModal open={autoModal} onClose={()=>setAutoModal(false)}
         ingredients={ingredients} dishes={dishes} setDishes={setDishes}
-        isUltra={isUltra} onUpgrade={onUpgrade}/>
+        isPro={isPro} onUpgrade={onUpgrade}/>
       <RecipeModal
         open={!!recipeModal}
         onClose={()=>setRecipeModal(null)}

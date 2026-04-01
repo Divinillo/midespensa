@@ -3,6 +3,8 @@ interface Env {
   SUPABASE_SERVICE_KEY: string;
 }
 
+const TRIAL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+
 export const onRequest: PagesFunction<Env> = async (context) => {
   try {
     const { request, env } = context;
@@ -36,10 +38,25 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       const appData = await request.json() as any;
       const { email: _ignored, ...rest } = appData; // ignore client-supplied email
 
+      // Fetch existing record to preserve server-side trial_end (client cannot set it)
+      const existingRes = await fetch(
+        `${env.SUPABASE_URL}/rest/v1/despensa_data?email=eq.${encodeURIComponent(verifiedEmail)}&select=data&limit=1`,
+        { headers: sbHeaders }
+      );
+      const existingRows = await existingRes.json() as any[];
+      const existingTrialEnd = existingRows[0]?.data?.trial_end as number | undefined;
+
+      // New user: assign trial_end = now + 7 days. Existing user: preserve original value.
+      const trialEnd = existingTrialEnd ?? (Date.now() + TRIAL_MS);
+
+      // Always strip client-supplied trial_end and replace with server value
+      const { trial_end: _clientTrialEnd, ...restClean } = rest;
+      const dataToSave = { ...restClean, trial_end: trialEnd };
+
       const res = await fetch(`${env.SUPABASE_URL}/rest/v1/despensa_data`, {
         method: 'POST',
         headers: { ...sbHeaders, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ email: verifiedEmail, data: rest, updated_at: rest.updated_at ?? Date.now() }),
+        body: JSON.stringify({ email: verifiedEmail, data: dataToSave, updated_at: dataToSave.updated_at ?? Date.now() }),
       });
 
       if (!res.ok) return json({ error: 'Save failed' }, 500);
@@ -50,7 +67,6 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     if (request.method === 'GET') {
       const url     = new URL(request.url);
       const pinHash = url.searchParams.get('pin_hash');
-      // Use verifiedEmail from JWT, not the query param
       const email   = verifiedEmail;
 
       const [dataRes, licRes] = await Promise.all([
@@ -65,17 +81,29 @@ export const onRequest: PagesFunction<Env> = async (context) => {
         return json({ error: 'No data found' }, 404);
       }
 
-      const { data: appData, updated_at } = dataRows[0];
+      const { data: storedData, updated_at } = dataRows[0];
 
       // ── Verificación de PIN ──
-      const storedPinHash = appData?.recovery_pin_hash;
+      const storedPinHash = storedData?.recovery_pin_hash;
       if (storedPinHash) {
         if (!pinHash) return json({ error: 'PIN_REQUIRED' }, 401);
         if (pinHash !== storedPinHash) return json({ error: 'PIN_INVALID' }, 403);
       }
 
-      const tier = Array.isArray(licRows) && licRows[0]?.tier ? licRows[0].tier : null;
-      return json({ ...appData, updated_at, tier });
+      // ── Tier resolution ──
+      // Priority: active paid license > active trial > free
+      const hasPaidLicense = Array.isArray(licRows) && licRows[0]?.tier && licRows[0]?.activa !== false;
+      const trialEnd = storedData?.trial_end as number | undefined;
+      const isTrialActive = trialEnd ? Date.now() < trialEnd : false;
+
+      let tier: string | null = null;
+      if (hasPaidLicense) {
+        tier = 'pro';
+      } else if (isTrialActive) {
+        tier = 'trial';
+      }
+
+      return json({ ...storedData, updated_at, tier });
     }
 
     return new Response('Method Not Allowed', { status: 405 });

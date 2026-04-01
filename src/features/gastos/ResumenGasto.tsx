@@ -393,9 +393,9 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
 /* ─────────────────────────────────────────────────────────────────
    VISTA PRINCIPAL — básica para todos los usuarios
 ───────────────────────────────────────────────────────────────── */
-export function ResumenGasto({tickets,ingredients,priceHistory,isPro,isUltra,onUpgrade}) {
+export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade}) {
   const [showFull, setShowFull]=useState(false);
-  const canSeeReport=isUltra;
+  const canSeeReport=isPro;
   const now=new Date();
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
 

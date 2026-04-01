@@ -12,7 +12,7 @@ import { Receipt, Trash, X, PencilSimple, Check } from '@phosphor-icons/react';
 // CDN globals
 declare const window: any;
 
-export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHistory,setPriceHistory,learnedMappings={},setLearnedMappings,isPro,isUltra,onUpgrade}) {
+export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHistory,setPriceHistory,learnedMappings={},setLearnedMappings,isPro,onUpgrade}) {
   const [pdfjsReady,setPdfjsReady]=useState(false);
   const [loading,setLoading]=useState(false);
   const [ocrProgress,setOcrProgress]=useState(null); // null | -1 (cargando) | 0-100
@@ -85,7 +85,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
 
   // ── Procesar foto de ticket con OCR (Ultra) ──
   const handleCameraFiles=async(files)=>{
-    if(!isUltra){ onUpgrade('ultra'); return; }
+    if(!isPro){ onUpgrade('upgrade'); return; }
     if(!isPro && tickets.length >= FREE_TICKET_LIMIT){ onUpgrade('tickets'); return; }
     setLoading(true);
     setOcrProgress(-1);
@@ -265,7 +265,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       </div>
 
       {/* Botón foto de ticket — Ultra Chef */}
-      {isUltra ? (
+      {isPro ? (
         <div className="mt-3">
           <button onClick={()=>cameraRef.current?.click()} disabled={loading}
             className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 font-bold text-sm transition-all active:scale-95
@@ -297,7 +297,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onCameraChange} className="hidden"/>
         </div>
       ) : (
-        <button onClick={()=>onUpgrade('ultra')}
+        <button onClick={()=>onUpgrade('upgrade')}
           className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 border-2 border-dashed border-amber-200 text-amber-600 text-sm font-semibold hover:bg-amber-50 transition-all">
           <span>📷</span> Foto de ticket
           <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold ml-1">Ultra Chef</span>

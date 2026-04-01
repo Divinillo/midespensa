@@ -171,7 +171,7 @@ function SectionHeader({ label, count, isCollapsed, onToggle, badge }) {
 /* ════════════════════════════════════════════════════════════════
    CATÁLOGO PRINCIPAL
 ════════════════════════════════════════════════════════════════ */
-export function Catalogo({ ingredients, setIngredients, isUltra }) {
+export function Catalogo({ ingredients, setIngredients, isPro }) {
   const [recentIds, setRecentIds] = useLS<string[]>('despensa_recent_v1', []);
   const [search, setSearch]       = useState('');
   const [addModal, setAddModal]   = useState(false);

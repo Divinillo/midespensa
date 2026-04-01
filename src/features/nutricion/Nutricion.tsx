@@ -39,7 +39,7 @@ interface ScannedProduct {
   scannedAt: string;
 }
 
-export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boolean; onUpgrade?: (reason: string) => void }) {
+export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean; onUpgrade?: (reason: string) => void }) {
   const [history, setHistory] = useLS<ScannedProduct[]>('scanner_history_v1', []);
 
   // idle | scanning | loading | result | error | manual
@@ -264,7 +264,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
   /* ════════════════════════════════════════════════════════════
      PAYWALL: solo Ultra
   ════════════════════════════════════════════════════════════ */
-  if (!isUltra) {
+  if (!isPro) {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 24px', textAlign: 'center', minHeight: '60vh' }}>
         <div style={{ fontSize: '3.5rem', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Barcode size={72} weight="regular" color="#0f766e"/></div>
@@ -278,7 +278,7 @@ export function Nutricion({ isUltra = false, onUpgrade = null }: { isUltra?: boo
           Esta función está disponible a partir de la versión <strong>ULTRA</strong>.
         </p>
         <button
-          onClick={() => onUpgrade && onUpgrade('ultra')}
+          onClick={() => onUpgrade onUpgrade && onUpgrade('ultra')onUpgrade && onUpgrade('ultra') onUpgrade('upgrade')}
           style={{
             padding: '14px 32px', borderRadius: 16, border: 'none', cursor: 'pointer',
             background: 'linear-gradient(135deg,#f59e0b,#d97706)',

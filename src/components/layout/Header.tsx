@@ -39,7 +39,6 @@ const SECTION_ICON: Record<Section, React.ElementType> = {
 interface HeaderProps {
   section: Section;
   isPro: boolean;
-  isUltra: boolean;
   neededCount: number;
   pendingCount: number;
   syncStatus: string;
@@ -47,7 +46,7 @@ interface HeaderProps {
   onNavigate: (s: Section) => void;
 }
 
-export function Header({ section, isPro, isUltra, neededCount, pendingCount, syncStatus, onSettings, onNavigate }: HeaderProps) {
+export function Header({ section, isPro, neededCount, pendingCount, syncStatus, onSettings, onNavigate }: HeaderProps) {
   const [showWarning, setShowWarning] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -102,19 +101,12 @@ export function Header({ section, isPro, isUltra, neededCount, pendingCount, syn
           {/* Right: badges + settings */}
           <div className="flex items-center gap-1.5">
 
-            {/* Badge PRO / ULTRA */}
+            {/* Badge PRO */}
             {isPro && (
-              isUltra ? (
-                <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '3px 7px', borderRadius: 8, background: 'linear-gradient(135deg,#b45309,#d97706,#fbbf24)', color: '#fff', letterSpacing: '.06em', display: 'flex', alignItems: 'center', gap: 3, boxShadow: '0 1px 6px rgba(217,119,6,.5)' }}>
-                  <span style={{ fontSize: '0.7rem', lineHeight: 1 }}>👑</span>
-                  ULTRA
-                </span>
-              ) : (
                 <span style={{ fontSize: '0.6rem', fontWeight: 800, padding: '3px 7px', borderRadius: 8, background: 'rgba(255,255,255,.15)', color: '#fff', letterSpacing: '.06em', border: '1px solid rgba(255,255,255,.35)', display: 'flex', alignItems: 'center', gap: 3 }}>
                   <span style={{ fontSize: '0.7rem', lineHeight: 1 }}>💎</span>
                   PRO
                 </span>
-              )
             )}
 
             {/* Badge lista necesita */}
