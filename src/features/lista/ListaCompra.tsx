@@ -1,10 +1,10 @@
 // @ts-nocheck
 import React, { useState, useMemo } from 'react';
 import type { Ingredient, Dish, Plan, PriceHistory } from '../../data/types';
-import { CAT_BG, CAT_TEXT, CAT_EMOJI, MONTH_NAMES, CATEGORIES } from '../../data/categories';
+import { CAT_BG, CAT_TEXT, CAT_EMOJI, MONTH_NAMES, CATEGORIES, FREE_PRICE_HISTORY_DAYS } from '../../data/categories';
 import { ShoppingCart } from '@phosphor-icons/react';
 
-export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory}) {
+export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory,isPro=false}) {
   const now=new Date();
   const [selYear,setSelYear]=useState(now.getFullYear());
   const [selMonth,setSelMonth]=useState(now.getMonth());
@@ -31,8 +31,10 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
       planMissing.has(i.id) && !i.needed ? {...i, needed:true} : i
     ));
 
+    const cutoff = isPro ? 0 : Date.now() - FREE_PRICE_HISTORY_DAYS * 24 * 60 * 60 * 1000;
     const items=missing.map(ing=>{
-      const hist=priceHistory[ing.id]||[];
+      const allHist=priceHistory[ing.id]||[];
+      const hist = isPro ? allHist : allHist.filter(h => new Date(h.date).getTime() >= cutoff);
       const avg=hist.length>0?hist.reduce((s,h)=>s+h.price,0)/hist.length:null;
       return {...ing,avgPrice:avg,histCount:hist.length};
     });

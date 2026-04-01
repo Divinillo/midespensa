@@ -25,7 +25,7 @@ function resizeImage(file: File, maxPx = 600): Promise<string> {
 import { Modal } from '../../components/ui/Modal';
 import { Confirm } from '../../components/ui/Confirm';
 import { uid } from '../../utils/helpers';
-import { CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES, FREE_DISH_LIMIT, ING_EMOJI } from '../../data/categories';
+import { CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES, FREE_DISH_LIMIT, FREE_SUGGESTION_LIMIT, ING_EMOJI } from '../../data/categories';
 import { RECIPE_DB } from '../../data/recipes';
 import type { Ingredient, Dish } from '../../data/types';
 
@@ -168,7 +168,7 @@ async function _geminiRecipes(availIngs, recipeNames, qty, diet) {
    SUGERIR PLATOS — Modal Premium
 ═══════════════════════════════════════ */
 function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrade}) {
-  const [qty,setQty]=useState(3);
+  const [qty,setQty]=useState(isPro ? 3 : FREE_SUGGESTION_LIMIT);
   const [diet,setDiet]=useState('omnivora');
   const [results,setResults]=useState(null);
   const [selected,setSelected]=useState({});
@@ -266,7 +266,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
         </div>
       ):!results?(
         <div className="space-y-4">
-          {/* Diet selector — Ultra only */}
+          {/* Diet selector — Pro only */}
           {isPro?(
             <div>
               <p className="text-sm font-semibold text-gray-700 mb-2">Tipo de dieta</p>
@@ -274,23 +274,23 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
                 {DIET_SETS.map(ds=>(
                   <button key={ds.id} type="button" onClick={()=>setDiet(ds.id)}
                     className={`py-2 px-2.5 rounded-xl border-2 text-left transition-all
-                      ${diet===ds.id?'border-amber-400 bg-amber-50':'border-gray-200 bg-white hover:border-amber-200'}`}
-                    style={{boxShadow: diet===ds.id?'0 3px 10px rgba(139,92,246,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
+                      ${diet===ds.id?'border-teal-400 bg-teal-50':'border-gray-200 bg-white hover:border-teal-200'}`}
+                    style={{boxShadow: diet===ds.id?'0 3px 10px rgba(13,148,136,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
                     <div className="text-base mb-0.5">{ds.icon}</div>
-                    <div className={`text-xs font-bold ${diet===ds.id?'text-amber-700':'text-gray-600'}`}>{ds.label}</div>
-                    <div className={`text-[10px] ${diet===ds.id?'text-amber-600':'text-gray-400'}`}>{ds.desc}</div>
+                    <div className={`text-xs font-bold ${diet===ds.id?'text-teal-700':'text-gray-600'}`}>{ds.label}</div>
+                    <div className={`text-[10px] ${diet===ds.id?'text-teal-600':'text-gray-400'}`}>{ds.desc}</div>
                   </button>
                 ))}
               </div>
             </div>
           ):(
-            <div className="flex items-center gap-2 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('upgrade')}>
-              <span className="text-lg">👨‍🍳</span>
+            <div className="flex items-center gap-2 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('upgrade')}>
+              <span className="text-lg">🥗</span>
               <div className="flex-1">
-                <p className="text-xs font-bold text-amber-700">Filtros de dieta — Ultra Chef</p>
-                <p className="text-[10px] text-amber-600">Vegano · Saludable · Paleo · Foodie y más</p>
+                <p className="text-xs font-bold text-teal-700">Filtros de dieta — Pro</p>
+                <p className="text-[10px] text-teal-600">Vegano · Saludable · Paleo · Foodie y más</p>
               </div>
-              <span className="text-xs font-bold text-amber-600">🔒 Ver</span>
+              <span className="text-xs font-bold text-teal-600">🔒 Ver</span>
             </div>
           )}
           {/* ── Toggle "Con lo que tengo en despensa" ── */}
@@ -309,12 +309,16 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
           </button>
 
           <div>
-            <p className="text-sm font-semibold text-gray-700 mb-2">¿Cuántos platos?</p>
+            <p className="text-sm font-semibold text-gray-700 mb-2">
+              ¿Cuántos platos?
+              {!isPro && <span className="ml-2 text-xs text-gray-400 font-normal">máx. {FREE_SUGGESTION_LIMIT} en plan gratuito</span>}
+            </p>
             <div className="flex gap-2">
-              {[1,2,3,4,5].map(n=>(
-                <button key={n} type="button" onClick={()=>setQty(n)}
+              {(isPro ? [1,2,3,4,5,6,8,10] : [FREE_SUGGESTION_LIMIT]).map(n=>(
+                <button key={n} type="button" onClick={()=>isPro&&setQty(n)}
                   className={`flex-1 py-3 rounded-xl text-sm font-bold border-2 transition-all
-                    ${qty===n?'border-teal-500 bg-teal-50 text-teal-700':'border-gray-200 bg-white text-gray-500 hover:border-teal-200'}`}
+                    ${qty===n?'border-teal-500 bg-teal-50 text-teal-700':'border-gray-200 bg-white text-gray-500 hover:border-teal-200'}
+                    ${!isPro?'opacity-70 cursor-default':''}`}
                   style={{boxShadow: qty===n?'0 3px 10px rgba(13,148,136,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
                   {n}
                 </button>

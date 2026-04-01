@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Modal } from '../../components/ui/Modal';
 import { Confirm } from '../../components/ui/Confirm';
 import { uid, fmt2 } from '../../utils/helpers';
-import { FREE_TICKET_LIMIT, CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES } from '../../data/categories';
+import { FREE_TICKET_LIMIT, FREE_TICKET_PHOTO_LIMIT, CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES } from '../../data/categories';
 import { processImageTicket, processPdf, applyTicket } from '../../utils/ticketProcess';
 import { normalizeName } from '../../utils/helpers';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
@@ -57,6 +57,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       if(!file.name.toLowerCase().endsWith('.pdf')) continue;
       try{
         const ticket=await processPdf(file);
+        ticket.source='pdf';
         // Evitar duplicados por nombre de fichero
         if(tickets.some(t=>t.filename===ticket.filename)){
           alert(`Ya existe un ticket con el nombre: ${file.name}`);
@@ -83,10 +84,11 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
   const onFileChange=e=>{if(e.target.files.length)handleFiles(Array.from(e.target.files));e.target.value='';};
   const onDrop=e=>{e.preventDefault();handleFiles(Array.from(e.dataTransfer.files));};
 
-  // ── Procesar foto de ticket con OCR (Ultra) ──
+  // ── Procesar foto de ticket con OCR ──
   const handleCameraFiles=async(files)=>{
-    if(!isPro){ onUpgrade('upgrade'); return; }
     if(!isPro && tickets.length >= FREE_TICKET_LIMIT){ onUpgrade('tickets'); return; }
+    const photoCount = tickets.filter(t=>t.source==='photo').length;
+    if(!isPro && photoCount >= FREE_TICKET_PHOTO_LIMIT){ onUpgrade('tickets'); return; }
     setLoading(true);
     setOcrProgress(-1);
     let currentIngs=[...ingredients];
@@ -104,7 +106,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
         const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory,learnedMappings);
         currentIngs=updatedIngs;
         currentHistory=newHistory;
-        newTickets.push({...ticket,matched,unmatched});
+        newTickets.push({...ticket,matched,unmatched,source:'photo'});
       }catch(err){
         console.error('Error OCR:',err);
         const msg=err&&err.message?err.message:(typeof err==='string'?err:JSON.stringify(err)||'Error desconocido');
@@ -238,12 +240,14 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
   const activeTicket=tickets.find(t=>t.id===detail);
 
   const ticketAtLimit = !isPro && tickets.length >= FREE_TICKET_LIMIT;
+  const photoCount    = tickets.filter(t=>t.source==='photo').length;
+  const photoAtLimit  = !isPro && photoCount >= FREE_TICKET_PHOTO_LIMIT;
 
   return (
     <div className="fade">
       {!isPro&&<div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between">
-        <span className="text-xs text-amber-700 font-medium">🔒 Plan gratuito · {tickets.length}/{FREE_TICKET_LIMIT} ticket</span>
-        <button onClick={()=>onUpgrade('tickets')} className="text-xs font-bold text-teal-600 hover:underline">Desbloquear Pro →</button>
+        <span className="text-xs text-amber-700 font-medium">🔒 Plan gratuito · {tickets.length}/{FREE_TICKET_LIMIT} tickets · {photoCount}/{FREE_TICKET_PHOTO_LIMIT} foto</span>
+        <button onClick={()=>onUpgrade('tickets')} className="text-xs font-bold text-teal-600 hover:underline">Pro →</button>
       </div>}
       {/* Zona de arrastrar/subir PDF */}
       <div onDrop={ticketAtLimit?undefined:onDrop} onDragOver={ticketAtLimit?undefined:e=>e.preventDefault()}
@@ -264,43 +268,37 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
         <input ref={fileRef} type="file" accept=".pdf" multiple onChange={onFileChange} className="hidden"/>
       </div>
 
-      {/* Botón foto de ticket — Ultra Chef */}
-      {isPro ? (
+      {/* Botón foto de ticket */}
+      {(!photoAtLimit || isPro) ? (
         <div className="mt-3">
-          <button onClick={()=>cameraRef.current?.click()} disabled={loading}
+          <button onClick={()=>photoAtLimit?onUpgrade('tickets'):cameraRef.current?.click()} disabled={loading}
             className={`w-full flex items-center justify-center gap-2 rounded-2xl py-4 font-bold text-sm transition-all active:scale-95
               ${loading?'bg-gray-200 text-gray-500 cursor-not-allowed':'text-white'}`}
-            style={loading?{}:{background:'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',boxShadow:'0 4px 16px rgba(217,119,6,0.35)'}}>
+            style={loading?{}:{background:'linear-gradient(135deg,#0d9488,#0f766e)',boxShadow:'0 4px 16px rgba(13,148,136,0.30)'}}>
             {loading && ocrProgress!==null ? (
               <>
                 <span className="animate-spin">⏳</span>
-                {ocrProgress===-1
-                  ? 'Cargando OCR…'
-                  : `Reconociendo texto… ${ocrProgress}%`}
+                {ocrProgress===-1 ? 'Cargando OCR…' : `Reconociendo texto… ${ocrProgress}%`}
               </>
             ) : (
-              <><span style={{fontSize:'1.4rem'}}>📷</span> Foto de ticket · Ultra Chef</>
+              <><span style={{fontSize:'1.4rem'}}>📷</span> Foto de ticket</>
             )}
           </button>
-
-          {/* Barra de progreso OCR */}
           {ocrProgress!==null && ocrProgress>=0 && (
-            <div className="mt-2 bg-amber-100 rounded-full overflow-hidden h-1.5">
-              <div className="h-full bg-amber-500 transition-all duration-300 rounded-full"
-                style={{width:`${ocrProgress}%`}}/>
+            <div className="mt-2 bg-teal-100 rounded-full overflow-hidden h-1.5">
+              <div className="h-full bg-teal-500 transition-all duration-300 rounded-full" style={{width:`${ocrProgress}%`}}/>
             </div>
           )}
-
-          <p className="text-[10px] text-amber-600 text-center mt-1.5 font-medium">
-            📱 Abre la cámara y enfoca el ticket — el OCR reconocerá los productos automáticamente
+          <p className="text-[10px] text-teal-600 text-center mt-1.5 font-medium">
+            📱 Enfoca el ticket con la cámara — el OCR reconocerá los productos automáticamente
           </p>
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onCameraChange} className="hidden"/>
         </div>
       ) : (
-        <button onClick={()=>onUpgrade('upgrade')}
-          className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 border-2 border-dashed border-amber-200 text-amber-600 text-sm font-semibold hover:bg-amber-50 transition-all">
+        <button onClick={()=>onUpgrade('tickets')}
+          className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 border-2 border-dashed border-gray-200 text-gray-400 text-sm font-semibold hover:bg-gray-50 transition-all">
           <span>📷</span> Foto de ticket
-          <span className="text-[10px] bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold ml-1">Ultra Chef</span>
+          <span className="text-[10px] bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-bold ml-1">Pro · ilimitado</span>
         </button>
       )}
 

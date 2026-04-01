@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { BrowserMultiFormatReader } from '@zxing/browser';
 import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import { useLS } from '../../hooks/useLS';
+import { FREE_SCAN_HISTORY } from '../../data/categories';
 import { Barcode, ShoppingCart, MagnifyingGlass, Warning, Heartbeat } from '@phosphor-icons/react';
 
 /* ── Colores Nutri-Score ───────────────────────────────────────── */
@@ -651,13 +652,13 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         <div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
             <div style={{ fontWeight:800, fontSize:'0.9rem', color:'#1e293b' }}>🕓 Escaneados recientemente</div>
-            <button onClick={() => setHistory([])}
-              style={{ fontSize:'0.7rem', color:'#f87171', background:'none', border:'none', cursor:'pointer' }}>
-              Borrar todo
-            </button>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              {!isPro && <span style={{ fontSize:'0.65rem', color:'#0d9488', fontWeight:700 }}>Últimos {FREE_SCAN_HISTORY} · <span style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>onUpgrade&&onUpgrade('upgrade')}>Pro: 30</span></span>}
+              <button onClick={() => setHistory([])} style={{ fontSize:'0.7rem', color:'#f87171', background:'none', border:'none', cursor:'pointer' }}>Borrar</button>
+            </div>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {history.slice(0,10).map(p => {
+            {history.slice(0, isPro ? 30 : FREE_SCAN_HISTORY).map(p => {
               const ns = p.nutriscore;
               return (
                 <button key={p.barcode + p.scannedAt} onClick={() => { setProduct(p); setMode('result'); }}

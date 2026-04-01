@@ -728,10 +728,24 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   );
 }
 
+// ── Helpers para vista semanal ──────────────────────────────────
+function getWeekMonday(d: Date): Date {
+  const monday = new Date(d);
+  const dow = d.getDay(); // 0=Dom
+  monday.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d); r.setDate(r.getDate() + n); return r;
+}
+
 export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tickets,isPro,onUpgrade}) {
   const now=new Date();
   const [year,setYear]=useState(now.getFullYear());
   const [month,setMonth]=useState(now.getMonth());
+  // Vista semanal (free): Monday de la semana visible
+  const [weekMonday,setWeekMonday]=useState<Date>(()=>getWeekMonday(now));
   const [selDay,setSelDay]=useState(null);
   const [dayMeal,setDayMeal]=useState({lunch:'',dinner:''});
   const [autoModal,setAutoModal]=useState(false);
@@ -818,38 +832,69 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   const nextM=()=>{if(month===11){setYear(y=>y+1);setMonth(0);}else setMonth(m=>m+1);};
   const planned=Object.keys(plan).filter(k=>k.startsWith(`${year}-${fmt2(month+1)}`)).length;
 
+  // Vista semanal helpers
+  const weekDays = Array.from({length:7}, (_,i) => addDays(weekMonday, i));
+  const prevW = () => setWeekMonday(d => addDays(d, -7));
+  const nextW = () => setWeekMonday(d => addDays(d, 7));
+  const weekLabel = () => {
+    const sun = addDays(weekMonday, 6);
+    const sm = weekMonday.getMonth(), em = sun.getMonth();
+    if (sm === em) return `${weekMonday.getDate()}–${sun.getDate()} ${MONTH_NAMES[sm]} ${weekMonday.getFullYear()}`;
+    return `${weekMonday.getDate()} ${MONTH_NAMES[sm]} – ${sun.getDate()} ${MONTH_NAMES[em]}`;
+  };
+  const weekPlanned = weekDays.filter(d => {
+    const k = `${d.getFullYear()}-${fmt2(d.getMonth()+1)}-${fmt2(d.getDate())}`;
+    return plan[k]?.lunch || plan[k]?.dinner;
+  }).length;
+
   return (
     <div className="fade-in">
 
       {/* ── Header ── */}
       <div className="mb-4">
         <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-          <span style={{display:'flex',alignItems:'center',gap:8}}>Plan mensual</span>
+          {isPro ? 'Plan mensual' : 'Plan semanal'}
         </h1>
         <p className="text-sm text-gray-400 mt-1">
-          {planned>0
-            ? <><span className="font-bold text-teal-600">{planned}</span> días planificados en {MONTH_NAMES[month]}</>
-            : 'Toca un día para asignar un plato'}
+          {isPro
+            ? (planned>0 ? <><span className="font-bold text-teal-600">{planned}</span> días planificados en {MONTH_NAMES[month]}</> : 'Toca un día para asignar un plato')
+            : (weekPlanned>0 ? <><span className="font-bold text-teal-600">{weekPlanned}</span> días planificados esta semana</> : 'Toca un día para asignar un plato')}
         </p>
       </div>
 
-      {/* ── Month nav ── */}
+      {/* ── Nav ── */}
       <div className="flex items-center justify-between mb-3" style={{background:'#fff',borderRadius:18,padding:'8px 10px',border:'1px solid #e2e8f0',boxShadow:'0 1px 4px rgba(0,0,0,.04)'}}>
-        <button onClick={prevM}
+        <button onClick={isPro ? prevM : prevW}
           className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors hover:bg-teal-50"
           style={{border:'1px solid #e2e8f0'}}>
           <CaretLeft size={16} color="#0f766e" weight="bold"/>
         </button>
         <div className="text-center">
-          <h2 className="font-black text-gray-900 leading-none" style={{fontSize:'1.05rem',letterSpacing:'-0.02em'}}>{MONTH_NAMES[month]} <span style={{color:'#94a3b8',fontWeight:500}}>{year}</span></h2>
-          {planned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{planned} días planificados</p>}
+          {isPro
+            ? <><h2 className="font-black text-gray-900 leading-none" style={{fontSize:'1.05rem',letterSpacing:'-0.02em'}}>{MONTH_NAMES[month]} <span style={{color:'#94a3b8',fontWeight:500}}>{year}</span></h2>
+              {planned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{planned} días planificados</p>}</>
+            : <><h2 className="font-black text-gray-900 leading-none" style={{fontSize:'0.9rem',letterSpacing:'-0.02em'}}>{weekLabel()}</h2>
+              {weekPlanned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{weekPlanned} días planificados</p>}</>
+          }
         </div>
-        <button onClick={nextM}
+        <button onClick={isPro ? nextM : nextW}
           className="w-9 h-9 rounded-xl flex items-center justify-center transition-colors hover:bg-teal-50"
           style={{border:'1px solid #e2e8f0'}}>
           <CaretRight size={16} color="#0f766e" weight="bold"/>
         </button>
       </div>
+
+      {/* ── Upgrade banner (free) ── */}
+      {!isPro && (
+        <div className="mb-3 flex items-center gap-3 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('automenu')}>
+          <span className="text-lg">📅</span>
+          <div className="flex-1">
+            <p className="text-xs font-bold text-teal-700">Vista mensual — Pro</p>
+            <p className="text-[10px] text-teal-600">Planifica el mes completo y genera menús automáticos</p>
+          </div>
+          <span className="text-xs font-bold text-teal-600 shrink-0">Ver →</span>
+        </div>
+      )}
 
       <div className="flex justify-end mb-2">
         <button onClick={()=>setClearModal(true)}
@@ -858,7 +903,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         </button>
       </div>
 
-      {/* ── Calendario full-bleed ── */}
+      {/* ── Calendario ── */}
       <div className="-mx-4 bg-white rounded-none overflow-hidden" style={{borderTop:'1px solid #f1f5f9',borderBottom:'1px solid #f1f5f9'}}>
         {/* Cabecera días */}
         <div className="grid grid-cols-7 border-b border-gray-100">
@@ -870,55 +915,87 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         </div>
         {/* Celdas */}
         <div className="grid grid-cols-7" style={{gap:'1px',background:'#e2e8f0'}}>
-          {Array.from({length:firstWD}).map((_,i)=><div key={'e'+i} style={{background:'#f8fdf8'}}/>)}
-          {Array.from({length:days}).map((_,i)=>{
-            const d=i+1,k=dateKey(year,month,d),dp=plan[k];
-            const isToday=year===now.getFullYear()&&month===now.getMonth()&&d===now.getDate();
-            const hasFood=dp?.lunch||dp?.dinner;
-            return (
-              <div key={d} onClick={()=>openDay(d)}
-                className="relative cursor-pointer group transition-colors"
-                style={{
-                  minHeight:86,
-                  padding:'6px 5px 4px',
-                  background: isToday ? '#f0fdfa' : '#fff',
-                }}>
-                {/* Today: left border accent */}
-                {isToday&&<div style={{position:'absolute',top:0,left:0,bottom:0,width:3,background:'#0d9488',borderRadius:'0 0 0 0'}}/>}
-                {/* Day number */}
-                <div style={{
-                  display:'inline-flex',alignItems:'center',justifyContent:'center',
-                  width:22,height:22,borderRadius:'50%',marginBottom:4,
-                  background: isToday ? '#0d9488' : 'transparent',
-                  fontSize:'0.78rem',fontWeight:isToday?800:hasFood?700:400,
-                  color:isToday?'#fff':hasFood?'#0f172a':'#cbd5e1',
-                  lineHeight:1,
-                }}>
-                  {d}
-                </div>
-                {/* Lunch */}
-                {dp?.lunch&&(
-                  <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#fef9c3',color:'#854d0e',borderRadius:5,padding:'2px 5px',marginBottom:2,fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #eab308'}}>
-                    {dishMap[dp.lunch]?.name||'?'}
+          {isPro ? (
+            // ── Vista mensual (Pro) ──
+            <>
+              {Array.from({length:firstWD}).map((_,i)=><div key={'e'+i} style={{background:'#f8fdf8'}}/>)}
+              {Array.from({length:days}).map((_,i)=>{
+                const d=i+1,k=dateKey(year,month,d),dp=plan[k];
+                const isToday=year===now.getFullYear()&&month===now.getMonth()&&d===now.getDate();
+                const hasFood=dp?.lunch||dp?.dinner;
+                return (
+                  <div key={d} onClick={()=>openDay(d)}
+                    className="relative cursor-pointer group transition-colors"
+                    style={{minHeight:86,padding:'6px 5px 4px',background:isToday?'#f0fdfa':'#fff'}}>
+                    {isToday&&<div style={{position:'absolute',top:0,left:0,bottom:0,width:3,background:'#0d9488'}}/>}
+                    <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:22,height:22,borderRadius:'50%',marginBottom:4,background:isToday?'#0d9488':'transparent',fontSize:'0.78rem',fontWeight:isToday?800:hasFood?700:400,color:isToday?'#fff':hasFood?'#0f172a':'#cbd5e1',lineHeight:1}}>
+                      {d}
+                    </div>
+                    {dp?.lunch&&(
+                      <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#fef9c3',color:'#854d0e',borderRadius:5,padding:'2px 5px',marginBottom:2,fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #eab308'}}>
+                        {dishMap[dp.lunch]?.name||'?'}
+                      </div>
+                    )}
+                    {dp?.dinner&&(
+                      <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#f0fdfa',color:'#134e4a',borderRadius:5,padding:'2px 5px',fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #0d9488'}}>
+                        {dishMap[dp.dinner]?.name||'?'}
+                      </div>
+                    )}
+                    {hasFood&&(
+                      <button onClick={e=>{e.stopPropagation();clearDay(d);}}
+                        className="absolute top-1 right-1 w-4 h-4 rounded-full items-center justify-center transition-all hidden group-hover:flex"
+                        style={{background:'#f1f5f9',color:'#94a3b8',border:'1px solid #e2e8f0'}}>
+                        <X size={8}/>
+                      </button>
+                    )}
                   </div>
-                )}
-                {/* Dinner */}
-                {dp?.dinner&&(
-                  <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#f0fdfa',color:'#134e4a',borderRadius:5,padding:'2px 5px',fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #0d9488'}}>
-                    {dishMap[dp.dinner]?.name||'?'}
+                );
+              })}
+            </>
+          ) : (
+            // ── Vista semanal (Free) ──
+            <>
+              {weekDays.map((wd,i)=>{
+                const ky=`${wd.getFullYear()}-${fmt2(wd.getMonth()+1)}-${fmt2(wd.getDate())}`;
+                const dp=plan[ky];
+                const isToday=wd.toDateString()===now.toDateString();
+                const hasFood=dp?.lunch||dp?.dinner;
+                const openWeekDay=()=>{
+                  // Temporarily set year/month to this day so openDay works
+                  setYear(wd.getFullYear());
+                  setMonth(wd.getMonth());
+                  openDay(wd.getDate());
+                };
+                return (
+                  <div key={i} onClick={openWeekDay}
+                    className="relative cursor-pointer group transition-colors"
+                    style={{minHeight:86,padding:'6px 5px 4px',background:isToday?'#f0fdfa':'#fff'}}>
+                    {isToday&&<div style={{position:'absolute',top:0,left:0,bottom:0,width:3,background:'#0d9488'}}/>}
+                    <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:22,height:22,borderRadius:'50%',marginBottom:4,background:isToday?'#0d9488':'transparent',fontSize:'0.78rem',fontWeight:isToday?800:hasFood?700:400,color:isToday?'#fff':hasFood?'#0f172a':'#cbd5e1',lineHeight:1}}>
+                      {wd.getDate()}
+                    </div>
+                    {dp?.lunch&&(
+                      <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#fef9c3',color:'#854d0e',borderRadius:5,padding:'2px 5px',marginBottom:2,fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #eab308'}}>
+                        {dishMap[dp.lunch]?.name||'?'}
+                      </div>
+                    )}
+                    {dp?.dinner&&(
+                      <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#f0fdfa',color:'#134e4a',borderRadius:5,padding:'2px 5px',fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #0d9488'}}>
+                        {dishMap[dp.dinner]?.name||'?'}
+                      </div>
+                    )}
+                    {hasFood&&(
+                      <button onClick={e=>{e.stopPropagation();setPlan(p=>{const n={...p};delete n[ky];return n;});}}
+                        className="absolute top-1 right-1 w-4 h-4 rounded-full items-center justify-center transition-all hidden group-hover:flex"
+                        style={{background:'#f1f5f9',color:'#94a3b8',border:'1px solid #e2e8f0'}}>
+                        <X size={8}/>
+                      </button>
+                    )}
                   </div>
-                )}
-                {/* Clear btn on hover */}
-                {hasFood&&(
-                  <button onClick={e=>{e.stopPropagation();clearDay(d);}}
-                    className="absolute top-1 right-1 w-4 h-4 rounded-full items-center justify-center transition-all hidden group-hover:flex"
-                    style={{background:'#f1f5f9',color:'#94a3b8',border:'1px solid #e2e8f0'}}>
-                    <X size={8}/>
-                  </button>
-                )}
-              </div>
-            );
-          })}
+                );
+              })}
+            </>
+          )}
         </div>
       </div>
 

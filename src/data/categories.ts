@@ -5,8 +5,12 @@ const CAT_EMOJI  = {carnes:'🥩',pescado:'🐟',verduras:'🥦',legumbres:'🫘
 const CAT_BG     = {carnes:'bg-red-100',pescado:'bg-sky-100',verduras:'bg-emerald-100',legumbres:'bg-amber-100','lácteos':'bg-yellow-100','pasta y harinas':'bg-orange-100',conservas:'bg-slate-100',fruta:'bg-orange-100',bebidas:'bg-stone-100',congelados:'bg-cyan-100','bollería y dulces':'bg-pink-100','snacks y aperitivos':'bg-lime-100','especias y condimentos':'bg-teal-100'};
 const CAT_TEXT   = {carnes:'text-red-700',pescado:'text-sky-700',verduras:'text-emerald-700',legumbres:'text-amber-700','lácteos':'text-yellow-700','pasta y harinas':'text-orange-700',conservas:'text-slate-700',fruta:'text-orange-700',bebidas:'text-stone-700',congelados:'text-cyan-700','bollería y dulces':'text-pink-700','snacks y aperitivos':'text-lime-700','especias y condimentos':'text-teal-700'};
 
-const FREE_DISH_LIMIT   = 2;
-const FREE_TICKET_LIMIT = 1;
+const FREE_DISH_LIMIT          = 5;   // max saved dishes in free
+const FREE_TICKET_LIMIT        = 3;   // max total tickets in free
+const FREE_TICKET_PHOTO_LIMIT  = 1;   // max photo/OCR tickets in free
+const FREE_SUGGESTION_LIMIT    = 5;   // max AI suggestions shown in free
+const FREE_SCAN_HISTORY        = 5;   // scan history items shown in free
+const FREE_PRICE_HISTORY_DAYS  = 30;  // days of price history in free
 
 const ING_EMOJI={
   'pollo':'🍗','pechuga de pollo':'🍗','muslos de pollo':'🍗','pollo entero':'🍗',
@@ -37,7 +41,7 @@ const ING_EMOJI={
   'pimentón':'🧂','pimentón dulce':'🧂','pimentón picante':'🌶️','comino':'🧂','orégano':'🌿','pimienta':'🧂','canela':'🧂','tomillo':'🌿','romero':'🌿','laurel':'🌿',
 };
 
-export { CATEGORIES, CAT_EMOJI, CAT_BG, CAT_TEXT, ING_EMOJI, FREE_DISH_LIMIT, FREE_TICKET_LIMIT };
+export { CATEGORIES, CAT_EMOJI, CAT_BG, CAT_TEXT, ING_EMOJI, FREE_DISH_LIMIT, FREE_TICKET_LIMIT, FREE_TICKET_PHOTO_LIMIT, FREE_SUGGESTION_LIMIT, FREE_SCAN_HISTORY, FREE_PRICE_HISTORY_DAYS };
 
 export function getIngEmoji(name: string, cat: string): string {
   const n = name.toLowerCase();
