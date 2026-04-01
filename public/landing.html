@@ -229,6 +229,15 @@
       .phone-shell.lg { width: 126px; }
       .phone-img { border-radius: 22px; }
     }
+
+    /* ── PROMO BANNER (desktop only) ── */
+    .promo-banner-wrap {
+      background: linear-gradient(180deg, var(--green-50) 0%, #fff 100%);
+      padding: 0 24px 64px;
+    }
+    @media (max-width: 760px) {
+      .promo-banner-wrap { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -252,19 +261,26 @@
 
 <!-- ── HERO ── -->
 <section class="hero">
-  <div class="hero-badge">✨ Sin anuncios · Datos en la nube</div>
   <h1>Olvídate de pensar<br/><span>qué cocinar</span> cada día</h1>
   <p>Escanea tus tickets, organiza tu despensa y deja que MiDespensa planifique el mes por ti.</p>
   <div class="hero-cta">
     <a href="/app" class="btn btn-green" style="font-size:1rem; padding:13px 30px;">Probar la app</a>
     <a href="#como-funciona" class="btn btn-outline-green" style="font-size:1rem; padding:13px 30px;">Ver cómo funciona</a>
   </div>
-  <div class="hero-trust">
-    <span>📱 Web y PWA instalable</span>
-    <span>👨‍👩‍👧 Para toda la familia</span>
-    <span>🚫 Sin anuncios</span>
-  </div>
 </section>
+
+<!-- ── PROMO VIDEO BANNER (solo desktop) ── -->
+<div class="promo-banner-wrap">
+  <div style="max-width:900px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.22);">
+    <iframe
+      src="/promo"
+      style="width:100%;aspect-ratio:900/560;border:none;display:block;background:#020c0c;"
+      scrolling="no"
+      loading="lazy"
+      title="MiDespensa – presentación"
+    ></iframe>
+  </div>
+</div>
 <!-- ── HERO PHONES ── -->
 <div class="hero-phones">
   <div class="phones-row">
@@ -346,24 +362,6 @@
   </div>
 </section>
 
-
-<!-- ── PROMO VIDEO ── -->
-<section style="background:#fff;padding:64px 0 56px;text-align:center;">
-  <div class="section-inner" style="padding:0 24px;">
-    <div class="section-label">Vídeo de presentación</div>
-    <h2 class="section-title" style="margin-bottom:8px;">Mira cómo funciona</h2>
-    <p class="section-sub" style="margin:0 auto 36px;max-width:520px;">Todas las funciones de MiDespensa en 35 segundos.</p>
-  </div>
-  <div style="max-width:900px;margin:0 auto;border-radius:20px;overflow:hidden;box-shadow:0 16px 52px rgba(0,0,0,0.18);">
-    <iframe
-      src="/promo"
-      style="width:100%;aspect-ratio:900/560;border:none;display:block;background:#020c0c;"
-      scrolling="no"
-      loading="lazy"
-      title="MiDespensa – presentación"
-    ></iframe>
-  </div>
-</section>
 
 <!-- ── SUGGESTION SPOTLIGHT ── -->
 <section class="ticket-spot">
