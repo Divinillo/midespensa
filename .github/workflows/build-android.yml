@@ -20,36 +20,26 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Accept Android SDK licenses & install build tools
-        run: |
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          yes | sdkmanager --licenses > /dev/null 2>&1 || true
-          sdkmanager "platforms;android-34" "build-tools;34.0.0" --sdk_root=$ANDROID_SDK_ROOT
-
-      - name: Cache Gradle packages
-        uses: actions/cache@v4
+      - name: Set up Gradle 8.4
+        uses: gradle/actions/setup-gradle@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('android-twa/**/*.gradle', 'android-twa/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: gradle-
+          gradle-version: '8.4'
+          cache-disabled: true
 
-      - name: Download Gradle wrapper jar
-        working-directory: android-twa
+      - name: Accept Android SDK licenses & install platform-34
         run: |
-          mkdir -p gradle/wrapper
-          curl -sL "https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar" \
-            -o gradle/wrapper/gradle-wrapper.jar
-          echo "✅ gradle-wrapper.jar: $(wc -c < gradle/wrapper/gradle-wrapper.jar) bytes"
-          chmod +x gradlew
+          SDKMANAGER="$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          echo "sdkmanager=$SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          "$SDKMANAGER" "platforms;android-34" "build-tools;34.0.0"
 
       - name: Decode keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 -d > android-twa/midespensa.keystore
-          echo "✅ Keystore decodificado ($(wc -c < android-twa/midespensa.keystore) bytes)"
+          echo "$KEYSTORE_BASE64" | base64 -d > android-twa/app/midespensa.keystore
+          echo "✅ Keystore: $(wc -c < android-twa/app/midespensa.keystore) bytes"
 
       - name: Build release AAB (Google Play)
         working-directory: android-twa
@@ -58,8 +48,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-        run: ./gradlew bundleRelease --no-daemon --stacktrace --info 2>&1 | tail -100
+        run: gradle bundleRelease --no-daemon --stacktrace
 
       - name: Build release APK (pruebas internas)
         working-directory: android-twa
@@ -68,8 +57,7 @@ jobs:
           STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-        run: ./gradlew assembleRelease --no-daemon
+        run: gradle assembleRelease --no-daemon
 
       - name: Upload AAB → sube esto a Google Play
         uses: actions/upload-artifact@v4
