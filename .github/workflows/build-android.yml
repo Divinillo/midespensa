@@ -1,0 +1,67 @@
+name: Build Android TWA
+
+on:
+  workflow_dispatch:        # Lanzar manualmente desde GitHub → Actions → Build Android TWA → Run workflow
+  push:
+    tags:
+      - 'android-v*'        # O al crear un tag: git tag android-v1.0.0 && git push --tags
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle 8.4
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          echo "$KEYSTORE_BASE64" | base64 -d > android-twa/midespensa.keystore
+
+      - name: Build release AAB (Google Play)
+        working-directory: android-twa
+        env:
+          KEYSTORE_PATH: midespensa.keystore
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle bundleRelease --no-daemon
+
+      - name: Build release APK (pruebas internas)
+        working-directory: android-twa
+        env:
+          KEYSTORE_PATH: midespensa.keystore
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: gradle assembleRelease --no-daemon
+
+      - name: Upload AAB → sube esto a Google Play
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiDespensa-release.aab
+          path: android-twa/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 60
+
+      - name: Upload APK → instala para probar
+        uses: actions/upload-artifact@v4
+        with:
+          name: MiDespensa-release.apk
+          path: android-twa/app/build/outputs/apk/release/app-release.apk
+          retention-days: 60

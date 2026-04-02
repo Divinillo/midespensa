@@ -29,3 +29,7 @@ dist-ssr
 .env
 .env.local
 .env.production
+
+# Android signing keystore — NUNCA subir a git
+android-twa/midespensa.keystore
+twa-build/

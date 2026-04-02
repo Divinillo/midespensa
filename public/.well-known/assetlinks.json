@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.midespensa.twa",
+    "sha256_cert_fingerprints": [
+      "F8:9C:E3:A9:5A:B6:FC:DD:28:14:76:47:40:6E:52:E8:F4:57:01:90:AD:F7:3D:C0:12:32:10:1E:FA:65:73:80"
+    ]
+  }
+}]
