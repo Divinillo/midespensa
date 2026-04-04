@@ -38,7 +38,8 @@ const DEFAULT_PASTEL = { bg: '#f1f5f9', border: '#cbd5e1', accent: '#475569' };
 ════════════════════════════════════════════════════════════════ */
 function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
   const pal         = CAT_PASTEL[ing.category] || DEFAULT_PASTEL;
-  const emoji       = getIngEmoji(ing.name, ing.category);
+  const { isUS }    = useMarket();
+  const emoji       = getIngEmoji(ing.name, ing.category, isUS);
   const ingName     = useIngredientName();
   const displayName = ingName(ing);
 
