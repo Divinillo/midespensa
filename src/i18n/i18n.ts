@@ -4,6 +4,13 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 import { en } from './locales/en';
 import { es } from './locales/es';
 
+// If ?lang=en or ?lang=es is in the URL, honour it immediately and persist it.
+// This is the most reliable way to set language from a landing page link.
+const urlLang = new URLSearchParams(window.location.search).get('lang');
+if (urlLang === 'en' || urlLang === 'es') {
+  try { localStorage.setItem('midespensa_lang', urlLang); } catch (_) {}
+}
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
@@ -13,9 +20,10 @@ i18n
       es: { translation: es },
     },
     fallbackLng: 'es',
-    // Detection order: localStorage → navigator language → fallback
+    // Detection order: querystring → localStorage → navigator language → fallback
     detection: {
-      order: ['localStorage', 'navigator'],
+      order: ['querystring', 'localStorage', 'navigator'],
+      lookupQuerystring: 'lang',
       lookupLocalStorage: 'midespensa_lang',
       caches: ['localStorage'],
     },
