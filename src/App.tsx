@@ -354,63 +354,79 @@ export function App() {
 
           {/* Cuenta */}
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-            <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Cuenta</h3>
-            <p className="text-xs text-blue-600 mb-1">Sesión iniciada como <strong>{session?.user?.email}</strong></p>
+            <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ {isUS ? 'Account' : 'Cuenta'}</h3>
+            <p className="text-xs text-blue-600 mb-1">{isUS ? 'Signed in as' : 'Sesión iniciada como'} <strong>{session?.user?.email}</strong></p>
             {syncStatus && <p className="text-xs text-teal-600 mb-2">{syncStatus}</p>}
             <button
               onClick={async () => {
-                if (window.confirm('¿Cerrar sesión?')) {
+                if (window.confirm(isUS ? 'Sign out?' : '¿Cerrar sesión?')) {
                   await supabase.auth.signOut();
                   window.location.reload();
                 }
               }}
               style={{marginTop:8,borderRadius:10,padding:'8px 14px',fontSize:'0.82rem',fontWeight:700,border:'none',background:'#ef4444',color:'#fff',cursor:'pointer'}}
             >
-              Cerrar sesión
+              {isUS ? 'Sign out' : 'Cerrar sesión'}
             </button>
           </div>
           {/* Storage warning */}
           <div style={{borderRadius:12,padding:'12px 14px',background:'#fffbeb',border:'1px solid #fde68a',display:'flex',gap:10,alignItems:'flex-start'}}>
             <span style={{fontSize:'1.1rem',flexShrink:0}}>⚠️</span>
             <div>
-              <div style={{fontWeight:700,fontSize:'0.78rem',color:'#92400e',marginBottom:2}}>Datos guardados solo en este dispositivo</div>
-              <div style={{fontSize:'0.7rem',color:'#b45309',lineHeight:1.5}}>Si limpias el caché del navegador o cambias de dispositivo perderás tus datos. Haz un backup periódico con el botón de abajo.</div>
+              <div style={{fontWeight:700,fontSize:'0.78rem',color:'#92400e',marginBottom:2}}>{isUS ? 'Data saved on this device only' : 'Datos guardados solo en este dispositivo'}</div>
+              <div style={{fontSize:'0.7rem',color:'#b45309',lineHeight:1.5}}>{isUS ? 'If you clear your browser cache or switch devices you will lose your data. Make periodic backups with the button below.' : 'Si limpias el caché del navegador o cambias de dispositivo perderás tus datos. Haz un backup periódico con el botón de abajo.'}</div>
             </div>
           </div>
           <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
-            <h3 className="font-bold text-green-800 text-sm mb-1">📤 Exportar datos</h3>
-            <p className="text-xs text-teal-600 mb-3">Descarga todos tus datos como copia de seguridad.</p>
-            <button onClick={exportData} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#0d9488',color:'#fff'}}>Descargar backup .json</button>
+            <h3 className="font-bold text-green-800 text-sm mb-1">📤 {isUS ? 'Export data' : 'Exportar datos'}</h3>
+            <p className="text-xs text-teal-600 mb-3">{isUS ? 'Download all your data as a backup.' : 'Descarga todos tus datos como copia de seguridad.'}</p>
+            <button onClick={exportData} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#0d9488',color:'#fff'}}>{isUS ? 'Download backup .json' : 'Descargar backup .json'}</button>
           </div>
           <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-            <h3 className="font-bold text-emerald-800 text-sm mb-1">📥 Importar datos</h3>
-            <p className="text-xs text-emerald-600 mb-3">Carga un backup. <strong>Reemplazará todos los datos actuales.</strong></p>
-            <button onClick={() => importRef.current?.click()} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#059669',color:'#fff'}}>Cargar fichero .json</button>
+            <h3 className="font-bold text-emerald-800 text-sm mb-1">📥 {isUS ? 'Import data' : 'Importar datos'}</h3>
+            <p className="text-xs text-emerald-600 mb-3">{isUS ? <>Load a backup. <strong>This will replace all current data.</strong></> : <>Carga un backup. <strong>Reemplazará todos los datos actuales.</strong></>}</p>
+            <button onClick={() => importRef.current?.click()} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#059669',color:'#fff'}}>{isUS ? 'Load .json file' : 'Cargar fichero .json'}</button>
             <input ref={importRef} type="file" accept=".json" onChange={importData} className="hidden" />
             {importError && <p className="text-xs text-red-500 mt-2">{importError}</p>}
           </div>
           <div className="bg-sky-50 rounded-xl p-4 border border-sky-100 flex items-center justify-between">
             <div>
-              <h3 className="font-semibold text-sky-800 text-sm">🚀 Repetir configuración inicial</h3>
-              <p className="text-xs text-sky-600 mt-0.5">Vuelve a ver el wizard de bienvenida</p>
+              <h3 className="font-semibold text-sky-800 text-sm">🚀 {isUS ? 'Repeat initial setup' : 'Repetir configuración inicial'}</h3>
+              <p className="text-xs text-sky-600 mt-0.5">{isUS ? 'See the welcome wizard again' : 'Vuelve a ver el wizard de bienvenida'}</p>
             </div>
-            <button onClick={resetWizard} className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0" style={{background:'#0284c7',color:'#fff'}}>Reiniciar</button>
+            <button onClick={resetWizard} className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0" style={{background:'#0284c7',color:'#fff'}}>{isUS ? 'Restart' : 'Reiniciar'}</button>
           </div>
           {!isStandaloneApp() && (
             <div className="bg-teal-50 rounded-xl p-4 border border-teal-100 flex items-center justify-between">
               <div>
-                <h3 className="font-semibold text-teal-800 text-sm">📲 Añadir a pantalla de inicio</h3>
-                <p className="text-xs text-teal-600 mt-0.5">Ver cómo instalar la app en tu dispositivo</p>
+                <h3 className="font-semibold text-teal-800 text-sm">📲 {isUS ? 'Add to home screen' : 'Añadir a pantalla de inicio'}</h3>
+                <p className="text-xs text-teal-600 mt-0.5">{isUS ? 'See how to install the app on your device' : 'Ver cómo instalar la app en tu dispositivo'}</p>
               </div>
               <button
                 onClick={() => { setShowSettings(false); setShowPWAWizard(true); }}
                 className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0"
                 style={{ background: '#0d9488', color: '#fff' }}
               >
-                Ver guía
+                {isUS ? 'View guide' : 'Ver guía'}
               </button>
             </div>
           )}
+          {/* Website link */}
+          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-gray-700 text-sm">🌐 {isUS ? 'Go to website' : 'Ir a la web'}</h3>
+              <p className="text-xs text-gray-400 mt-0.5">{isUS ? 'midespensa.app/en' : 'midespensa.app'}</p>
+            </div>
+            <a
+              href={isUS ? 'https://midespensa.app/en' : 'https://midespensa.app/'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0"
+              style={{ background: '#0d9488', color: '#fff', textDecoration: 'none' }}
+            >
+              {isUS ? 'Open' : 'Abrir'}
+            </a>
+          </div>
           {/* Plan status */}
           <div className={`rounded-xl p-4 border ${isTrial ? 'bg-green-50 border-green-200' : isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
             <h3 className={`font-bold text-sm mb-1 ${isTrial ? 'text-green-800' : isPro ? 'text-amber-800' : 'text-teal-800'}`}>{planLabel}</h3>
