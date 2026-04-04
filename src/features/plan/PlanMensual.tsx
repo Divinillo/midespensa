@@ -109,7 +109,7 @@ function DayPicker({year,month,plan,selected,setSelected,highlightHasFood=true})
    LIMPIAR DÍAS — Modal
 ═══════════════════════════════════════ */
 function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
-  const { isUS } = useMarket();
+  const { isUS, isEN } = useMarket();
   const [selected,setSelected]=useState([]);
   const days=getDays(year,month);
 
@@ -137,22 +137,22 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
   const withFoodSel=selected.filter(d=>daysWithFood.includes(d)).length;
 
   return (
-    <Modal open={open} onClose={onClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><Trash size={18}/> {isUS ? 'Clear days' : 'Limpiar días'}</div>} wide>
+    <Modal open={open} onClose={onClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><Trash size={18}/> {isEN ? 'Clear days' : 'Limpiar días'}</div>} wide>
       <div className="space-y-4">
         {/* Acciones rápidas */}
         <div className="flex flex-wrap gap-2">
           <button onClick={selectWithFood} className="text-xs px-3 py-1.5 rounded-xl bg-teal-50 text-teal-700 font-semibold border border-teal-200 hover:bg-teal-100 transition-all">
-            🍽️ {isUS ? `With meals (${daysWithFood.length})` : `Con comida (${daysWithFood.length})`}
+            🍽️ {isEN ? `With meals (${daysWithFood.length})` : `Con comida (${daysWithFood.length})`}
           </button>
           <button onClick={selectAll} className="text-xs px-3 py-1.5 rounded-xl bg-gray-50 text-gray-600 font-semibold border border-gray-200 hover:bg-gray-100 transition-all">
-            {isUS ? `All (${days})` : `Todos (${days})`}
+            {isEN ? `All (${days})` : `Todos (${days})`}
           </button>
           <button onClick={clearAll} className="text-xs px-3 py-1.5 rounded-xl bg-gray-50 text-gray-400 font-semibold border border-gray-200 hover:bg-gray-100 transition-all">
-            {isUS ? 'Clear selection' : 'Limpiar selección'}
+            {isEN ? 'Clear selection' : 'Limpiar selección'}
           </button>
         </div>
         {/* Instrucción */}
-        <p className="text-xs text-gray-400">{isUS ? 'Tap a day or drag to select multiple.' : 'Toca un día o arrastra para seleccionar varios.'}</p>
+        <p className="text-xs text-gray-400">{isEN ? 'Tap a day or drag to select multiple.' : 'Toca un día o arrastra para seleccionar varios.'}</p>
         {/* Calendario picker */}
         <DayPicker year={year} month={month} plan={plan} selected={selected} setSelected={setSelected}/>
         {/* Botón acción */}
@@ -160,8 +160,8 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
           className={`w-full py-2.5 rounded-xl font-bold text-sm transition-all
             ${selCount===0?'bg-gray-200 text-gray-400 cursor-not-allowed':'bg-red-500 text-white hover:bg-red-600 active:scale-95 shadow-sm'}`}>
           {selCount===0
-            ? (isUS ? 'Select days to clear' : 'Selecciona días para borrar')
-            : <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={16}/> {isUS ? `Clear ${selCount} day${selCount!==1?'s':''} ${withFoodSel>0?`(${withFoodSel} with meals)`:''}` : `Borrar ${selCount} día${selCount!==1?'s':''} ${withFoodSel>0?`(${withFoodSel} con comida)`:''}`}</span>}
+            ? (isEN ? 'Select days to clear' : 'Selecciona días para borrar')
+            : <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={16}/> {isEN ? `Clear ${selCount} day${selCount!==1?'s':''} ${withFoodSel>0?`(${withFoodSel} with meals)`:''}` : `Borrar ${selCount} día${selCount!==1?'s':''} ${withFoodSel>0?`(${withFoodSel} con comida)`:''}`}</span>}
         </button>
       </div>
     </Modal>
@@ -172,7 +172,7 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
    MENÚ AUTOMÁTICO — Modal Premium
 ═══════════════════════════════════════ */
 function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,setIngredients}) {
-  const { monthNames, isUS } = useMarket();
+  const { monthNames, isUS, isEN } = useMarket();
   const now=new Date();
   const [range,setRange]=useState('semana');
   const [customDays,setCustomDays]=useState([]);

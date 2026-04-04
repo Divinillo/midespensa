@@ -55,7 +55,7 @@ interface ScannedProduct {
 
 export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean; onUpgrade?: (reason: string) => void }) {
   const { t } = useTranslation();
-  const { isUS } = useMarket();
+  const { isUS, isEN } = useMarket();
   const NUTRI_FIELDS = isUS ? NUTRI_FIELDS_US : NUTRI_FIELDS_ES;
 
   const [history, setHistory] = useLS<ScannedProduct[]>('scanner_history_v1', []);
@@ -296,7 +296,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             style={{ width:36, height:36, borderRadius:12, background:'#f1f5f9', border:'none', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             ←
           </button>
-          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Food Scanner' : 'Escáner de alimentos'}</div>
+          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isEN ? 'Food Scanner' : 'Escáner de alimentos'}</div>
         </div>
 
         <div style={{ borderRadius:20, background:'#fff', border:'1.5px solid #e2e8f0', padding:'16px', marginBottom:12, boxShadow:'0 2px 10px rgba(0,0,0,.07)', display:'flex', gap:14, alignItems:'flex-start' }}>

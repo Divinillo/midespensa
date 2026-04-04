@@ -14,7 +14,7 @@ import { useMarket } from '../../i18n/useMarket';
 declare const window: any;
 
 export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHistory,setPriceHistory,learnedMappings={},setLearnedMappings,isPro,onUpgrade}) {
-  const { formatPrice: fp, isUS } = useMarket();
+  const { formatPrice: fp, isUS, isEN } = useMarket();
   const [pdfjsReady,setPdfjsReady]=useState(false);
   const [loading,setLoading]=useState(false);
   const [ocrProgress,setOcrProgress]=useState(null); // null | -1 (cargando) | 0-100

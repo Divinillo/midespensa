@@ -130,7 +130,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
 export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '' }) {
   const [period, setPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [loading, setLoading] = useState(false);
-  const { isUS, stripeConfig, formatPrice } = useMarket();
+  const { isUS, isEN, stripeConfig, formatPrice } = useMarket();
 
   const monthlyPrice = stripeConfig.monthly;
   const yearlyPrice = stripeConfig.yearly;
@@ -176,7 +176,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
   };
 
   return (
-    <Modal open={open} onClose={close} title={isUS ? '💎 Unlock Pro version' : '💎 Desbloquear versión Pro'}>
+    <Modal open={open} onClose={close} title={isEN ? '💎 Unlock Pro version' : '💎 Desbloquear versión Pro'}>
       <div className="space-y-4">
         <div className="rounded-2xl p-4 text-center border bg-gradient-to-br from-teal-50 to-purple-50 border-teal-100">
           <div className="text-3xl mb-1.5">{r.icon}</div>
@@ -185,8 +185,8 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">{isUS ? '✨ Pro includes everything, no limits' : '✨ Pro incluye todo, sin límites'}</p>
-          {(isUS ? [
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">{isEN ? '✨ Pro includes everything, no limits' : '✨ Pro incluye todo, sin límites'}</p>
+          {(isEN ? [
             ['🍽️', 'Unlimited recipes'],
             ['🧾', 'Unlimited receipts'],
             ['✨', 'Auto menu'],
@@ -215,20 +215,20 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
             onClick={() => setPeriod('monthly')}
             className={`rounded-xl p-3 border-2 text-center transition-all ${period === 'monthly' ? 'border-teal-500 bg-teal-50' : 'border-gray-200 bg-white'}`}
           >
-            <div className={`text-sm font-bold ${period === 'monthly' ? 'text-teal-700' : 'text-gray-700'}`}>{fmtMonthly}/{isUS?'mo':'mes'}</div>
-            <div className="text-xs text-gray-400 mt-0.5">{isUS?'Monthly':'Mensual'}</div>
+            <div className={`text-sm font-bold ${period === 'monthly' ? 'text-teal-700' : 'text-gray-700'}`}>{fmtMonthly}/{isEN?'mo':'mes'}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{isEN?'Monthly':'Mensual'}</div>
           </button>
           <button
             onClick={() => setPeriod('yearly')}
             className={`rounded-xl p-3 border-2 text-center relative transition-all ${period === 'yearly' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white'}`}
           >
-            <div className={`text-sm font-bold ${period === 'yearly' ? 'text-purple-700' : 'text-gray-700'}`}>{fmtYearly}/{isUS?'yr':'año'}</div>
-            <div className="text-xs text-gray-400 mt-0.5">{isUS?'Billed annually':'Facturación anual'}</div>
-            <span className="absolute -top-2 -right-1 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', fontSize: '0.6rem' }}>{isUS?'BEST':'MEJOR'}</span>
+            <div className={`text-sm font-bold ${period === 'yearly' ? 'text-purple-700' : 'text-gray-700'}`}>{fmtYearly}/{isEN?'yr':'año'}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{isEN?'Billed annually':'Facturación anual'}</div>
+            <span className="absolute -top-2 -right-1 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', fontSize: '0.6rem' }}>{isEN?'BEST':'MEJOR'}</span>
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-400">{isUS ? 'Cancel anytime' : 'Cancela cuando quieras'}</p>
+        <p className="text-center text-xs text-gray-400">{isEN ? 'Cancel anytime' : 'Cancela cuando quieras'}</p>
 
         <button
           onClick={handleCheckout}
@@ -236,7 +236,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
           className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md disabled:opacity-60"
           style={{ background: 'linear-gradient(to right, #0d9488, #7c3aed)' }}
         >
-          {loading ? (isUS ? 'Loading...' : 'Cargando...') : `💳 ${isUS ? 'Subscribe' : 'Suscribirse'} · ${period === 'yearly' ? `${fmtYearly}/${isUS?'yr':'año'}` : `${fmtMonthly}/${isUS?'mo':'mes'}`}`}
+          {loading ? (isEN ? 'Loading...' : 'Cargando...') : `💳 ${isEN ? 'Subscribe' : 'Suscribirse'} · ${period === 'yearly' ? `${fmtYearly}/${isEN?'yr':'año'}` : `${fmtMonthly}/${isEN?'mo':'mes'}`}`}
         </button>
       </div>
     </Modal>

@@ -187,7 +187,7 @@ async function _geminiRecipes(availIngs, recipeNames, qty, diet) {
    SUGERIR PLATOS — Modal Premium
 ═══════════════════════════════════════ */
 function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrade}) {
-  const { isUS } = useMarket();
+  const { isUS, isEN } = useMarket();
   const DIET_SETS = isUS ? DIET_SETS_US : DIET_SETS_ES;
   // Slots libres que le quedan al usuario free hasta llegar a FREE_DISH_LIMIT
   const freeSlots = Math.max(0, FREE_DISH_LIMIT - dishes.length);

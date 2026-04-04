@@ -54,7 +54,7 @@ const customTooltip=({active,payload,label})=>{
 function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory}) {
   const [tab,setTab]=useState('resumen');
   const [pdfLoading,setPdfLoading]=useState(false);
-  const { formatPrice: fp, currency, isUS, monthNames } = useMarket();
+  const { formatPrice: fp, currency, isUS, isEN, monthNames } = useMarket();
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
 
   async function handleDownloadPDF() {
@@ -124,7 +124,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
         {/* Header */}
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <div>
-            <h2 style={{fontSize:'1.2rem',fontWeight:900,color:'#111827',margin:0,display:'flex',alignItems:'center',gap:6}}><ChartBar size={20} weight="fill" color="#0f766e"/> {isUS ? 'Full Report' : 'Informe completo'}</h2>
+            <h2 style={{fontSize:'1.2rem',fontWeight:900,color:'#111827',margin:0,display:'flex',alignItems:'center',gap:6}}><ChartBar size={20} weight="fill" color="#0f766e"/> {isEN ? 'Full Report' : 'Informe completo'}</h2>
             <p style={{fontSize:'0.75rem',color:'#9ca3af',margin:'2px 0 0'}}>{tickets.length} tickets · {fp(allTotal)} total</p>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
@@ -137,7 +137,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                 background:pdfLoading?'#e2e8f0':'#0d9488',color:pdfLoading?'#94a3b8':'#fff',
                 fontWeight:700,fontSize:'0.75rem',
               }}>
-              <FilePdf size={15}/>{pdfLoading?(isUS?'Generating...':'Generando...'):(isUS?'Download PDF':'Descargar PDF')}
+              <FilePdf size={15}/>{pdfLoading?(isEN?'Generating...':'Generando...'):(isEN?'Download PDF':'Descargar PDF')}
             </button>
             <button onClick={onClose} style={{background:'#f1f5f9',border:'none',borderRadius:'50%',width:36,height:36,fontSize:18,cursor:'pointer',color:'#6b7280',display:'flex',alignItems:'center',justifyContent:'center'}}><X size={18}/></button>
           </div>
@@ -160,21 +160,21 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
           <div style={{display:'flex',flexDirection:'column',gap:20}}>
             {monthlyData.length>0&&(
               <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                <SectionTitle>{isUS ? 'Monthly Trend' : 'Evolución mensual'}</SectionTitle>
+                <SectionTitle>{isEN ? 'Monthly Trend' : 'Evolución mensual'}</SectionTitle>
                 <ResponsiveContainer width="100%" height={160}>
                   <BarChart data={monthlyData} margin={{top:0,right:4,left:-20,bottom:0}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
                     <XAxis dataKey="mes" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <Tooltip content={customTooltip}/>
-                    <Bar dataKey="total" name={isUS?'Spending':'Gasto'} fill="#0d9488" radius={[6,6,0,0]}/>
+                    <Bar dataKey="total" name={isEN?'Spending':'Gasto'} fill="#0d9488" radius={[6,6,0,0]}/>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
             {catData.length>0&&(
               <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                <SectionTitle>{isUS ? 'Categories' : 'Categorías'}</SectionTitle>
+                <SectionTitle>{isEN ? 'Categories' : 'Categorías'}</SectionTitle>
                 <div style={{display:'flex',gap:12,alignItems:'center'}}>
                   <ResponsiveContainer width={140} height={140}>
                     <PieChart>
@@ -198,7 +198,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
             )}
             {storeData.length>0&&(
               <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                <SectionTitle>{isUS ? 'Stores' : 'Supermercados'}</SectionTitle>
+                <SectionTitle>{isEN ? 'Stores' : 'Supermercados'}</SectionTitle>
                 <div style={{display:'flex',gap:12,alignItems:'center'}}>
                   <ResponsiveContainer width={140} height={140}>
                     <PieChart>
@@ -226,10 +226,10 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
         {/* ══ MESES ══ */}
         {tab==='meses'&&(
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            {monthlyData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>{isUS?'No monthly data':'Sin datos mensuales'}</p>}
+            {monthlyData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>{isEN?'No monthly data':'Sin datos mensuales'}</p>}
             {monthlyData.length>0&&(
               <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                <SectionTitle>{isUS ? `Monthly Spending (${currency})` : `Gasto mensual (${currency})`}</SectionTitle>
+                <SectionTitle>{isEN ? `Monthly Spending (${currency})` : `Gasto mensual (${currency})`}</SectionTitle>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={monthlyData} margin={{top:0,right:4,left:-16,bottom:0}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
@@ -246,7 +246,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                     <div style={{marginTop:12,padding:'8px 12px',borderRadius:12,background:diff<=0?'#f0fdf4':'#fef2f2',display:'flex',alignItems:'center',gap:8}}>
                       <span style={{fontSize:'1.2rem'}}>{diff<=0?'📉':'📈'}</span>
                       <p style={{fontSize:'0.75rem',color:diff<=0?'#0f766e':'#dc2626',fontWeight:600,margin:0}}>
-                        {isUS?(diff<=0?'Down':'Up'):(diff<=0?'Bajada':'Subida')} {fp(Math.abs(diff))} ({Math.abs(pct)}%) {isUS?'vs first month':'vs primer mes'}
+                        {isEN?(diff<=0?'Down':'Up'):(diff<=0?'Bajada':'Subida')} {fp(Math.abs(diff))} ({Math.abs(pct)}%) {isEN?'vs first month':'vs primer mes'}
                       </p>
                     </div>
                   );
@@ -255,14 +255,14 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
             )}
             {monthlyData.length>=2&&(
               <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                <SectionTitle>{isUS ? 'Spending Trend' : 'Tendencia de gasto'}</SectionTitle>
+                <SectionTitle>{isEN ? 'Spending Trend' : 'Tendencia de gasto'}</SectionTitle>
                 <ResponsiveContainer width="100%" height={140}>
                   <LineChart data={monthlyData} margin={{top:0,right:4,left:-16,bottom:0}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
                     <XAxis dataKey="mes" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <YAxis tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                     <Tooltip content={customTooltip}/>
-                    <Line type="monotone" dataKey="total" name={isUS?'Spending':'Gasto'} stroke="#d97706" strokeWidth={2.5} dot={{r:4,fill:'#d97706'}} activeDot={{r:6}}/>
+                    <Line type="monotone" dataKey="total" name={isEN?'Spending':'Gasto'} stroke="#d97706" strokeWidth={2.5} dot={{r:4,fill:'#d97706'}} activeDot={{r:6}}/>
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -273,11 +273,11 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
         {/* ══ CATEGORÍAS ══ */}
         {tab==='categoria'&&(
           <div style={{display:'flex',flexDirection:'column',gap:14}}>
-            {catData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>{isUS?'No data':'Sin datos'}</p>}
+            {catData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>{isEN?'No data':'Sin datos'}</p>}
             {catData.length>0&&(
               <>
                 <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                  <SectionTitle>{isUS ? 'Category Breakdown' : 'Distribución por categoría'}</SectionTitle>
+                  <SectionTitle>{isEN ? 'Category Breakdown' : 'Distribución por categoría'}</SectionTitle>
                   <ResponsiveContainer width="100%" height={220}>
                     <PieChart>
                       <Pie data={catData} cx="50%" cy="50%" outerRadius={85} dataKey="value" label={({name,percent})=>`${(percent*100).toFixed(0)}%`} labelLine={false}>
@@ -288,14 +288,14 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                   </ResponsiveContainer>
                 </div>
                 <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                  <SectionTitle>{isUS ? 'Spending Ranking' : 'Ranking de gasto'}</SectionTitle>
+                  <SectionTitle>{isEN ? 'Spending Ranking' : 'Ranking de gasto'}</SectionTitle>
                   <ResponsiveContainer width="100%" height={catData.length*40+20}>
                     <BarChart data={catData} layout="vertical" margin={{top:0,right:40,left:4,bottom:0}}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false}/>
                       <XAxis type="number" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false}/>
                       <YAxis type="category" dataKey="name" tick={{fontSize:10,fill:'#374151'}} width={100} axisLine={false} tickLine={false}/>
                       <Tooltip content={customTooltip}/>
-                      <Bar dataKey="value" name={isUS?'Spending':'Gasto'} radius={[0,6,6,0]}>{catData.map((e,i)=><Cell key={i} fill={e.fill}/>)}</Bar>
+                      <Bar dataKey="value" name={isEN?'Spending':'Gasto'} radius={[0,6,6,0]}>{catData.map((e,i)=><Cell key={i} fill={e.fill}/>)}</Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

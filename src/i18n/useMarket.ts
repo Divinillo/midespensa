@@ -33,28 +33,30 @@ export function useMarket() {
   const { i18n } = useTranslation();
   const lang = i18n.language || 'es';
 
-  // UI market: follows current language (categories, month names, ingredient list)
+  // UI market: follows current language — used only to seed billingMarket on first visit
   const uiMarket: Market = getMarket(lang);
-  const isUS = uiMarket === 'us';
 
-  // Billing market: locked on first visit — does NOT change when user switches language
+  // Content/billing market: locked on first visit — determines categories, stores, ingredients & pricing
   const billingMarket: Market = getBillingMarket(uiMarket);
+  const isUS = billingMarket === 'us';   // LOCKED — content market (categories, stores, ingredients)
+  const isEN = lang.startsWith('en');    // CURRENT language — text translation direction only
 
   return {
-    market: uiMarket,
-    isUS,
+    market: billingMarket,
+    isUS,   // use for: categories, stores, ingredients, stripeConfig, WIZARD_CATS, DIET_SETS
+    isEN,   // use for: all UI text ternaries (button labels, titles, messages)
     lang,
-    currency:        getCurrency(lang),
-    formatPrice:     (amount: number) => formatPrice(amount, lang),
+    currency:        getCurrency(isUS ? 'en' : 'es'),
+    formatPrice:     (amount: number) => formatPrice(amount, isUS ? 'en' : 'es'),
     formatDate:      (date: string) => formatDate(date, lang),
-    // Pricing uses billingMarket (locked) — not uiMarket (follows language toggle)
+    // Pricing always uses locked billing market
     stripeConfig:    STRIPE_PRICES[billingMarket],
     initIngredients: isUS ? INIT_INGS_US : INIT_INGS,
     categories:      isUS ? CATEGORIES_US : CATEGORIES,
     catEmoji:        isUS ? CAT_EMOJI_US  : CAT_EMOJI,
     catBg:           isUS ? CAT_BG_US     : CAT_BG,
     catText:         isUS ? CAT_TEXT_US   : CAT_TEXT,
-    monthNames:      isUS ? MONTH_NAMES_EN : MONTH_NAMES,
-    weekDays:        isUS ? WEEK_DAYS_EN   : WEEK_DAYS,
+    monthNames:      isEN ? MONTH_NAMES_EN : MONTH_NAMES,   // follow language
+    weekDays:        isEN ? WEEK_DAYS_EN   : WEEK_DAYS,     // follow language
   };
 }
