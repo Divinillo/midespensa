@@ -4,19 +4,17 @@ import type { Ingredient, Dish, Ticket } from '../../data/types';
 import { CATEGORIES, CAT_EMOJI, CAT_BG, CAT_TEXT, getIngEmoji } from '../../data/categories';
 import { uid } from '../../utils/helpers';
 import { processPdf, processImageTicket, applyTicket } from '../../utils/ticketProcess';
+import { useMarket } from '../../i18n/useMarket';
 
-/* ── Quick-pick ingredient categories for step 2 ─────────────────── */
-const WIZARD_CATS = [
+const WIZARD_CATS_ES = [
   'verduras', 'fruta', 'carnes', 'pescado',
   'lácteos', 'pasta y harinas', 'legumbres', 'conservas',
   'especias y condimentos',
 ];
 
-/* ── Feature highlights for welcome screen ───────────────────────── */
-const FEATURES = [
-  { emoji: '🧾', title: 'Sube tu ticket del super', desc: 'Escanea el PDF y la despensa se rellena sola.' },
-  { emoji: '🗓️', title: 'Planifica tu semana', desc: 'Asigna platos a cada día del mes fácilmente.' },
-  { emoji: '🛒', title: 'Lista de la compra', desc: 'Genera automáticamente lo que te falta.' },
+const WIZARD_CATS_US = [
+  'produce', 'meat', 'poultry', 'seafood',
+  'dairy', 'pantry', 'condiments', 'snacks', 'beverages',
 ];
 
 interface Props {
@@ -32,8 +30,118 @@ interface Props {
 }
 
 export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishes, tickets, setTickets, priceHistory, setPriceHistory, onComplete }: Props) {
+  const { isUS, catEmoji } = useMarket();
+
+  const WIZARD_CATS = isUS ? WIZARD_CATS_US : WIZARD_CATS_ES;
+
+  // ── Translations ──────────────────────────────────────────────────
+  const T = isUS ? {
+    subtitle:        'Organize your kitchen, plan your meals\nand simplify shopping.',
+    startBtn:        'Get started →',
+    setupNote:       'Quick setup in 2 minutes',
+    features: [
+      { emoji: '🧾', title: 'Scan your grocery receipt', desc: 'Upload a PDF and your pantry fills automatically.' },
+      { emoji: '🗓️', title: 'Plan your meals',            desc: 'Assign meals to each day of the month easily.' },
+      { emoji: '🛒', title: 'Shopping list',              desc: 'Automatically generate what you need to buy.' },
+    ],
+    // Ticket step
+    ticketH2:        'Upload your latest receipt',
+    ticketDesc:      'If you have a grocery PDF receipt handy, upload it and your pantry will fill automatically.',
+    uploadLabel:     'PDF or photo of your receipt',
+    uploadLoading:   'Loading PDF reader…',
+    uploadSub:       'Supports PDF, JPG, PNG · Walmart, Target, Costco…',
+    processingTitle: (name: string) => `Processing ${name}…`,
+    processingSub:   'Reading products from receipt',
+    doneTitle:       'Receipt processed!',
+    doneDesc:        (n: number) => `${n} ingredient${n !== 1 ? 's' : ''} updated in your pantry ✓`,
+    errTitle:        'Could not read the receipt',
+    errDesc:         'Make sure to upload a valid PDF or image (JPG, PNG…)',
+    errRetry:        'Try again',
+    chips:           ['PDF from email', 'Photo of receipt', 'JPG · PNG · PDF'],
+    continueBtn:     'Continue →',
+    skipAfterDone:   'Or add ingredients manually',
+    skipNone:        "I don't have a receipt handy →",
+    // Ingredient step
+    ingH2:           'What do you have at home?',
+    ingDesc:         'Tap the ingredients you have right now. You can update them later.',
+    ingEmpty:        'No ingredients in this category',
+    ingCount:        (n: number) => `✓ ${n} ingredient${n !== 1 ? 's' : ''} selected`,
+    ingContinue:     (n: number) => `Continue with ${n} ingredient${n !== 1 ? 's' : ''} →`,
+    ingSelectOne:    'Select at least one',
+    // Dish step
+    dishH2:          'Your first recipe',
+    dishDesc:        'What's a dish you make regularly?',
+    dishPlaceholder: 'e.g. Chicken stir fry, Caesar salad…',
+    dishIngLabel:    'Dish ingredients (optional)',
+    dishSave:        (name: string) => `Save "${name}" and continue →`,
+    dishEnter:       'Enter the dish name',
+    dishSkip:        'Skip, use examples',
+    // Done step
+    doneH2:          'You\'re all set!',
+    doneSubtitle:    'Your kitchen is set up. Start using MiDespensa.',
+    inPantry:        '🧺 In pantry',
+    dishes:          '🍳 Recipes',
+    nextSteps: [
+      ['🗓️', 'Plan your menu',          'Assign meals to days of the month'],
+      ['🛒', 'Generate your list',       'Discover what you need to buy'],
+      ['🧾', 'Upload more receipts',     'Keep your pantry up to date automatically'],
+    ],
+    doneBtn:         'Start using the app →',
+    // Progress
+    stepLabels:      ['', 'Step 1 · Your receipt', 'Step 2 · Your pantry', 'Step 3 · Your first dish', 'Step 4 · All done!'],
+  } : {
+    subtitle:        'Organiza tu cocina, planifica tu semana\ny simplifica la compra.',
+    startBtn:        'Empezar →',
+    setupNote:       'Configuración rápida en 2 minutos',
+    features: [
+      { emoji: '🧾', title: 'Sube tu ticket del super', desc: 'Escanea el PDF y la despensa se rellena sola.' },
+      { emoji: '🗓️', title: 'Planifica tu semana',      desc: 'Asigna platos a cada día del mes fácilmente.' },
+      { emoji: '🛒', title: 'Lista de la compra',        desc: 'Genera automáticamente lo que te falta.' },
+    ],
+    ticketH2:        'Sube tu último ticket',
+    ticketDesc:      'Si tienes el PDF del super a mano, súbelo y tu despensa se rellenará automáticamente.',
+    uploadLabel:     'PDF o foto del ticket',
+    uploadLoading:   'Cargando lector PDF…',
+    uploadSub:       'Soporta PDF, JPG, PNG · Mercadona, Lidl, Carrefour…',
+    processingTitle: (name: string) => `Procesando ${name}…`,
+    processingSub:   'Leyendo productos del ticket',
+    doneTitle:       '¡Ticket procesado!',
+    doneDesc:        (n: number) => `${n} ingrediente${n !== 1 ? 's' : ''} actualizado${n !== 1 ? 's' : ''} en tu despensa ✓`,
+    errTitle:        'No se pudo leer el ticket',
+    errDesc:         'Asegúrate de subir un PDF o imagen válida (JPG, PNG…)',
+    errRetry:        'Intentar de nuevo',
+    chips:           ['PDF del email del Super', 'Foto del ticket físico', 'JPG · PNG · PDF'],
+    continueBtn:     'Continuar →',
+    skipAfterDone:   'O añadir ingredientes manualmente',
+    skipNone:        'No tengo tickets a mano →',
+    ingH2:           '¿Qué tienes en casa?',
+    ingDesc:         'Toca los ingredientes que tengas ahora mismo. Podrás modificarlos después.',
+    ingEmpty:        'Sin ingredientes en esta categoría',
+    ingCount:        (n: number) => `✓ ${n} ingrediente${n !== 1 ? 's' : ''} seleccionado${n !== 1 ? 's' : ''}`,
+    ingContinue:     (n: number) => `Continuar con ${n} ingrediente${n !== 1 ? 's' : ''} →`,
+    ingSelectOne:    'Selecciona al menos uno',
+    dishH2:          'Tu primer plato',
+    dishDesc:        '¿Cómo se llama un plato que preparas habitualmente?',
+    dishPlaceholder: 'ej: Tortilla de patatas, Ensalada mixta…',
+    dishIngLabel:    'Ingredientes del plato (opcional)',
+    dishSave:        (name: string) => `Guardar "${name}" y continuar →`,
+    dishEnter:       'Escribe el nombre del plato',
+    dishSkip:        'Ahora no, usar ejemplos',
+    doneH2:          '¡Todo listo!',
+    doneSubtitle:    'Tu cocina está configurada. Ya puedes empezar a usar MiDespensa.',
+    inPantry:        '🧺 En despensa',
+    dishes:          '🍳 Platos',
+    nextSteps: [
+      ['🗓️', 'Planifica tu menú',  'Asigna platos a los días del mes'],
+      ['🛒', 'Genera tu lista',    'Descubre qué necesitas comprar'],
+      ['🧾', 'Sube más tickets',   'Actualiza tu despensa automáticamente'],
+    ],
+    doneBtn:         'Empezar a usar la app →',
+    stepLabels:      ['', 'Paso 1 · Tu ticket', 'Paso 2 · Tu despensa', 'Paso 3 · Tu primer plato', 'Paso 4 · ¡Todo listo!'],
+  };
+
   const [step, setStep] = useState(0);
-  const [catFilter, setCatFilter] = useState('verduras');
+  const [catFilter, setCatFilter] = useState(WIZARD_CATS[0]);
   const [dishName, setDishName] = useState('');
   const [dishIngs, setDishIngs] = useState<string[]>([]);
   const [animKey, setAnimKey] = useState(0);
@@ -48,7 +156,6 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
   const availableCount = ingredients.filter(i => i.available).length;
   const availableIngs = ingredients.filter(i => i.available);
 
-  // Total user-facing steps (1-4), step 0 is welcome (no progress bar)
   const PROGRESS_STEPS = 4;
 
   useEffect(() => {
@@ -94,11 +201,8 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
     const name = file.name.toLowerCase();
     const isPdf = name.endsWith('.pdf');
     const isImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/.test(name);
-    if (!isPdf && !isImage) {
-      setTicketStatus('error');
-      return;
-    }
-    if (isPdf && !pdfjsReady) { alert('PDF aún cargando, espera un momento.'); return; }
+    if (!isPdf && !isImage) { setTicketStatus('error'); return; }
+    if (isPdf && !pdfjsReady) { alert(T.uploadLoading); return; }
     setTicketStatus('loading');
     setTicketName(file.name);
     try {
@@ -119,7 +223,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
 
   const visibleIngs = ingredients.filter(i => i.category === catFilter);
 
-  // ── Step 0: Bienvenida ──────────────────────────────────────────
+  // ── Step 0: Welcome ─────────────────────────────────────────────
   const StepWelcome = (
     <div className="flex flex-col items-center text-center px-6">
       <div className="w-24 h-24 rounded-3xl flex items-center justify-center mb-6 mt-2"
@@ -130,11 +234,11 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
         Mi<span style={{ color: '#0d9488' }}>Despensa</span>
       </h1>
       <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-        Organiza tu cocina, planifica tu semana<br />y simplifica la compra.
+        {T.subtitle.split('\n').map((line, i) => <React.Fragment key={i}>{line}{i === 0 && <br />}</React.Fragment>)}
       </p>
 
       <div className="w-full space-y-3 mb-8">
-        {FEATURES.map(f => (
+        {T.features.map(f => (
           <div key={f.title} className="flex items-center gap-4 bg-white rounded-2xl px-4 py-3.5 text-left"
             style={{ border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}>
             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shrink-0"
@@ -151,27 +255,29 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
 
       <button onClick={goNext} className="w-full py-4 rounded-2xl text-white font-bold text-base"
         style={{ background: 'linear-gradient(135deg,#0f766e,#0d9488)', boxShadow: '0 4px 16px rgba(13,148,136,.4)' }}>
-        Empezar →
+        {T.startBtn}
       </button>
-      <p className="text-xs text-gray-300 mt-3">Configuración rápida en 2 minutos</p>
+      <p className="text-xs text-gray-300 mt-3">{T.setupNote}</p>
     </div>
   );
 
-  // ── Step 1: Ticket ──────────────────────────────────────────────
+  // ── Step 1: Receipt / Ticket ────────────────────────────────────
   const StepTicket = (
     <div className="flex flex-col h-full px-5">
       <div className="pb-4">
         <div className="text-4xl mb-3">🧾</div>
         <h2 className="text-2xl font-black text-gray-900 mb-1" style={{ letterSpacing: '-0.02em' }}>
-          Sube tu último ticket
+          {T.ticketH2}
         </h2>
         <p className="text-sm text-gray-400 leading-relaxed">
-          Si tienes el PDF del super a mano, súbelo y tu despensa<br />
-          se rellenará <strong style={{ color: '#0d9488' }}>automáticamente</strong>.
+          {T.ticketDesc.split('<strong>').map((part, i) => {
+            if (i === 0) return part;
+            const [bold, rest] = part.split('</strong>');
+            return <React.Fragment key={i}><strong style={{ color: '#0d9488' }}>{bold}</strong>{rest}</React.Fragment>;
+          })}
         </p>
       </div>
 
-      {/* Upload zone */}
       {ticketStatus === 'idle' && (
         <div
           onClick={() => pdfjsReady && fileRef.current?.click()}
@@ -182,9 +288,9 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
           }}>
           <div style={{ fontSize: '2.8rem', marginBottom: 10 }}>📄</div>
           <div style={{ fontWeight: 800, color: '#0f766e', fontSize: '0.95rem', marginBottom: 4 }}>
-            {pdfjsReady ? 'PDF o foto del ticket' : 'Cargando lector PDF…'}
+            {pdfjsReady ? T.uploadLabel : T.uploadLoading}
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#5eead4' }}>Soporta PDF, JPG, PNG · Mercadona, Lidl, Carrefour…</div>
+          <div style={{ fontSize: '0.72rem', color: '#5eead4' }}>{T.uploadSub}</div>
           <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png,.webp,image/*" style={{ display: 'none' }}
             onChange={e => { if (e.target.files?.[0]) handleTicketFile(e.target.files[0]); e.target.value = ''; }} />
         </div>
@@ -193,39 +299,34 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       {ticketStatus === 'loading' && (
         <div style={{ borderRadius: 20, background: '#f0fdf4', border: '1.5px solid #5eead4', padding: '28px 20px', textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: '2rem', marginBottom: 8 }}>⏳</div>
-          <div style={{ fontWeight: 700, color: '#0f766e', fontSize: '0.9rem' }}>Procesando {ticketName}…</div>
-          <div style={{ fontSize: '0.72rem', color: '#5eead4', marginTop: 4 }}>Leyendo productos del ticket</div>
+          <div style={{ fontWeight: 700, color: '#0f766e', fontSize: '0.9rem' }}>{T.processingTitle(ticketName)}</div>
+          <div style={{ fontSize: '0.72rem', color: '#5eead4', marginTop: 4 }}>{T.processingSub}</div>
         </div>
       )}
 
       {ticketStatus === 'done' && (
         <div style={{ borderRadius: 20, background: '#f0fdf4', border: '2px solid #2dd4bf', padding: '24px 20px', textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: '2.4rem', marginBottom: 6 }}>🎉</div>
-          <div style={{ fontWeight: 900, color: '#0f766e', fontSize: '1.05rem', marginBottom: 4 }}>
-            ¡Ticket procesado!
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#0d9488', fontWeight: 600 }}>
-            {ticketMatched} ingrediente{ticketMatched !== 1 ? 's' : ''} actualizado{ticketMatched !== 1 ? 's' : ''} en tu despensa ✓
-          </div>
+          <div style={{ fontWeight: 900, color: '#0f766e', fontSize: '1.05rem', marginBottom: 4 }}>{T.doneTitle}</div>
+          <div style={{ fontSize: '0.8rem', color: '#0d9488', fontWeight: 600 }}>{T.doneDesc(ticketMatched)}</div>
         </div>
       )}
 
       {ticketStatus === 'error' && (
         <div style={{ borderRadius: 20, background: '#fef2f2', border: '1.5px solid #fca5a5', padding: '24px 20px', textAlign: 'center', marginBottom: 16 }}>
           <div style={{ fontSize: '2rem', marginBottom: 6 }}>⚠️</div>
-          <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem', marginBottom: 4 }}>No se pudo leer el ticket</div>
-          <div style={{ fontSize: '0.72rem', color: '#f87171' }}>Asegúrate de subir un PDF o imagen válida (JPG, PNG…)</div>
+          <div style={{ fontWeight: 700, color: '#dc2626', fontSize: '0.9rem', marginBottom: 4 }}>{T.errTitle}</div>
+          <div style={{ fontSize: '0.72rem', color: '#f87171' }}>{T.errDesc}</div>
           <button onClick={() => setTicketStatus('idle')}
             style={{ marginTop: 10, fontSize: '0.75rem', fontWeight: 700, color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}>
-            Intentar de nuevo
+            {T.errRetry}
           </button>
         </div>
       )}
 
-      {/* Explanation chips */}
       {ticketStatus === 'idle' && (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
-          {['PDF del email del Super', 'Foto del ticket físico', 'JPG · PNG · PDF'].map(t => (
+          {T.chips.map(t => (
             <span key={t} style={{ fontSize: '0.68rem', fontWeight: 600, padding: '4px 10px', borderRadius: 20, background: '#fff', border: '1px solid #e2e8f0', color: '#64748b' }}>
               {t}
             </span>
@@ -234,31 +335,31 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       )}
 
       <div className="mt-auto space-y-2 pb-2">
-        {(ticketStatus === 'done') && (
+        {ticketStatus === 'done' && (
           <button onClick={goNext}
             className="w-full py-4 rounded-2xl text-white font-bold text-base"
             style={{ background: 'linear-gradient(135deg,#0f766e,#0d9488)', boxShadow: '0 4px 16px rgba(13,148,136,.35)' }}>
-            Continuar →
+            {T.continueBtn}
           </button>
         )}
         <button onClick={goNext}
           className="w-full py-3 rounded-2xl text-sm font-semibold text-gray-400 hover:text-gray-600 transition-all"
           style={{ background: '#f8fafc', border: '1px solid #f1f5f9' }}>
-          {ticketStatus === 'done' ? 'O añadir ingredientes manualmente' : 'No tengo tickets a mano →'}
+          {ticketStatus === 'done' ? T.skipAfterDone : T.skipNone}
         </button>
       </div>
     </div>
   );
 
-  // ── Step 2: Ingredientes ────────────────────────────────────────
+  // ── Step 2: Ingredients ─────────────────────────────────────────
   const StepIngredients = (
     <div className="flex flex-col h-full">
       <div className="px-5 pb-4">
         <div className="text-4xl mb-3">🧺</div>
         <h2 className="text-2xl font-black text-gray-900 mb-1" style={{ letterSpacing: '-0.02em' }}>
-          ¿Qué tienes en casa?
+          {T.ingH2}
         </h2>
-        <p className="text-sm text-gray-400">Toca los ingredientes que tengas ahora mismo. Podrás modificarlos después.</p>
+        <p className="text-sm text-gray-400">{T.ingDesc}</p>
       </div>
 
       {/* Category tabs */}
@@ -273,7 +374,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
                 border: catFilter === cat ? 'none' : '1px solid #e2e8f0',
                 boxShadow: catFilter === cat ? '0 2px 8px rgba(13,148,136,.3)' : 'none',
               }}>
-              {CAT_EMOJI[cat]} {cat}
+              {catEmoji[cat]} {cat}
             </button>
           ))}
         </div>
@@ -304,7 +405,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
             </button>
           ))}
           {!visibleIngs.length && (
-            <div className="col-span-3 text-center text-gray-300 py-8 text-sm">Sin ingredientes en esta categoría</div>
+            <div className="col-span-3 text-center text-gray-300 py-8 text-sm">{T.ingEmpty}</div>
           )}
         </div>
       </div>
@@ -313,7 +414,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       <div className="px-5 pt-3 pb-2 border-t border-gray-50">
         {availableCount > 0 && (
           <p className="text-xs text-teal-600 font-semibold text-center mb-3">
-            ✓ {availableCount} ingrediente{availableCount !== 1 ? 's' : ''} seleccionado{availableCount !== 1 ? 's' : ''}
+            {T.ingCount(availableCount)}
           </p>
         )}
         <button onClick={goNext} disabled={availableCount === 0}
@@ -323,28 +424,28 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
             color: availableCount > 0 ? '#fff' : '#9ca3af',
             boxShadow: availableCount > 0 ? '0 4px 16px rgba(13,148,136,.35)' : 'none',
           }}>
-          {availableCount > 0 ? `Continuar con ${availableCount} ingrediente${availableCount !== 1 ? 's' : ''} →` : 'Selecciona al menos uno'}
+          {availableCount > 0 ? T.ingContinue(availableCount) : T.ingSelectOne}
         </button>
       </div>
     </div>
   );
 
-  // ── Step 3: Primer plato ────────────────────────────────────────
+  // ── Step 3: First dish ──────────────────────────────────────────
   const StepDish = (
     <div className="flex flex-col h-full px-5">
       <div className="pb-4">
         <div className="text-4xl mb-3">🍳</div>
         <h2 className="text-2xl font-black text-gray-900 mb-1" style={{ letterSpacing: '-0.02em' }}>
-          Tu primer plato
+          {T.dishH2}
         </h2>
-        <p className="text-sm text-gray-400">¿Cómo se llama un plato que preparas habitualmente?</p>
+        <p className="text-sm text-gray-400">{T.dishDesc}</p>
       </div>
 
       <div className="mb-5">
         <input
           value={dishName}
           onChange={e => setDishName(e.target.value)}
-          placeholder="ej: Tortilla de patatas, Ensalada mixta…"
+          placeholder={T.dishPlaceholder}
           className="w-full rounded-2xl px-4 py-4 text-base font-medium focus:outline-none focus:ring-2 focus:ring-teal-300"
           style={{ border: '2px solid #e2e8f0', background: '#f8fafc' }}
           autoFocus
@@ -354,7 +455,7 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       {availableIngs.length > 0 && dishName.trim() && (
         <div className="flex-1 overflow-y-auto mb-4">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">
-            Ingredientes del plato (opcional)
+            {T.dishIngLabel}
           </p>
           <div className="flex flex-wrap gap-2">
             {availableIngs.map(ing => (
@@ -382,43 +483,39 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
             color: dishName.trim() ? '#fff' : '#9ca3af',
             boxShadow: dishName.trim() ? '0 4px 16px rgba(13,148,136,.35)' : 'none',
           }}>
-          {dishName.trim() ? `Guardar "${dishName}" y continuar →` : 'Escribe el nombre del plato'}
+          {dishName.trim() ? T.dishSave(dishName) : T.dishEnter}
         </button>
         <button onClick={goNext}
           className="w-full py-3 rounded-2xl text-sm font-semibold text-gray-400 hover:text-gray-600 transition-all"
           style={{ background: '#f8fafc', border: '1px solid #f1f5f9' }}>
-          Ahora no, usar ejemplos
+          {T.dishSkip}
         </button>
       </div>
     </div>
   );
 
-  // ── Step 4: ¡Listo! ────────────────────────────────────────────
+  // ── Step 4: Done ────────────────────────────────────────────────
   const StepDone = (
     <div className="flex flex-col items-center text-center px-6">
       <div className="text-7xl mb-5 mt-4" style={{ lineHeight: 1 }}>🎉</div>
       <h2 className="text-3xl font-black text-gray-900 mb-2" style={{ letterSpacing: '-0.03em' }}>
-        ¡Todo listo!
+        {T.doneH2}
       </h2>
-      <p className="text-gray-400 text-sm mb-8">Tu cocina está configurada. Ya puedes empezar a usar MiDespensa.</p>
+      <p className="text-gray-400 text-sm mb-8">{T.doneSubtitle}</p>
 
       <div className="w-full grid grid-cols-2 gap-3 mb-8">
         <div className="bg-white rounded-2xl p-4 text-center" style={{ border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}>
           <div className="text-3xl font-black text-teal-600 leading-none">{availableCount}</div>
-          <div className="text-xs text-gray-400 font-medium mt-1">🧺 En despensa</div>
+          <div className="text-xs text-gray-400 font-medium mt-1">{T.inPantry}</div>
         </div>
         <div className="bg-white rounded-2xl p-4 text-center" style={{ border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,.05)' }}>
           <div className="text-3xl font-black text-teal-600 leading-none">{dishes.filter(d => !d.example).length || dishes.length}</div>
-          <div className="text-xs text-gray-400 font-medium mt-1">🍳 Platos</div>
+          <div className="text-xs text-gray-400 font-medium mt-1">{T.dishes}</div>
         </div>
       </div>
 
       <div className="w-full space-y-2.5 mb-8">
-        {[
-          ['🗓️', 'Planifica tu menú', 'Asigna platos a los días del mes'],
-          ['🛒', 'Genera tu lista', 'Descubre qué necesitas comprar'],
-          ['🧾', 'Sube más tickets', 'Actualiza tu despensa automáticamente'],
-        ].map(([e, t, d]) => (
+        {T.nextSteps.map(([e, t, d]) => (
           <div key={t} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 text-left"
             style={{ border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,.04)' }}>
             <span className="text-xl">{e}</span>
@@ -433,18 +530,15 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
       <button onClick={onComplete}
         className="w-full py-4 rounded-2xl text-white font-bold text-base"
         style={{ background: 'linear-gradient(135deg,#0f766e,#0d9488)', boxShadow: '0 4px 16px rgba(13,148,136,.4)' }}>
-        Empezar a usar la app →
+        {T.doneBtn}
       </button>
     </div>
   );
 
   const showProgress = step > 0;
 
-  const STEP_LABELS = ['', 'Paso 1 · Tu ticket', 'Paso 2 · Tu despensa', 'Paso 3 · Tu primer plato', 'Paso 4 · ¡Todo listo!'];
-
   return (
     <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#f8fdf9' }}>
-      {/* Progress bar */}
       {showProgress && (
         <div className="shrink-0 px-5 pt-5 pb-3">
           <div className="flex items-center gap-3 mb-1">
@@ -459,15 +553,12 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
                 </div>
               ))}
             </div>
-            <span className="text-xs font-bold text-gray-400 shrink-0">
-              {step} / 4
-            </span>
+            <span className="text-xs font-bold text-gray-400 shrink-0">{step} / 4</span>
           </div>
-          <p className="text-xs text-gray-400 mt-1">{STEP_LABELS[step] || ''}</p>
+          <p className="text-xs text-gray-400 mt-1">{T.stepLabels[step] || ''}</p>
         </div>
       )}
 
-      {/* Step content */}
       <div
         key={animKey}
         className="flex-1 overflow-y-auto"
