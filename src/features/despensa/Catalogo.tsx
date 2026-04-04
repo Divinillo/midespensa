@@ -165,7 +165,7 @@ function SectionHeader({ label, count, isCollapsed, onToggle, badge }) {
 ════════════════════════════════════════════════════════════════ */
 export function Catalogo({ ingredients, setIngredients, isPro }) {
   const { t, i18n }               = useTranslation();
-  const { isUS, isEN }            = useMarket();
+  const { isUS, isEN, categories: mktCategories, catEmoji: mktCatEmoji } = useMarket();
   const isEn                      = i18n.language?.startsWith('en');
   const ingName                   = useIngredientName();
   const [recentIds, setRecentIds] = useLS<string[]>('despensa_recent_v1', []);
@@ -177,7 +177,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
   // Categorías empiezan colapsadas (true), secciones especiales expandidas (false)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = { recientes: false };
-    CATEGORIES.forEach(cat => { init[cat] = true; });
+    mktCategories.forEach(cat => { init[cat] = true; });
     return init;
   });
 
@@ -242,7 +242,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
     [recentIds, ingredients]
   );
   const byCategory  = useMemo(() =>
-    CATEGORIES
+    mktCategories
       .filter(c => ingredients.some(i => i.category === c))
       .map(cat => ({
         cat,
@@ -251,7 +251,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
         ),
       }))
       .filter(({ items }) => items.length > 0),
-    [ingredients, searchActive, searchNorm]
+    [ingredients, searchActive, searchNorm, mktCategories]
   );
 
   /* ── Render ────────────────────────────────────────────────── */
@@ -393,7 +393,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
         return (
           <section key={cat} style={{ marginBottom: 4 }}>
             <SectionHeader
-              label={`${CAT_EMOJI[cat]} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
+              label={`${mktCatEmoji[cat] || ''} ${cat.charAt(0).toUpperCase() + cat.slice(1)}`}
               isCollapsed={isCollapsed}
               onToggle={() => toggleSection(cat)}
               badge={null}
