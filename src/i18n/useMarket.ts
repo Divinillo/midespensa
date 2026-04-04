@@ -19,6 +19,12 @@ const MARKET_KEY = 'midespensa_market';
  */
 function getBillingMarket(detectedFromLang: Market): Market {
   try {
+    // DEV OVERRIDE: ?dev=us or ?dev=es forces market without touching localStorage
+    // e.g. http://localhost:5173/?dev=us  — remove the param to go back to normal
+    if (typeof window !== 'undefined') {
+      const devParam = new URLSearchParams(window.location.search).get('dev') as Market | null;
+      if (devParam === 'us' || devParam === 'es') return devParam;
+    }
     const stored = localStorage.getItem(MARKET_KEY) as Market | null;
     if (stored === 'us' || stored === 'es') return stored;
     // First visit — lock market based on browser language
