@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <!-- Auto-redirect English browsers to the US landing page -->
+  <!-- Auto-redirect English browsers to the US landing page; lock Spanish for everyone else -->
   <script>
     (function() {
       var lang = navigator.language || navigator.userLanguage || '';
       if (lang.toLowerCase().startsWith('en')) {
         window.location.replace('/en');
+      } else {
+        try { localStorage.setItem('midespensa_lang', 'es'); } catch(e) {}
       }
     })();
   </script>
