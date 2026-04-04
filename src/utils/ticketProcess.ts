@@ -339,7 +339,7 @@ async function loadTesseract() {
   });
 }
 
-async function ocrImageFile(file, onProgress) {
+async function ocrImageFile(file, onProgress, lang = 'spa') {
   await loadTesseract();
   // Usamos la API v2 (más estable en browser que v4)
   const worker = Tesseract.createWorker({
@@ -354,8 +354,8 @@ async function ocrImageFile(file, onProgress) {
   });
   try {
     await worker.load();
-    await worker.loadLanguage('spa');
-    await worker.initialize('spa');
+    await worker.loadLanguage(lang);
+    await worker.initialize(lang);
     const { data: { text } } = await worker.recognize(file);
     return text;
   } finally {
@@ -544,6 +544,66 @@ export async function processImageTicket(file, onProgress) {
 /* ═══════════════════════════════════════
    PROCESADO COMPLETO DE UN PDF → datos del ticket
 ═══════════════════════════════════════ */
+/* ── US Store Detection ─────────────────────────────────────── */
+function isWalmart(rows: string[]) { return rows.some(r=>/WALMART|WAL-MART/i.test(r)); }
+function isTarget(rows: string[]) { return rows.some(r=>/\bTARGET\b/i.test(r)); }
+function isKroger(rows: string[]) { return rows.some(r=>/\bKROGER\b/i.test(r)); }
+function isWholeFoods(rows: string[]) { return rows.some(r=>/WHOLE\s*FOODS/i.test(r)); }
+function isCostco(rows: string[]) { return rows.some(r=>/\bCOSTCO\b/i.test(r)); }
+function isTraderJoes(rows: string[]) { return rows.some(r=>/TRADER\s*JOE/i.test(r)); }
+
+function detectUSStore(rows: string[]): string {
+  if (isWalmart(rows)) return 'Walmart';
+  if (isTarget(rows)) return 'Target';
+  if (isKroger(rows)) return 'Kroger';
+  if (isWholeFoods(rows)) return 'Whole Foods';
+  if (isCostco(rows)) return 'Costco';
+  if (isTraderJoes(rows)) return "Trader Joe's";
+  return 'Other';
+}
+
+/* ── US Receipt Parser (Walmart, Target, Kroger style) ────── */
+function parseUSReceipt(rows: string[]) {
+  const products: any[] = [];
+  let total = null, date = null;
+
+  // Date: M/D/YYYY or MM/DD/YYYY or YYYY-MM-DD
+  for (const row of rows) {
+    const dm = row.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+    if (dm) {
+      const [,m,d,y] = dm;
+      const fy = y.length===2?`20${y}`:y;
+      date = `${fy}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+      break;
+    }
+  }
+
+  const SKIP = /WALMART|TARGET|KROGER|WHOLE FOODS|COSTCO|TRADER JOE|THANK YOU|SUBTOTAL|TAX|TOTAL|SAVINGS|REWARDS|MANAGER|PHONE|STORE|CASHIER|CARD|DEBIT|CREDIT|VISA|MASTER|AMEX|DISCOVER|AUTH|CHANGE|TENDER|BALANCE|POINTS|MEMBER|ITEM COUNT|^\s*[*\-=]{3}|YOUR SAVINGS|EVERYDAY|PRICE CHECK/i;
+  const TOTAL_PAT = /^(TOTAL|BALANCE DUE|AMOUNT DUE|GRAND TOTAL)\b/i;
+  // US price: $X.XX or X.XX at end of line
+  const PRICE_PAT = /\$?([\d]+\.[\d]{2})\s*[FN*]?\s*$/;
+
+  for (const row of rows) {
+    if (SKIP.test(row) || row.length < 3) continue;
+    if (TOTAL_PAT.test(row.trim())) {
+      const pm = row.match(/\$?([\d]+\.[\d]{2})/);
+      if (pm) total = parseFloat(pm[1]);
+      continue;
+    }
+    const pm = row.match(PRICE_PAT);
+    if (pm) {
+      const price = parseFloat(pm[1]);
+      if (price > 0 && price < 500) {
+        const name = row.slice(0, row.length - pm[0].length).trim().replace(/^\d+\s+/,'').trim();
+        if (name.length > 1) {
+          products.push({ rawName: name, normalizedName: name.toLowerCase(), price });
+        }
+      }
+    }
+  }
+  return { products, total, date };
+}
+
 export async function processPdf(file) {
   const buf = await file.arrayBuffer();
   let rows;
@@ -555,9 +615,12 @@ export async function processPdf(file) {
   }
   if (!rows || rows.length === 0) throw new Error('El PDF no contiene texto legible. Puede ser una imagen escaneada.');
 
+  const isUSStore = isWalmart(rows) || isTarget(rows) || isKroger(rows) || isWholeFoods(rows) || isCostco(rows) || isTraderJoes(rows);
+
   let parsed = isMercadonaOnline(rows) ? parseMercadonaOnline(rows)
               : isConsumOnline(rows)     ? parseConsumOnline(rows)
               : isConsum(rows)           ? parseConsumReceipt(rows)
+              : isUSStore                ? parseUSReceipt(rows)
               :                            parseTraditionalReceipt(rows);
   if (!parsed.products) throw new Error('No se reconoció el formato del ticket.');
 
@@ -570,7 +633,10 @@ export async function processPdf(file) {
   }
 
   const totalProds = parsed.total || parsed.products.reduce((s,p)=>s+(p.price||0),0);
-  const storeType2 = isMercadonaOnline(rows)?'Mercadona':isConsum(rows)||isConsumOnline(rows)?'Consum':'Otro';
+  const storeType2 = isMercadonaOnline(rows)?'Mercadona'
+                   : isConsum(rows)||isConsumOnline(rows)?'Consum'
+                   : isUSStore ? detectUSStore(rows)
+                   : 'Otro';
   return {
     id: 'tk'+uid(),
     filename: file.name,

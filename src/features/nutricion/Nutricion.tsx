@@ -5,6 +5,8 @@ import { BarcodeFormat, DecodeHintType } from '@zxing/library';
 import { useLS } from '../../hooks/useLS';
 import { FREE_SCAN_HISTORY } from '../../data/categories';
 import { Barcode, ShoppingCart, MagnifyingGlass, Warning, Heartbeat } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
+import { useMarket } from '../../i18n/useMarket';
 
 /* ── Colores Nutri-Score ───────────────────────────────────────── */
 const NUTRI_COLOR = { a:'#038141', b:'#85bb2f', c:'#fecb02', d:'#ee8100', e:'#e63e11' };
@@ -16,7 +18,7 @@ const NOVA_COLOR = ['','#038141','#85bb2f','#ee8100','#e63e11'];
 const NOVA_BG    = ['','#e8f5e9','#f1f8e9','#fff3e0','#fce4ec'];
 
 /* ── Campos nutricionales a mostrar ──────────────────────────── */
-const NUTRI_FIELDS = [
+const NUTRI_FIELDS_ES = [
   { key:'energy-kcal_100g',      label:'Calorías',             icon:'🔥', unit:'kcal' },
   { key:'fat_100g',              label:'Grasas',                icon:'🧈', unit:'g'   },
   { key:'saturated-fat_100g',    label:'  ↳ Saturadas',        icon:'',   unit:'g'   },
@@ -25,6 +27,17 @@ const NUTRI_FIELDS = [
   { key:'proteins_100g',         label:'Proteínas',             icon:'💪', unit:'g'   },
   { key:'fiber_100g',            label:'Fibra',                 icon:'🌿', unit:'g'   },
   { key:'salt_100g',             label:'Sal',                   icon:'🧂', unit:'g'   },
+];
+// US: FDA Nutrition Facts style labels
+const NUTRI_FIELDS_US = [
+  { key:'energy-kcal_100g',      label:'Calories',              icon:'🔥', unit:'kcal' },
+  { key:'fat_100g',              label:'Total Fat',              icon:'🧈', unit:'g'   },
+  { key:'saturated-fat_100g',    label:'  ↳ Saturated Fat',     icon:'',   unit:'g'   },
+  { key:'carbohydrates_100g',    label:'Total Carbohydrate',    icon:'🍞', unit:'g'   },
+  { key:'sugars_100g',           label:'  ↳ Total Sugars',      icon:'',   unit:'g'   },
+  { key:'proteins_100g',         label:'Protein',               icon:'💪', unit:'g'   },
+  { key:'fiber_100g',            label:'Dietary Fiber',         icon:'🌿', unit:'g'   },
+  { key:'salt_100g',             label:'Sodium',                icon:'🧂', unit:'mg'  },
 ];
 
 interface ScannedProduct {
@@ -41,6 +54,10 @@ interface ScannedProduct {
 }
 
 export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean; onUpgrade?: (reason: string) => void }) {
+  const { t } = useTranslation();
+  const { isUS } = useMarket();
+  const NUTRI_FIELDS = isUS ? NUTRI_FIELDS_US : NUTRI_FIELDS_ES;
+
   const [history, setHistory] = useLS<ScannedProduct[]>('scanner_history_v1', []);
 
   // idle | scanning | loading | result | error | manual
@@ -279,7 +296,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             style={{ width:36, height:36, borderRadius:12, background:'#f1f5f9', border:'none', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             ←
           </button>
-          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>Resultado del escaneo</div>
+          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Scan Result' : 'Resultado del escaneo'}</div>
         </div>
 
         <div style={{ borderRadius:20, background:'#fff', border:'1.5px solid #e2e8f0', padding:'16px', marginBottom:12, boxShadow:'0 2px 10px rgba(0,0,0,.07)', display:'flex', gap:14, alignItems:'flex-start' }}>
@@ -298,7 +315,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
 
         {/* Badges */}
         <div style={{ display:'flex', gap:10, marginBottom:12 }}>
-          {ns && (
+          {!isUS && ns && (
             <div style={{ flex:1, borderRadius:16, padding:'12px', background: NUTRI_BG[ns]||'#f8fafc', border:`2px solid ${NUTRI_COLOR[ns]||'#e2e8f0'}`, textAlign:'center' }}>
               <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>Nutri-Score</div>
               <div style={{ width:38, height:38, borderRadius:10, background: NUTRI_COLOR[ns]||'#e2e8f0', color:'#fff', fontWeight:900, fontSize:'1.4rem', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 4px' }}>
@@ -309,7 +326,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
               </div>
             </div>
           )}
-          {nova && (
+          {!isUS && nova && (
             <div style={{ flex:1, borderRadius:16, padding:'12px', background: NOVA_BG[nova]||'#f8fafc', border:`2px solid ${NOVA_COLOR[nova]||'#e2e8f0'}`, textAlign:'center' }}>
               <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>Nova</div>
               <div style={{ width:38, height:38, borderRadius:10, background: NOVA_COLOR[nova]||'#e2e8f0', color:'#fff', fontWeight:900, fontSize:'1.4rem', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 4px' }}>
@@ -319,10 +336,12 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             </div>
           )}
           <div style={{ flex:1, borderRadius:16, padding:'12px', background: addCount>0?'#fff3e0':'#e8f5e9', border:`2px solid ${addCount>0?'#ee8100':'#038141'}`, textAlign:'center' }}>
-            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>Aditivos</div>
+            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{isUS ? 'Additives' : 'Aditivos'}</div>
             <div style={{ fontWeight:900, fontSize:'1.4rem', color: addCount>0?'#ee8100':'#038141', lineHeight:1, marginBottom:4 }}>{addCount}</div>
             <div style={{ fontSize:'0.65rem', color: addCount>0?'#ee8100':'#038141', fontWeight:700 }}>
-              {addCount===0?'Ninguno':addCount<=3?'Pocos':addCount<=6?'Moderados':'Muchos'}
+              {isUS
+                ? (addCount===0?'None':addCount<=3?'Few':addCount<=6?'Moderate':'Many')
+                : (addCount===0?'Ninguno':addCount<=3?'Pocos':addCount<=6?'Moderados':'Muchos')}
             </div>
           </div>
         </div>
@@ -331,8 +350,8 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         {product.nutriments && Object.keys(product.nutriments).length > 0 && (
           <div style={{ borderRadius:16, background:'#fff', border:'1.5px solid #e2e8f0', overflow:'hidden', marginBottom:12, boxShadow:'0 1px 6px rgba(0,0,0,.05)' }}>
             <div style={{ padding:'10px 14px', background:'#f8fafc', borderBottom:'1px solid #f1f5f9' }}>
-              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}><Heartbeat size={16} weight="fill"/> Valores nutricionales</div>
-              <div style={{ fontSize:'0.65rem', color:'#94a3b8', marginTop:1 }}>Por 100g / 100ml</div>
+              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}><Heartbeat size={16} weight="fill"/> {isUS ? 'Nutrition Facts' : 'Valores nutricionales'}</div>
+              <div style={{ fontSize:'0.65rem', color:'#94a3b8', marginTop:1 }}>{isUS ? 'Per 100g / 100ml' : 'Por 100g / 100ml'}</div>
             </div>
             {NUTRI_FIELDS.map(f => {
               const val = product.nutriments![f.key];

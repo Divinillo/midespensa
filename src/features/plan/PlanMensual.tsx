@@ -7,6 +7,7 @@ import { generateNutriPDF } from '../../utils/pdfReport';
 import type { Ingredient, Dish, Plan, Ticket } from '../../data/types';
 import { FREE_DISH_LIMIT, MONTH_NAMES, WEEK_DAYS, CAT_EMOJI } from '../../data/categories';
 import { RECIPE_DB } from '../../data/recipes';
+import { useMarket } from '../../i18n/useMarket';
 import { CaretLeft, CaretRight, Trash, Sparkle, ChartBar, X } from '@phosphor-icons/react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -84,7 +85,7 @@ function DayPicker({year,month,plan,selected,setSelected,highlightHasFood=true})
         {Array.from({length:days}).map((_,i)=>{
           const d=i+1;
           const k=dateKey(year,month,d);
-          const hasFood=highlightHasFood&&!!(plan[k]?.lunch||plan[k]?.dinner);
+          const hasFood=highlightHasFood&&!!(plan[k]?.breakfast||plan[k]?.lunch||plan[k]?.dinner);
           const isSel=sel.has(d);
           const inDrag=dr.has(d)&&!isSel;
           return (
@@ -114,7 +115,7 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
   React.useEffect(()=>{if(open)setSelected([]);},[open]);
 
   const daysWithFood=Array.from({length:days},(_,i)=>i+1).filter(d=>{
-    const k=dateKey(year,month,d); return !!(plan[k]?.lunch||plan[k]?.dinner);
+    const k=dateKey(year,month,d); return !!(plan[k]?.breakfast||plan[k]?.lunch||plan[k]?.dinner);
   });
 
   function selectAll(){setSelected(Array.from({length:days},(_,i)=>i+1));}
@@ -346,7 +347,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-2">¿Para qué período?</p>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              {[['hoy','Hoy','solo hoy'],['semana','Semana','lun → dom'],['mes',`Mes`,MONTH_NAMES[month]],['custom','Personalizado','elige días']].map(([r,label,sub])=>(
+              {[['hoy','Hoy','solo hoy'],['semana','Semana','lun → dom'],['mes',`Mes`,monthNames[month]],['custom','Personalizado','elige días']].map(([r,label,sub])=>(
                 <button key={r} type="button" onClick={()=>setRange(r)}
                   className={`py-2.5 px-1 rounded-xl border-2 text-center transition-all ${range===r?'border-teal-500 bg-teal-50':'border-gray-200 bg-white hover:border-teal-300'}`}
                   style={{boxShadow: range===r?'0 3px 10px rgba(13,148,136,.15)':'0 2px 6px rgba(0,0,0,.07)'}}>
@@ -539,7 +540,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   const report=showReport?buildReport():null;
 
   const daysWithFood=Array.from({length:days},(_,i)=>i+1).filter(d=>{
-    const k=dateKey(year,month,d); return !!(plan[k]?.lunch||plan[k]?.dinner);
+    const k=dateKey(year,month,d); return !!(plan[k]?.breakfast||plan[k]?.lunch||plan[k]?.dinner);
   });
 
   return (
@@ -578,7 +579,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
         return (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-gray-800" style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> {report.rows.length} días · {MONTH_NAMES[month]} {year}</p>
+              <p className="text-sm font-bold text-gray-800" style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> {report.rows.length} días · {monthNames[month]} {year}</p>
               <button onClick={()=>setShowReport(false)} className="text-xs text-gray-400 hover:text-gray-600">← Volver</button>
             </div>
 
@@ -683,7 +684,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
                 {report.rows.map(r=>(
                   <div key={r.day} style={{background:'#fff',border:'1px solid #f1f5f9',borderRadius:12,padding:'8px 12px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:4}}>
-                      <span style={{fontSize:11,fontWeight:700,color:'#374151'}}>{r.day} {MONTH_NAMES[month]}</span>
+                      <span style={{fontSize:11,fontWeight:700,color:'#374151'}}>{r.day} {monthNames[month]}</span>
                       {r.totKcal>0&&<span style={{fontSize:10,background:'#fff7ed',color:'#ea580c',fontWeight:700,padding:'2px 7px',borderRadius:20}}>🔥 {r.totKcal} kcal</span>}
                     </div>
                     {r.lunch&&<p style={{fontSize:10,color:'#6b7280',margin:'1px 0'}}>🍽 {r.lunch.name}{r.lMacros?` · ${r.lMacros.kcal}kcal`:''}</p>}
@@ -742,12 +743,13 @@ function addDays(d: Date, n: number): Date {
 
 export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tickets,isPro,onUpgrade}) {
   const now=new Date();
+  const { isUS, monthNames, weekDays: weekDayNames } = useMarket();
   const [year,setYear]=useState(now.getFullYear());
   const [month,setMonth]=useState(now.getMonth());
   // Vista semanal (free): Monday de la semana visible
   const [weekMonday,setWeekMonday]=useState<Date>(()=>getWeekMonday(now));
   const [selDay,setSelDay]=useState(null);
-  const [dayMeal,setDayMeal]=useState({lunch:'',dinner:''});
+  const [dayMeal,setDayMeal]=useState({breakfast:'',lunch:'',dinner:''});
   const [autoModal,setAutoModal]=useState(false);
   const [clearModal,setClearModal]=useState(false);
   const [nutriModal,setNutriModal]=useState(false);
@@ -763,7 +765,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
     Object.entries(plan).forEach(([k,dp])=>{
       if(!k.startsWith(`${year}-${fmt2(month+1)}`)) return;
       if(selDay&&k===dateKey(year,month,selDay)) return;
-      [dp.lunch,dp.dinner].filter(Boolean).forEach(id=>{counts[id]=(counts[id]||0)+1;});
+      [dp.breakfast,dp.lunch,dp.dinner].filter(Boolean).forEach(id=>{counts[id]=(counts[id]||0)+1;});
     });
     return counts;
   },[plan,year,month,selDay]);
@@ -780,7 +782,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       const d=parseInt(k.split('-')[2]);
       if(d<mon||d>sun) return;
       if(d===selDay) return;
-      [dp.lunch,dp.dinner].filter(Boolean).forEach(id=>{counts[id]=(counts[id]||0)+1;});
+      [dp.breakfast,dp.lunch,dp.dinner].filter(Boolean).forEach(id=>{counts[id]=(counts[id]||0)+1;});
     });
     return counts;
   },[plan,year,month,selDay]);
@@ -791,13 +793,13 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   ).length,[dishes,ingMap]);
 
   // Same-day duplicate guard
-  const sameDayDup=!!(dayMeal.lunch&&dayMeal.lunch===dayMeal.dinner);
+  const sameDayDup=!!(dayMeal.lunch&&dayMeal.lunch===dayMeal.dinner)||(dayMeal.breakfast&&(dayMeal.breakfast===dayMeal.lunch||dayMeal.breakfast===dayMeal.dinner));
 
   // Repeat warning: only if >2 times this week OR >8 times this month
   const isExcessive=(id)=> id && ((usedInWeek[id]||0)>2 || (usedInMonth[id]||0)>8);
 
   const repeatWarning=useMemo(()=>{
-    const repeated=[dayMeal.lunch,dayMeal.dinner].filter(Boolean).filter(id=>isExcessive(id));
+    const repeated=[dayMeal.breakfast,dayMeal.lunch,dayMeal.dinner].filter(Boolean).filter(id=>isExcessive(id));
     if(!repeated.length) return null;
     const names=repeated.map(id=>dishMap[id]?.name).filter(Boolean);
     return {names,fewDishes:makeableDishes<4};
@@ -823,7 +825,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
 
   const openDay=d=>{
     const k=dateKey(year,month,d);
-    setDayMeal(plan[k]||{lunch:'',dinner:''});
+    setDayMeal({breakfast:'',lunch:'',dinner:'',...(plan[k]||{})});
     setSelDay(d);
   };
   const saveDay=()=>{setPlan(p=>({...p,[dateKey(year,month,selDay)]:dayMeal}));setSelDay(null);};
@@ -839,12 +841,12 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   const weekLabel = () => {
     const sun = addDays(weekMonday, 6);
     const sm = weekMonday.getMonth(), em = sun.getMonth();
-    if (sm === em) return `${weekMonday.getDate()}–${sun.getDate()} ${MONTH_NAMES[sm]} ${weekMonday.getFullYear()}`;
-    return `${weekMonday.getDate()} ${MONTH_NAMES[sm]} – ${sun.getDate()} ${MONTH_NAMES[em]}`;
+    if (sm === em) return `${weekMonday.getDate()}–${sun.getDate()} ${monthNames[sm]} ${weekMonday.getFullYear()}`;
+    return `${weekMonday.getDate()} ${monthNames[sm]} – ${sun.getDate()} ${monthNames[em]}`;
   };
   const weekPlanned = weekDays.filter(d => {
     const k = `${d.getFullYear()}-${fmt2(d.getMonth()+1)}-${fmt2(d.getDate())}`;
-    return plan[k]?.lunch || plan[k]?.dinner;
+    return plan[k]?.breakfast || plan[k]?.lunch || plan[k]?.dinner;
   }).length;
 
   return (
@@ -857,8 +859,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         </h1>
         <p className="text-sm text-gray-400 mt-1">
           {isPro
-            ? (planned>0 ? <><span className="font-bold text-teal-600">{planned}</span> días planificados en {MONTH_NAMES[month]}</> : 'Toca un día para asignar un plato')
-            : (weekPlanned>0 ? <><span className="font-bold text-teal-600">{weekPlanned}</span> días planificados esta semana</> : 'Toca un día para asignar un plato')}
+            ? (planned>0 ? <><span className="font-bold text-teal-600">{planned}</span> {isUS?'days planned in':'días planificados en'} {monthNames[month]}</> : (isUS?'Tap a day to assign a meal':'Toca un día para asignar un plato'))
+            : (weekPlanned>0 ? <><span className="font-bold text-teal-600">{weekPlanned}</span> {isUS?'days planned this week':'días planificados esta semana'}</> : (isUS?'Tap a day to assign a meal':'Toca un día para asignar un plato'))}
         </p>
       </div>
 
@@ -871,7 +873,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         </button>
         <div className="text-center">
           {isPro
-            ? <><h2 className="font-black text-gray-900 leading-none" style={{fontSize:'1.05rem',letterSpacing:'-0.02em'}}>{MONTH_NAMES[month]} <span style={{color:'#94a3b8',fontWeight:500}}>{year}</span></h2>
+            ? <><h2 className="font-black text-gray-900 leading-none" style={{fontSize:'1.05rem',letterSpacing:'-0.02em'}}>{monthNames[month]} <span style={{color:'#94a3b8',fontWeight:500}}>{year}</span></h2>
               {planned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{planned} días planificados</p>}</>
             : <><h2 className="font-black text-gray-900 leading-none" style={{fontSize:'0.9rem',letterSpacing:'-0.02em'}}>{weekLabel()}</h2>
               {weekPlanned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{weekPlanned} días planificados</p>}</>
@@ -922,7 +924,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               {Array.from({length:days}).map((_,i)=>{
                 const d=i+1,k=dateKey(year,month,d),dp=plan[k];
                 const isToday=year===now.getFullYear()&&month===now.getMonth()&&d===now.getDate();
-                const hasFood=dp?.lunch||dp?.dinner;
+                const hasFood=dp?.breakfast||dp?.lunch||dp?.dinner;
                 return (
                   <div key={d} onClick={()=>openDay(d)}
                     className="relative cursor-pointer group transition-colors"
@@ -931,6 +933,11 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                     <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:22,height:22,borderRadius:'50%',marginBottom:4,background:isToday?'#0d9488':'transparent',fontSize:'0.78rem',fontWeight:isToday?800:hasFood?700:400,color:isToday?'#fff':hasFood?'#0f172a':'#cbd5e1',lineHeight:1}}>
                       {d}
                     </div>
+                    {isUS&&dp?.breakfast&&(
+                      <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#fff7ed',color:'#9a3412',borderRadius:5,padding:'2px 5px',marginBottom:2,fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #f97316'}}>
+                        {dishMap[dp.breakfast]?.name||'?'}
+                      </div>
+                    )}
                     {dp?.lunch&&(
                       <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#fef9c3',color:'#854d0e',borderRadius:5,padding:'2px 5px',marginBottom:2,fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #eab308'}}>
                         {dishMap[dp.lunch]?.name||'?'}
@@ -959,7 +966,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                 const ky=`${wd.getFullYear()}-${fmt2(wd.getMonth()+1)}-${fmt2(wd.getDate())}`;
                 const dp=plan[ky];
                 const isToday=wd.toDateString()===now.toDateString();
-                const hasFood=dp?.lunch||dp?.dinner;
+                const hasFood=dp?.breakfast||dp?.lunch||dp?.dinner;
                 const openWeekDay=()=>{
                   // Temporarily set year/month to this day so openDay works
                   setYear(wd.getFullYear());
@@ -974,6 +981,11 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                     <div style={{display:'inline-flex',alignItems:'center',justifyContent:'center',width:22,height:22,borderRadius:'50%',marginBottom:4,background:isToday?'#0d9488':'transparent',fontSize:'0.78rem',fontWeight:isToday?800:hasFood?700:400,color:isToday?'#fff':hasFood?'#0f172a':'#cbd5e1',lineHeight:1}}>
                       {wd.getDate()}
                     </div>
+                    {isUS&&dp?.breakfast&&(
+                      <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#fff7ed',color:'#9a3412',borderRadius:5,padding:'2px 5px',marginBottom:2,fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #f97316'}}>
+                        {dishMap[dp.breakfast]?.name||'?'}
+                      </div>
+                    )}
                     {dp?.lunch&&(
                       <div style={{fontSize:'0.59rem',lineHeight:1.3,background:'#fef9c3',color:'#854d0e',borderRadius:5,padding:'2px 5px',marginBottom:2,fontWeight:600,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical',borderLeft:'2px solid #eab308'}}>
                         {dishMap[dp.lunch]?.name||'?'}
@@ -1035,7 +1047,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       <NutriReportModal open={nutriModal} onClose={()=>setNutriModal(false)}
         year={year} month={month} plan={plan} dishes={dishes} tickets={tickets}/>
       <Confirm open={confirmDayClear}
-        msg={`¿Borrar los platos del día ${selDay} de ${MONTH_NAMES[month]}? Esta acción no se puede deshacer.`}
+        msg={`¿Borrar los platos del día ${selDay} de ${monthNames[month]}? Esta acción no se puede deshacer.`}
         onOk={()=>{if(selDay){clearDay(selDay);setSelDay(null);}setConfirmDayClear(false);}}
         onCancel={()=>setConfirmDayClear(false)}/>
       <ClearDaysModal open={clearModal} onClose={()=>setClearModal(false)}
@@ -1121,7 +1133,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
             <div style={{background:'linear-gradient(135deg,#0f766e,#0d9488)',borderRadius:'24px 24px 0 0',padding:'18px 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
                 <div style={{color:'#fff',fontWeight:900,fontSize:'1.1rem',letterSpacing:'-0.02em'}}>
-                  📅 {selDay} de {MONTH_NAMES[month]}
+                  📅 {selDay} de {monthNames[month]}
                 </div>
                 <div style={{color:'rgba(255,255,255,.7)',fontSize:'0.7rem',marginTop:2}}>
                   Edita comida y cena de este día
@@ -1136,14 +1148,18 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
             <div style={{padding:'18px 20px',display:'flex',flexDirection:'column',gap:16}}>
 
               {/* Current meals preview */}
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
-                {[['lunch','🍽️','Comida','#fef3c7','#d97706','#fffbeb'],['dinner','🌙','Cena','#f0fdfa','#0d9488','#f0fdf4']].map(([k,icon,lbl,borderC,textC,bgC])=>{
+              <div style={{display:'grid',gridTemplateColumns:isUS?'repeat(3,1fr)':'1fr 1fr',gap:10}}>
+                {[
+                  ...(isUS?[['breakfast','🌅','Breakfast','#ffedd5','#9a3412','#fff7ed']]:[] ),
+                  ['lunch','🍽️',isUS?'Lunch':'Comida','#fef3c7','#d97706','#fffbeb'],
+                  ['dinner','🌙',isUS?'Dinner':'Cena','#f0fdfa','#0d9488','#f0fdf4']
+                ].map(([k,icon,lbl,borderC,textC,bgC])=>{
                   const dish=dishMap[dayMeal[k]];
                   return (
                     <div key={k} style={{borderRadius:14,padding:'10px 12px',border:`1.5px solid ${borderC}`,background:bgC}}>
                       <div style={{fontSize:'0.65rem',fontWeight:700,color:textC,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:4}}>{icon} {lbl}</div>
                       <div style={{fontSize:'0.78rem',fontWeight:600,color:dish?textC:'#cbd5e1',minHeight:32,display:'flex',alignItems:'center',justifyContent:'space-between',gap:6}}>
-                        <span>{dish?dish.name:'Sin asignar'}</span>
+                        <span>{dish?dish.name:(isUS?'Not assigned':'Sin asignar')}</span>
                         {isPro && dish && (
                           <button
                             onClick={()=>{
@@ -1178,16 +1194,20 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               )}
 
               {/* Selects + macros */}
-              {[['lunch','🍽️ Comida'],['dinner','🌙 Cena']].map(([k,label])=>{
+              {[
+                ...(isUS?[['breakfast','🌅 Breakfast']]:[] ),
+                ['lunch',isUS?'🍽️ Lunch':'🍽️ Comida'],
+                ['dinner',isUS?'🌙 Dinner':'🌙 Cena']
+              ].map(([k,label])=>{
                 const macros=(isPro||isPro)?getMacros100(dayMeal[k]):null;
                 return (
                   <div key={k}>
                     <label style={{display:'block',fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:'#94a3b8',marginBottom:6}}>{label}</label>
                     <select value={dayMeal[k]||''} onChange={e=>setDayMeal(m=>({...m,[k]:e.target.value}))}
                       style={{width:'100%',borderRadius:14,padding:'12px 14px',fontSize:'0.85rem',border:'1.5px solid #e2e8f0',background:'#f8fafc',outline:'none',appearance:'auto'}}>
-                      <option value="">— Sin asignar —</option>
+                      <option value="">— {isUS?'Not assigned':'Sin asignar'} —</option>
                       {dishes
-                        .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : d.id!==dayMeal.lunch)
+                        .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : k==='dinner' ? d.id!==dayMeal.lunch : d.id!==dayMeal.lunch&&d.id!==dayMeal.dinner)
                         .map(d=>{
                           const isRepeat = isExcessive(d.id);
                           return <option key={d.id} value={d.id}>{d.name}</option>;

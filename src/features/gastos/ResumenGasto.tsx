@@ -2,9 +2,10 @@
 import React, { useState, useMemo } from 'react';
 import { fmt2 } from '../../utils/helpers';
 import { CAT_EMOJI, CAT_BG, CAT_TEXT, MONTH_NAMES, STORE_EMOJI } from '../../data/categories';
-import { CurrencyEur, ChartBar, X, FilePdf } from '@phosphor-icons/react';
+import { CurrencyEur, CurrencyDollar, ChartBar, X, FilePdf } from '@phosphor-icons/react';
 import { generateGastoPDF } from '../../utils/pdfReport';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
+import { useMarket } from '../../i18n/useMarket';
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -41,7 +42,7 @@ const customTooltip=({active,payload,label})=>{
     <div style={{background:'#fff',border:'1px solid #e2e8f0',borderRadius:10,padding:'8px 12px',boxShadow:'0 4px 12px rgba(0,0,0,.08)'}}>
       {label&&<p style={{fontSize:'0.75rem',fontWeight:700,color:'#374151',marginBottom:4}}>{label}</p>}
       {payload.map((p,i)=>(
-        <p key={i} style={{fontSize:'0.75rem',color:p.color||'#374151'}}>{p.name}: <strong>{typeof p.value==='number'?p.value.toFixed(2)+'€':p.value}</strong></p>
+        <p key={i} style={{fontSize:'0.75rem',color:p.color||'#374151'}}>{p.name}: <strong>{typeof p.value==='number'?fp(p.value):p.value}</strong></p>
       ))}
     </div>
   );
@@ -53,6 +54,7 @@ const customTooltip=({active,payload,label})=>{
 function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory}) {
   const [tab,setTab]=useState('resumen');
   const [pdfLoading,setPdfLoading]=useState(false);
+  const { formatPrice: fp, currency, isUS, monthNames } = useMarket();
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
 
   async function handleDownloadPDF() {
@@ -121,7 +123,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
           <div>
             <h2 style={{fontSize:'1.2rem',fontWeight:900,color:'#111827',margin:0,display:'flex',alignItems:'center',gap:6}}><ChartBar size={20} weight="fill" color="#0f766e"/> Informe completo</h2>
-            <p style={{fontSize:'0.75rem',color:'#9ca3af',margin:'2px 0 0'}}>{tickets.length} tickets · {allTotal.toFixed(2)}€ total</p>
+            <p style={{fontSize:'0.75rem',color:'#9ca3af',margin:'2px 0 0'}}>{tickets.length} tickets · {fp(allTotal)} total</p>
           </div>
           <div style={{display:'flex',gap:8,alignItems:'center'}}>
             <button
@@ -209,7 +211,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                       <div key={s.store} style={{display:'flex',alignItems:'center',gap:6}}>
                         <div style={{width:8,height:8,borderRadius:'50%',background:s.fill,flexShrink:0}}/>
                         <span style={{fontSize:'0.7rem',color:'#374151',flex:1}}>{s.store}</span>
-                        <span style={{fontSize:'0.7rem',fontWeight:700,color:'#111827',flexShrink:0}}>{s.value.toFixed(2)}€</span>
+                        <span style={{fontSize:'0.7rem',fontWeight:700,color:'#111827',flexShrink:0}}>{fp(s.value)}</span>
                       </div>
                     ))}
                   </div>
@@ -225,7 +227,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
             {monthlyData.length===0&&<p style={{textAlign:'center',color:'#d1d5db',padding:'40px 0',fontSize:'0.875rem'}}>Sin datos mensuales</p>}
             {monthlyData.length>0&&(
               <div style={{background:'#fff',borderRadius:20,padding:'16px 12px',border:'1px solid #f1f5f9',boxShadow:'0 2px 8px rgba(0,0,0,.05)'}}>
-                <SectionTitle>Gasto mensual (€)</SectionTitle>
+                <SectionTitle>{isUS ? `Monthly Spending (${currency})` : `Gasto mensual (${currency})`}</SectionTitle>
                 <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={monthlyData} margin={{top:0,right:4,left:-16,bottom:0}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false}/>
@@ -242,7 +244,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                     <div style={{marginTop:12,padding:'8px 12px',borderRadius:12,background:diff<=0?'#f0fdf4':'#fef2f2',display:'flex',alignItems:'center',gap:8}}>
                       <span style={{fontSize:'1.2rem'}}>{diff<=0?'📉':'📈'}</span>
                       <p style={{fontSize:'0.75rem',color:diff<=0?'#0f766e':'#dc2626',fontWeight:600,margin:0}}>
-                        {diff<=0?'Bajada':'Subida'} de {Math.abs(diff).toFixed(2)}€ ({Math.abs(pct)}%) vs primer mes
+                        {isUS?(diff<=0?'Down':'Up'):(diff<=0?'Bajada':'Subida')} {fp(Math.abs(diff))} ({Math.abs(pct)}%) {isUS?'vs first month':'vs primer mes'}
                       </p>
                     </div>
                   );
@@ -318,11 +320,11 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                   <ResponsiveContainer width="100%" height={storeData.length*52+20}>
                     <BarChart data={storeData} layout="vertical" margin={{top:4,right:56,left:4,bottom:0}}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false}/>
-                      <XAxis type="number" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={v=>`${v}€`}/>
+                      <XAxis type="number" tick={{fontSize:10,fill:'#94a3b8'}} axisLine={false} tickLine={false} tickFormatter={v=>fp(v)}/>
                       <YAxis type="category" dataKey="store" tick={{fontSize:11,fill:'#374151',fontWeight:600}} width={82} axisLine={false} tickLine={false}
                         tickFormatter={store=>`${STORE_EMOJI?.[store]||'🏪'} ${store}`}/>
                       <Tooltip content={customTooltip}/>
-                      <Bar dataKey="value" name="Gasto total" radius={[0,8,8,0]} label={{position:'right',fontSize:11,fontWeight:700,fill:'#374151',formatter:(v:number)=>`${v.toFixed(0)}€`}}>
+                      <Bar dataKey="value" name="Gasto total" radius={[0,8,8,0]} label={{position:'right',fontSize:11,fontWeight:700,fill:'#374151',formatter:(v:number)=>fp(v)}}>
                         {storeData.map((e,i)=><Cell key={i} fill={e.fill}/>)}
                       </Bar>
                     </BarChart>
@@ -341,7 +343,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                             <span style={{fontSize:'0.85rem',fontWeight:700,color:'#1e293b'}}>{STORE_EMOJI?.[s.store]||'🏪'} {s.store}</span>
                           </div>
                           <div style={{textAlign:'right'}}>
-                            <div style={{fontSize:'0.9rem',fontWeight:800,color:'#111827'}}>{s.value.toFixed(2)}€</div>
+                            <div style={{fontSize:'0.9rem',fontWeight:800,color:'#111827'}}>{fp(s.value)}</div>
                             <div style={{fontSize:'0.65rem',color:'#94a3b8'}}>{s.count} ticket{s.count!==1?'s':''} · {pct}%</div>
                           </div>
                         </div>
@@ -389,14 +391,14 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
                           <span style={{marginLeft:6,fontSize:'0.65rem',fontWeight:700,padding:'2px 7px',borderRadius:20,background:'#f1f5f9',color:'#6b7280'}}>{ing.category}</span>
                         </div>
                         <div style={{textAlign:'right'}}>
-                          <div style={{fontSize:'0.9rem',fontWeight:900,color:'#d97706'}}>{total.toFixed(2)}€</div>
-                          <div style={{fontSize:'0.65rem',color:'#9ca3af'}}>~{avg.toFixed(2)}€/ud · {count}x</div>
+                          <div style={{fontSize:'0.9rem',fontWeight:900,color:'#d97706'}}>{fp(total)}</div>
+                          <div style={{fontSize:'0.65rem',color:'#9ca3af'}}>~{fp(avg)}/{isUS?'unit':'ud'} · {count}x</div>
                         </div>
                       </div>
                       {recs.slice(-3).map((r,i)=>(
                         <div key={i} style={{display:'flex',justifyContent:'space-between',fontSize:'0.68rem',color:'#9ca3af'}}>
                           <span>{r.date} · <em>{r.rawName}</em></span>
-                          <span style={{fontWeight:700}}>{r.price.toFixed(2)}€</span>
+                          <span style={{fontWeight:700}}>{fp(r.price)}</span>
                         </div>
                       ))}
                       {recs.length>3&&<p style={{fontSize:'0.65rem',color:'#d1d5db',margin:'4px 0 0'}}>+ {recs.length-3} compras más</p>}
@@ -417,6 +419,7 @@ function InformeCompletoModal({open, onClose, tickets, ingredients, priceHistory
 ───────────────────────────────────────────────────────────────── */
 export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade}) {
   const [showFull, setShowFull]=useState(false);
+  const { formatPrice: fp, currency, isUS, monthNames } = useMarket();
   const canSeeReport=isPro;
   const now=new Date();
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
@@ -450,18 +453,21 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade})
     <div className="fade-in" style={{paddingBottom:32}}>
       {/* Header */}
       <div className="mb-5">
-        <h1 style={{fontSize:'1.5rem',fontWeight:900,color:'#111827',letterSpacing:'-0.02em',lineHeight:1,display:'flex',alignItems:'center',gap:8}}><CurrencyEur size={22} weight="fill" color="#0f766e"/> Gastos</h1>
+        <h1 style={{fontSize:'1.5rem',fontWeight:900,color:'#111827',letterSpacing:'-0.02em',lineHeight:1,display:'flex',alignItems:'center',gap:8}}>
+          {isUS ? <CurrencyDollar size={22} weight="fill" color="#0f766e"/> : <CurrencyEur size={22} weight="fill" color="#0f766e"/>}
+          {isUS ? 'Spending' : 'Gastos'}
+        </h1>
         <p style={{fontSize:'0.875rem',color:'#9ca3af',marginTop:4}}>
-          <span style={{fontWeight:700,color:'#0d9488'}}>{monthTotal.toFixed(2)}€</span> este mes · {tickets.length} tickets en total
+          <span style={{fontWeight:700,color:'#0d9488'}}>{fp(monthTotal)}</span> {isUS ? 'this month' : 'este mes'} · {tickets.length} {isUS ? 'receipts' : 'tickets'} total
         </p>
       </div>
 
       {/* KPI cards */}
       <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:20}}>
         {[
-          {label:MONTH_NAMES[now.getMonth()],val:`${monthTotal.toFixed(2)}€`,sub:`${monthTickets.length} tickets`,bg:'linear-gradient(135deg,#0f766e,#0d9488)',shadow:'rgba(13,148,136,.3)'},
-          {label:'Media mensual',val:`${avgMonthly.toFixed(2)}€`,sub:'últimos meses',bg:'linear-gradient(135deg,#0369a1,#0284c7)',shadow:'rgba(3,105,161,.25)'},
-          {label:'Total histórico',val:`${allTotal.toFixed(2)}€`,sub:`${tickets.length} tickets`,bg:'linear-gradient(135deg,#134e4a,#0f766e)',shadow:'rgba(19,78,74,.3)'},
+          {label:monthNames[now.getMonth()],val:fp(monthTotal),sub:`${monthTickets.length} ${isUS?'receipts':'tickets'}`,bg:'linear-gradient(135deg,#0f766e,#0d9488)',shadow:'rgba(13,148,136,.3)'},
+          {label:isUS?'Monthly avg':'Media mensual',val:fp(avgMonthly),sub:isUS?'last months':'últimos meses',bg:'linear-gradient(135deg,#0369a1,#0284c7)',shadow:'rgba(3,105,161,.25)'},
+          {label:isUS?'All time':'Total histórico',val:fp(allTotal),sub:`${tickets.length} ${isUS?'receipts':'tickets'}`,bg:'linear-gradient(135deg,#134e4a,#0f766e)',shadow:'rgba(19,78,74,.3)'},
         ].map(c=>(
           <div key={c.label} style={{borderRadius:16,padding:'12px 10px',color:'#fff',background:c.bg,boxShadow:`0 2px 10px ${c.shadow}`}}>
             <div style={{fontSize:'0.6rem',fontWeight:700,opacity:.75,marginBottom:3,textTransform:'uppercase',letterSpacing:'.04em'}}>{c.label}</div>
@@ -488,7 +494,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade})
                   {monthDiff<=0?'Gastas menos':'Gastas más'} que el mes anterior
                 </p>
                 <p style={{margin:0,fontSize:'0.7rem',color:'#9ca3af'}}>
-                  {Math.abs(monthDiff).toFixed(2)}€ de diferencia · antes {prevTotal.toFixed(2)}€
+                  {fp(Math.abs(monthDiff))} {isUS ? 'difference · prev' : 'de diferencia · antes'} {fp(prevTotal)}
                 </p>
               </div>
             </div>
@@ -504,7 +510,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade})
                     <p style={{margin:0,fontSize:'0.82rem',fontWeight:600,color:'#374151'}}>{t.store||t.filename?.split('.')[0]||'Ticket'}</p>
                     <p style={{margin:0,fontSize:'0.7rem',color:'#9ca3af'}}>{t.date||'Sin fecha'} · {(t.items||[]).length} productos</p>
                   </div>
-                  <span style={{fontSize:'0.9rem',fontWeight:800,color:'#111827'}}>{(t.total||0).toFixed(2)}€</span>
+                  <span style={{fontSize:'0.9rem',fontWeight:800,color:'#111827'}}>{fp(t.total||0)}</span>
                 </div>
               ))}
             </div>
@@ -519,7 +525,7 @@ export function ResumenGasto({tickets,ingredients,priceHistory,isPro,onUpgrade})
                   <div key={c.cat}>
                     <div style={{display:'flex',justifyContent:'space-between',marginBottom:3}}>
                       <span style={{fontSize:'0.8rem',color:'#374151',fontWeight:600}}>{c.name}</span>
-                      <span style={{fontSize:'0.8rem',fontWeight:800,color:'#111827'}}>{c.value.toFixed(2)}€
+                      <span style={{fontSize:'0.8rem',fontWeight:800,color:'#111827'}}>{fp(c.value)}
                         <span style={{fontSize:'0.65rem',fontWeight:400,color:'#9ca3af',marginLeft:4}}>{catTotal>0?Math.round(c.value/catTotal*100):0}%</span>
                       </span>
                     </div>

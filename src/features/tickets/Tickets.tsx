@@ -8,11 +8,13 @@ import { processImageTicket, processPdf, applyTicket } from '../../utils/ticketP
 import { normalizeName } from '../../utils/helpers';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
 import { Receipt, Trash, X, PencilSimple, Check } from '@phosphor-icons/react';
+import { useMarket } from '../../i18n/useMarket';
 
 // CDN globals
 declare const window: any;
 
 export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHistory,setPriceHistory,learnedMappings={},setLearnedMappings,isPro,onUpgrade}) {
+  const { formatPrice: fp, isUS } = useMarket();
   const [pdfjsReady,setPdfjsReady]=useState(false);
   const [loading,setLoading]=useState(false);
   const [ocrProgress,setOcrProgress]=useState(null); // null | -1 (cargando) | 0-100
@@ -353,7 +355,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                             <PencilSimple size={12} color="#cbd5e1" style={{flexShrink:0}}/>
                           </button>
                         )}
-                        <p className="text-xs text-gray-400">{tk.date} · {(tk.products||[]).length} líneas · <span className="font-medium text-gray-600">{tk.total?.toFixed(2)}€</span></p>
+                        <p className="text-xs text-gray-400">{tk.date} · {(tk.products||[]).length} {isUS?'items':'líneas'} · <span className="font-medium text-gray-600">{fp(tk.total)}</span></p>
                       </div>
                       <div className="flex gap-1 shrink-0">
                         <button onClick={()=>setDetail(tk.id)} className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-100 font-medium">Ver</button>
@@ -401,7 +403,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
           <div className="space-y-4">
             <div className="flex justify-between text-sm font-medium text-gray-700 bg-gray-50 rounded-xl p-3">
               <span>📅 {activeTicket.date}</span>
-              <span>💶 {activeTicket.total?.toFixed(2)}€</span>
+              <span>{isUS?'💵':'💶'} {fp(activeTicket.total)}</span>
             </div>
 
             {/* Productos reconocidos */}
@@ -415,7 +417,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                         <span className={`text-xs px-2 py-0.5 rounded-full ${CAT_BG[m.category]} ${CAT_TEXT[m.category]}`}>{m.ingredientName}</span>
                         <span style={{fontSize:'0.7rem',color:'#94a3b8',marginLeft:6}}>← {m.rawName}</span>
                       </div>
-                      <span style={{fontSize:'0.75rem',fontWeight:600,color:'#374151'}}>{m.price?.toFixed(2)}€</span>
+                      <span style={{fontSize:'0.75rem',fontWeight:600,color:'#374151'}}>{fp(m.price)}</span>
                     </div>
                   ))}
                 </div>
@@ -437,7 +439,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                       {/* Nombre + precio */}
                       <div style={{marginBottom:8}}>
                         <p style={{fontSize:'0.82rem',fontWeight:600,color:'#374151',marginBottom:1}}>{prod.rawName}</p>
-                        <p style={{fontSize:'0.7rem',color:'#94a3b8'}}>{prod.price?.toFixed(2)}€</p>
+                        <p style={{fontSize:'0.7rem',color:'#94a3b8'}}>{fp(prod.price)}</p>
                       </div>
                       {/* Botones en fila */}
                       <div style={{display:'flex',gap:6}}>
@@ -480,7 +482,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
                 <p className="text-xs text-gray-400 mb-0.5">Producto del ticket</p>
                 <p className="text-sm font-semibold text-gray-800">{prod.rawName}</p>
-                <p className="text-xs text-gray-400">{prod.price?.toFixed(2)}€ · {tk.date}</p>
+                <p className="text-xs text-gray-400">{fp(prod.price)} · {tk.date}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">¿Cómo se llama en tu despensa?</label>
@@ -509,7 +511,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                   : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
                 Añadir a la despensa y marcar disponible
               </button>
-              <p className="text-xs text-gray-300 text-center">El precio ({prod.price?.toFixed(2)}€) se guardará en el historial automáticamente</p>
+              <p className="text-xs text-gray-300 text-center">{isUS?`Price (${fp(prod.price)}) will be saved to history automatically`:`El precio (${fp(prod.price)}) se guardará en el historial automáticamente`}</p>
             </>):null;
           })()}
         </div>
@@ -528,7 +530,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               <div className="bg-gray-50 rounded-xl p-3 text-sm">
                 <p className="text-xs text-gray-400 mb-0.5">Producto del ticket</p>
                 <span className="font-semibold text-gray-800">{prod.rawName}</span>
-                <span className="text-gray-400 text-xs ml-2">{prod.price?.toFixed(2)}€</span>
+                <span className="text-gray-400 text-xs ml-2">{fp(prod.price)}</span>
               </div>
               {/* Buscador */}
               <input

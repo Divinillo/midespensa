@@ -4,6 +4,7 @@ import type { Ingredient, Dish, Plan, Ticket } from '../../data/types';
 import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from '../../data/categories';
 import { Modal } from '../../components/ui/Modal';
 import { supabase } from '../../utils/supabase';
+import { useMarket } from '../../i18n/useMarket';
 
 
 export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, onDismiss}) {
@@ -129,6 +130,12 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
 export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '' }) {
   const [period, setPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [loading, setLoading] = useState(false);
+  const { isUS, stripeConfig, formatPrice } = useMarket();
+
+  const monthlyPrice = stripeConfig.monthly;
+  const yearlyPrice = stripeConfig.yearly;
+  const fmtMonthly = formatPrice(monthlyPrice);
+  const fmtYearly = formatPrice(yearlyPrice);
 
   const close = () => { onClose(); };
 
@@ -152,7 +159,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ period }),
+        body: JSON.stringify({ period, currency: stripeConfig.currency }),
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
@@ -192,16 +199,16 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
             onClick={() => setPeriod('monthly')}
             className={`rounded-xl p-3 border-2 text-center transition-all ${period === 'monthly' ? 'border-teal-500 bg-teal-50' : 'border-gray-200 bg-white'}`}
           >
-            <div className={`text-sm font-bold ${period === 'monthly' ? 'text-teal-700' : 'text-gray-700'}`}>2,99 €/mes</div>
-            <div className="text-xs text-gray-400 mt-0.5">Mensual</div>
+            <div className={`text-sm font-bold ${period === 'monthly' ? 'text-teal-700' : 'text-gray-700'}`}>{fmtMonthly}/{isUS?'mo':'mes'}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{isUS?'Monthly':'Mensual'}</div>
           </button>
           <button
             onClick={() => setPeriod('yearly')}
             className={`rounded-xl p-3 border-2 text-center relative transition-all ${period === 'yearly' ? 'border-purple-500 bg-purple-50' : 'border-gray-200 bg-white'}`}
           >
-            <div className={`text-sm font-bold ${period === 'yearly' ? 'text-purple-700' : 'text-gray-700'}`}>29,99 €/año</div>
-            <div className="text-xs text-gray-400 mt-0.5">Facturación anual</div>
-            <span className="absolute -top-2 -right-1 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', fontSize: '0.6rem' }}>MEJOR</span>
+            <div className={`text-sm font-bold ${period === 'yearly' ? 'text-purple-700' : 'text-gray-700'}`}>{fmtYearly}/{isUS?'yr':'año'}</div>
+            <div className="text-xs text-gray-400 mt-0.5">{isUS?'Billed annually':'Facturación anual'}</div>
+            <span className="absolute -top-2 -right-1 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', fontSize: '0.6rem' }}>{isUS?'BEST':'MEJOR'}</span>
           </button>
         </div>
 
@@ -213,7 +220,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
           className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md disabled:opacity-60"
           style={{ background: 'linear-gradient(to right, #0d9488, #7c3aed)' }}
         >
-          {loading ? 'Cargando...' : `💳 Suscribirse · ${period === 'yearly' ? '29,99 €/año' : '2,99 €/mes'}`}
+          {loading ? (isUS ? 'Loading...' : 'Cargando...') : `💳 ${isUS ? 'Subscribe' : 'Suscribirse'} · ${period === 'yearly' ? `${fmtYearly}/${isUS?'yr':'año'}` : `${fmtMonthly}/${isUS?'mo':'mes'}`}`}
         </button>
       </div>
     </Modal>

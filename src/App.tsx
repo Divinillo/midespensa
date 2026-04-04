@@ -21,7 +21,7 @@ import MigrationModal, { hasLocalDataToMigrate, markMigrationOffered } from './c
 import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
 import { supabase } from './utils/supabase';
-import { INIT_INGS } from './data/ingredients';
+import { useMarket } from './i18n/useMarket';
 import type { Ingredient, Dish, Plan, Ticket, PriceHistory, Section } from './data/types';
 
 /** Marca como disponibles los ingredientes que aparecen como matched en los tickets. */
@@ -61,8 +61,9 @@ const TITLES: Record<Section, string> = {
 
 
 export function App() {
-  // ── i18n ──────────────────────────────────────────────────────
+  // ── i18n + market ──────────────────────────────────────────────
   const { t, i18n } = useTranslation();
+  const { market, isUS, initIngredients, formatPrice, currency } = useMarket();
 
   // ── Supabase auth session ─────────────────────────────────────
   const [session, setSession] = useState<Session | null>(null);
@@ -81,7 +82,9 @@ export function App() {
   }, []);
 
   const [section, setSection] = useLS<Section>('despensa_section_v1', 'plan');
-  const [ingredients, setIngredients] = useLS<Ingredient[]>('despensa_ings_v4', INIT_INGS);
+  // Use market-specific ingredient key so US and ES users have separate pantries
+  const ingKey = isUS ? 'despensa_ings_us_v1' : 'despensa_ings_v4';
+  const [ingredients, setIngredients] = useLS<Ingredient[]>(ingKey, initIngredients);
   const [dishes, setDishes] = useLS<Dish[]>('despensa_dishes_v4', INIT_DISHES);
   const [plan, setPlan] = useLS<Plan>('despensa_plan_v4', {});
   const [tickets, setTickets] = useLS<Ticket[]>('despensa_tickets_v4', []);
@@ -159,10 +162,10 @@ export function App() {
     }
   }, []);
 
-  // Migrate: add new INIT_INGS not yet in localStorage
+  // Migrate: add new initIngredients not yet in localStorage
   useEffect(() => {
     const existingIds = new Set(ingredients.map(i => i.id));
-    const missing = INIT_INGS.filter(i => !existingIds.has(i.id));
+    const missing = initIngredients.filter(i => !existingIds.has(i.id));
     const needsMigration = ingredients.some(i => i.needed === undefined);
     if (missing.length > 0 || needsMigration) {
       setIngredients(prev => [

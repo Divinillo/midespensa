@@ -3,8 +3,10 @@ import React, { useState, useMemo } from 'react';
 import type { Ingredient, Dish, Plan, PriceHistory } from '../../data/types';
 import { CAT_BG, CAT_TEXT, CAT_EMOJI, MONTH_NAMES, CATEGORIES, FREE_PRICE_HISTORY_DAYS } from '../../data/categories';
 import { ShoppingCart } from '@phosphor-icons/react';
+import { useMarket } from '../../i18n/useMarket';
 
 export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory,isPro=false}) {
+  const { formatPrice: fp, isUS, categories, catBg, catText, catEmoji, monthNames } = useMarket();
   const now=new Date();
   const [selYear,setSelYear]=useState(now.getFullYear());
   const [selMonth,setSelMonth]=useState(now.getMonth());
@@ -52,19 +54,19 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
       {/* ── Header ── */}
       <div className="mb-5">
         <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em',display:'flex',alignItems:'center',gap:8}}>
-          <ShoppingCart size={24} weight="fill" color="#0f766e"/> Lista de compra
+          <ShoppingCart size={24} weight="fill" color="#0f766e"/> {isUS ? 'Shopping List' : 'Lista de compra'}
         </h1>
-        <p className="text-sm text-gray-400 mt-1">Genera lo que te falta según tu plan</p>
+        <p className="text-sm text-gray-400 mt-1">{isUS ? 'Generate what you need based on your plan' : 'Genera lo que te falta según tu plan'}</p>
       </div>
 
       {/* ── Generador ── */}
       <div className="bg-white rounded-2xl p-5 mb-5" style={{border:'1px solid #f1f5f9',boxShadow:'0 1px 4px rgba(0,0,0,.05)'}}>
-        <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-3">Generar lista para</p>
+        <p className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-3">{isUS ? 'Generate list for' : 'Generar lista para'}</p>
         <div className="flex gap-2 mb-4">
           <select value={selMonth} onChange={e=>setSelMonth(Number(e.target.value))}
             className="flex-1 rounded-2xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"
             style={{border:'1px solid #e2e8f0',background:'#f8fafc'}}>
-            {MONTH_NAMES.map((m,i)=><option key={i} value={i}>{m}</option>)}
+            {monthNames.map((m,i)=><option key={i} value={i}>{m}</option>)}
           </select>
           <input type="number" value={selYear} onChange={e=>setSelYear(Number(e.target.value))}
             className="w-24 rounded-2xl px-3 py-2.5 text-sm text-center focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -73,7 +75,7 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
         <button onClick={generate}
           className="w-full text-white rounded-2xl py-3.5 font-bold text-sm"
           style={{background:'#0d9488',boxShadow:'0 2px 10px rgba(13,148,136,.35)',display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
-          <ShoppingCart size={18} weight="fill"/> Generar lista de la compra
+          <ShoppingCart size={18} weight="fill"/> {isUS ? 'Generate shopping list' : 'Generar lista de la compra'}
         </button>
       </div>
 
@@ -82,8 +84,8 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
         ?(
           <div className="text-center py-12 bg-white rounded-2xl" style={{border:'1px solid #f1f5f9'}}>
             <div className="text-5xl mb-3">🎉</div>
-            <p className="font-bold text-gray-800">¡Todo listo para el mes!</p>
-            <p className="text-sm text-gray-400 mt-1">Tienes todos los ingredientes necesarios</p>
+            <p className="font-bold text-gray-800">{isUS ? "You're all set for the month!" : '¡Todo listo para el mes!'}</p>
+            <p className="text-sm text-gray-400 mt-1">{isUS ? 'You have all the ingredients you need' : 'Tienes todos los ingredientes necesarios'}</p>
           </div>
         ):(
           <>
@@ -91,12 +93,12 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
             <div className="flex justify-between items-end mb-4">
               <div>
                 <div className="text-2xl font-black text-gray-900 leading-none">{list.items.length}</div>
-                <div className="text-xs text-gray-400 font-medium mt-0.5">ingredientes · <span className="text-teal-600 font-semibold">{doneCount} en el carrito</span></div>
+                <div className="text-xs text-gray-400 font-medium mt-0.5">{isUS?'items':'ingredientes'} · <span className="text-teal-600 font-semibold">{doneCount} {isUS?'in cart':'en el carrito'}</span></div>
               </div>
               {list.estTotal>0&&(
                 <div className="text-right">
                   <div className="text-xs text-gray-400">Estimado</div>
-                  <div className="text-lg font-black text-teal-600">{list.estTotal.toFixed(2)}€</div>
+                  <div className="text-lg font-black text-teal-600">{fp(list.estTotal)}</div>
                 </div>
               )}
             </div>
@@ -110,10 +112,10 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
             )}
 
             {/* Items by category */}
-            {CATEGORIES.filter(c=>list.grouped[c]).map(cat=>(
+            {categories.filter(c=>list.grouped[c]).map(cat=>(
               <div key={cat} className="mb-4">
-                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2 ${CAT_BG[cat]} ${CAT_TEXT[cat]}`}>
-                  {CAT_EMOJI[cat]} {cat}
+                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold mb-2 ${catBg[cat]||'bg-gray-100'} ${catText[cat]||'text-gray-700'}`}>
+                  {catEmoji[cat]} {cat}
                 </div>
                 <div className="space-y-1.5">
                   {list.grouped[cat].map(item=>(
@@ -136,8 +138,8 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
                       </div>
                       <div className="text-right shrink-0">
                         {item.avgPrice
-                          ?<><div className="text-sm font-bold text-teal-600">~{item.avgPrice.toFixed(2)}€</div><div className="text-[10px] text-gray-300">{item.histCount}x</div></>
-                          :<span className="text-xs text-gray-300">sin datos</span>
+                          ?<><div className="text-sm font-bold text-teal-600">~{fp(item.avgPrice)}</div><div className="text-[10px] text-gray-300">{item.histCount}x</div></>
+                          :<span className="text-xs text-gray-300">{isUS ? 'no data' : 'sin datos'}</span>
                         }
                       </div>
                     </div>

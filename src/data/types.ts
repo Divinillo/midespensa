@@ -12,7 +12,8 @@ export interface NutriPer100 {
 export interface Ingredient {
   id: string;
   name: string;
-  nameEn?: string;
+  nameEn?: string;   // English name (used when ES ingredients shown in EN)
+  nameEs?: string;   // Spanish name (used when US ingredients shown in ES)
   category: string;
   available: boolean;
   needed?: boolean;
@@ -68,6 +69,7 @@ export interface Ticket {
 }
 
 export interface PlanDay {
+  breakfast?: string;
   lunch?: string;
   dinner?: string;
 }
