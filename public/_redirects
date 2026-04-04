@@ -1,5 +1,8 @@
 # MiDespensa – Cloudflare Pages redirects
 # / → landing page (rewrite)
+# /en → English US landing page
 # /app and /app/* → handled by Pages Functions (functions/app/)
 
-/           /landing.html   200
+/           /landing.html     200
+/en         /landing-en.html  200
+/en/        /landing-en.html  200

@@ -53,6 +53,6 @@ export function formatDate(dateStr: string, lang: string): string {
 
 /** Stripe price IDs / amounts per market */
 export const STRIPE_PRICES = {
-  us: { monthly: 2.99, yearly: 29.99, currency: 'usd', symbol: '$' },
+  us: { monthly: 4.99, yearly: 39.99, currency: 'usd', symbol: '$' },
   es: { monthly: 2.99, yearly: 29.99, currency: 'eur', symbol: '€' },
 };
