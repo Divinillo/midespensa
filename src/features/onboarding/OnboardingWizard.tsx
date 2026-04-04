@@ -70,14 +70,14 @@ export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishe
     ingSelectOne:    'Select at least one',
     // Dish step
     dishH2:          'Your first recipe',
-    dishDesc:        'What's a dish you make regularly?',
+    dishDesc:        "What's a dish you make regularly?",
     dishPlaceholder: 'e.g. Chicken stir fry, Caesar salad…',
     dishIngLabel:    'Dish ingredients (optional)',
     dishSave:        (name: string) => `Save "${name}" and continue →`,
     dishEnter:       'Enter the dish name',
     dishSkip:        'Skip, use examples',
     // Done step
-    doneH2:          'You\'re all set!',
+    doneH2:          "You're all set!",
     doneSubtitle:    'Your kitchen is set up. Start using MiDespensa.',
     inPantry:        '🧺 In pantry',
     dishes:          '🍳 Recipes',
