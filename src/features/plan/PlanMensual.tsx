@@ -169,6 +169,7 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
    MENÚ AUTOMÁTICO — Modal Premium
 ═══════════════════════════════════════ */
 function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,setIngredients}) {
+  const { monthNames } = useMarket();
   const now=new Date();
   const [range,setRange]=useState('semana');
   const [customDays,setCustomDays]=useState([]);
@@ -472,6 +473,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
    PDF EXPORT — Informe Nutricional
 ═══════════════════════════════════════ */
 function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
+  const { monthNames } = useMarket();
   const [selected,setSelected]=useState([]);
   const [showReport,setShowReport]=useState(false);
   const [pdfLoading,setPdfLoading]=useState(false);
