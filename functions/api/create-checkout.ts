@@ -2,8 +2,12 @@ import Stripe from 'stripe';
 
 interface Env {
   STRIPE_SECRET_KEY: string;
+  // EUR prices (Spain)
   STRIPE_PRICE_MONTHLY: string;
   STRIPE_PRICE_YEARLY: string;
+  // USD prices (US market)
+  STRIPE_PRICE_MONTHLY_USD: string;
+  STRIPE_PRICE_YEARLY_USD: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
 }
@@ -41,24 +45,37 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // Use verified email from JWT — ignore any email in request body
   const verifiedEmail = authUser.email;
 
-  const { period = 'monthly' } = await request.json() as any;
-  const safePeriod = period === 'yearly' ? 'yearly' : 'monthly';
+  const { period = 'monthly', currency = 'eur' } = await request.json() as any;
+  const safePeriod   = period === 'yearly' ? 'yearly' : 'monthly';
+  const safeMarket   = currency === 'usd' ? 'usd' : 'eur';
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-04-10' as any,
   });
 
-  const priceId = safePeriod === 'yearly' ? env.STRIPE_PRICE_YEARLY : env.STRIPE_PRICE_MONTHLY;
-  const origin  = new URL(request.url).origin;
+  // Select price ID based on market currency
+  let priceId: string;
+  if (safeMarket === 'usd') {
+    priceId = safePeriod === 'yearly'
+      ? (env.STRIPE_PRICE_YEARLY_USD  || env.STRIPE_PRICE_YEARLY)
+      : (env.STRIPE_PRICE_MONTHLY_USD || env.STRIPE_PRICE_MONTHLY);
+  } else {
+    priceId = safePeriod === 'yearly' ? env.STRIPE_PRICE_YEARLY : env.STRIPE_PRICE_MONTHLY;
+  }
+
+  const origin = new URL(request.url).origin;
+
+  // Cancel URL: go back to the right landing page
+  const cancelUrl = safeMarket === 'usd' ? `${origin}/en` : `${origin}/`;
 
   try {
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:  `${origin}/`,
+      cancel_url:  cancelUrl,
       allow_promotion_codes: true,
-      metadata: { period: safePeriod },
+      metadata: { period: safePeriod, market: safeMarket },
       // Lock the email to the authenticated Supabase account
       customer_email: verifiedEmail,
     });

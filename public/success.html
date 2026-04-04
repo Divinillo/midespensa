@@ -92,9 +92,24 @@
 </div>
 
 <script>
-const params   = new URLSearchParams(window.location.search);
+const params    = new URLSearchParams(window.location.search);
 const sessionId = params.get('session_id');
 const tier      = params.get('tier') || 'pro';
+
+// Detect language: prefer stored preference, fall back to browser
+const storedLang = (() => { try { return localStorage.getItem('midespensa_lang'); } catch { return null; } })();
+const isEN = storedLang ? storedLang.startsWith('en') : navigator.language?.startsWith('en');
+
+const T = {
+  loading:   isEN ? 'Activating your subscription...'          : 'Activando tu suscripción...',
+  wait:      isEN ? 'Setting up your account, just a moment.' : 'Estamos configurando tu cuenta, solo un momento.',
+  success:   isEN ? 'You\'re all set!'                         : '¡Todo listo!',
+  active:    isEN ? 'Your subscription is active. Enjoy MiDespensa Pro!' : 'Tu suscripción está activa. Ya puedes usar MiDespensa al completo.',
+  goBtn:     isEN ? 'Go to MiDespensa →'                       : 'Ir a MiDespensa →',
+  errNoSess: isEN ? 'Payment session not found. Contact support.' : 'No se encontró la sesión de pago. Contacta con soporte.',
+  errProc:   isEN ? 'Your license is being processed. Check your email in a few minutes.' : 'La licencia está siendo procesada. Revisa tu email en unos minutos.',
+  errConn:   isEN ? 'Connection error. Try again or contact support.' : 'Error de conexión. Inténtalo de nuevo o contacta con soporte.',
+};
 
 const icon    = document.getElementById('icon');
 const title   = document.getElementById('title');
@@ -105,21 +120,25 @@ const bar     = document.getElementById('bar');
 const errEl   = document.getElementById('err');
 const btnGo   = document.getElementById('btnGo');
 
+// Apply initial translated text
+title.textContent = T.loading;
+msg.textContent   = T.wait;
+btnGo.textContent = T.goBtn;
+
 function setProgress(pct) { bar.style.width = pct + '%'; }
 
 function showSuccess(tierLabel) {
   icon.textContent = '🎉';
-  title.textContent = '¡Todo listo!';
+  title.textContent = T.success;
   badge.textContent = tierLabel;
   badge.className = 'badge ' + (tier === 'ultra' ? 'ultra' : 'pro');
   badge.style.display = 'inline-block';
-  msg.textContent = 'Tu suscripción está activa. Ya puedes usar MiDespensa al completo.';
+  msg.textContent = T.active;
   spinner.style.display = 'none';
   bar.style.width = '100%';
   bar.style.background = tier === 'ultra' ? '#7e22ce' : '#16a34a';
   btnGo.style.display = 'block';
   if (tier === 'ultra') btnGo.classList.add('ultra');
-  // Redirigir automáticamente en 2 segundos
   setTimeout(() => { window.location.href = './index.html?activated=1'; }, 2000);
 }
 
@@ -128,38 +147,35 @@ function showError(text) {
   errEl.textContent = text;
   errEl.style.display = 'block';
   btnGo.style.display = 'block';
-  btnGo.textContent = 'Ir a MiDespensa';
+  btnGo.textContent = T.goBtn;
 }
 
 async function activate() {
-  if (!sessionId) { showError('No se encontró la sesión de pago. Contacta con soporte.'); return; }
+  if (!sessionId) { showError(T.errNoSess); return; }
 
   setProgress(30);
 
   try {
-    // 1. Obtener clave y email desde Stripe/Supabase
     const res = await fetch(`/api/get-license?session_id=${encodeURIComponent(sessionId)}`);
     const data = await res.json();
 
     if (!data.ok) {
-      // El webhook puede tardar 1-2 segundos — reintentamos una vez
+      // Webhook may take 1-2 seconds — retry once
       await new Promise(r => setTimeout(r, 2000));
       setProgress(50);
       const res2 = await fetch(`/api/get-license?session_id=${encodeURIComponent(sessionId)}`);
       const data2 = await res2.json();
-      if (!data2.ok) { showError('La licencia está siendo procesada. Revisa tu email en unos minutos.'); return; }
+      if (!data2.ok) { showError(T.errProc); return; }
       Object.assign(data, data2);
     }
 
     setProgress(90);
-
-    // 3. Mostrar éxito
     const label = data.tier === 'ultra' ? 'Ultra Chef ✨' : 'Pro ✨';
     showSuccess(label);
 
   } catch(e) {
     console.error(e);
-    showError('Error de conexión. Inténtalo de nuevo o contacta con soporte.');
+    showError(T.errConn);
   }
 }
 
