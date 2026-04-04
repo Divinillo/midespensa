@@ -7,6 +7,7 @@ import { CAT_EMOJI, CATEGORIES, getIngEmoji, CAT_BG, CAT_TEXT } from '../../data
 import { useLS } from '../../hooks/useLS';
 import { useIngredientName } from '../../i18n/useIngredientName';
 import { useTranslation } from 'react-i18next';
+import { useMarket } from '../../i18n/useMarket';
 import type { Ingredient } from '../../data/types';
 
 /* ── Paleta pastel por categoría ───────────────────────────────── */
@@ -177,6 +178,7 @@ function SectionHeader({ label, count, isCollapsed, onToggle, badge }) {
 ════════════════════════════════════════════════════════════════ */
 export function Catalogo({ ingredients, setIngredients, isPro }) {
   const { t, i18n }               = useTranslation();
+  const { isUS }                  = useMarket();
   const isEn                      = i18n.language?.startsWith('en');
   const ingName                   = useIngredientName();
   const [recentIds, setRecentIds] = useLS<string[]>('despensa_recent_v1', []);
@@ -272,7 +274,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
       {/* ── Header ── */}
       <div style={{ marginBottom: 16 }}>
         <h1 style={{ fontWeight: 900, fontSize: '1.25rem', color: '#1e293b', letterSpacing: '-0.02em', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: 10 }}>
-          <Basket size={28} weight="fill" color="#0f766e"/> Mi despensa
+          <Basket size={28} weight="fill" color="#0f766e"/> {isUS ? 'My Pantry' : 'Mi despensa'}
         </h1>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           {/* Buscador */}
@@ -281,7 +283,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar ingrediente…"
+              placeholder={isUS ? 'Search ingredient...' : 'Buscar ingrediente…'}
               style={{
                 width: '100%', boxSizing: 'border-box',
                 borderRadius: 12, border: '1.5px solid #e2e8f0',
@@ -314,7 +316,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
       {!searchActive && neededIngs.length > 0 && (
         <section style={{ marginBottom: 8 }}>
           <SectionHeader
-            label="A comprar"
+            label={isUS ? 'To buy' : 'A comprar'}
             isCollapsed={collapsed['acomprar']}
             onToggle={() => toggleSection('acomprar')}
             badge={
@@ -331,7 +333,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
           {!collapsed['acomprar'] && (
             <>
               <p style={{ fontSize: '0.65rem', color: '#94a3b8', margin: '4px 0 10px', fontStyle: 'italic' }}>
-                Toca cuando lo hayas comprado →
+                {isUS ? 'Tap when you\'ve bought it →' : 'Toca cuando lo hayas comprado →'}
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, paddingBottom: 8 }}>
                 {neededIngs.map(ing => (
@@ -366,7 +368,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
       {!searchActive && availableIngs.length > 0 && (
         <section style={{ marginBottom: 8 }}>
           <SectionHeader
-            label="En despensa"
+            label={isUS ? 'In pantry' : 'En despensa'}
             isCollapsed={collapsed['endespensa']}
             onToggle={() => toggleSection('endespensa')}
             badge={
@@ -383,7 +385,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
           {!collapsed['endespensa'] && (
             <>
               <p style={{ fontSize: '0.65rem', color: '#94a3b8', margin: '4px 0 10px', fontStyle: 'italic' }}>
-                Toca cuando lo hayas usado →
+                {isUS ? 'Tap when you\'ve used it →' : 'Toca cuando lo hayas usado →'}
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, paddingBottom: 8 }}>
                 {availableIngs.map(ing => (
@@ -435,21 +437,21 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
       {!searchActive && ingredients.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: '#cbd5e1' }}>
           <div style={{ fontSize: '3rem', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Basket size={64} weight="fill" color="#cbd5e1"/></div>
-          <p style={{ fontSize: '0.9rem' }}>Sin ingredientes aún.<br/>Pulsa <strong>+</strong> para añadir.</p>
+          <p style={{ fontSize: '0.9rem' }}>{isUS ? 'No ingredients yet.' : 'Sin ingredientes aún.'}<br/>{isUS ? 'Press' : 'Pulsa'} <strong>+</strong> {isUS ? 'to add.' : 'para añadir.'}</p>
         </div>
       )}
 
       {/* ── Modal añadir ── */}
-      <Modal open={addModal} onClose={() => setAddModal(false)} title="Nuevo ingrediente">
+      <Modal open={addModal} onClose={() => setAddModal(false)} title={isUS ? 'New ingredient' : 'Nuevo ingrediente'}>
         <div className="space-y-4">
           <div>
             <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
-              Nombre
+              {isUS ? 'Name' : 'Nombre'}
             </label>
             <input
               value={newIng.name}
               onChange={e => setNewIng(n => ({ ...n, name: e.target.value }))}
-              placeholder="ej: calabaza"
+              placeholder={isUS ? 'e.g. squash' : 'ej: calabaza'}
               style={{ width: '100%', borderRadius: 14, padding: '12px 16px', fontSize: '16px', fontWeight: 500, border: '2px solid #e2e8f0', background: '#f8fafc', outline: 'none', boxSizing: 'border-box' }}
               autoFocus
               onKeyDown={e => e.key === 'Enter' && addIng()}
@@ -457,7 +459,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '.06em', marginBottom: 8 }}>
-              Categoría
+              {isUS ? 'Category' : 'Categoría'}
             </label>
             <select
               value={newIng.category}
@@ -473,14 +475,14 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
             onClick={addIng}
             style={{ width: '100%', borderRadius: 14, padding: '14px', fontSize: '0.9rem', fontWeight: 800, border: 'none', background: '#0d9488', color: '#fff', cursor: 'pointer', boxShadow: '0 4px 16px rgba(13,148,136,.35)' }}
           >
-            Añadir a mi despensa →
+            {isUS ? 'Add to my pantry →' : 'Añadir a mi despensa →'}
           </button>
         </div>
       </Modal>
 
       <Confirm
         open={!!confirm}
-        msg="¿Eliminar este ingrediente del catálogo?"
+        msg={isUS ? 'Delete this ingredient from catalog?' : '¿Eliminar este ingrediente del catálogo?'}
         onOk={() => { setIngredients(ings => ings.filter(i => i.id !== confirm)); setConfirm(null); }}
         onCancel={() => setConfirm(null)}
       />

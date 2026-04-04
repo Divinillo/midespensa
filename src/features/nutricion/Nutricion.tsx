@@ -296,7 +296,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             style={{ width:36, height:36, borderRadius:12, background:'#f1f5f9', border:'none', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             ←
           </button>
-          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Scan Result' : 'Resultado del escaneo'}</div>
+          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Food Scanner' : 'Escáner de alimentos'}</div>
         </div>
 
         <div style={{ borderRadius:20, background:'#fff', border:'1.5px solid #e2e8f0', padding:'16px', marginBottom:12, boxShadow:'0 2px 10px rgba(0,0,0,.07)', display:'flex', gap:14, alignItems:'flex-start' }}>
@@ -399,7 +399,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
 
         <button onClick={startScanner}
           style={{ width:'100%', borderRadius:16, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background:'linear-gradient(135deg,#0f766e,#0d9488)', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(13,148,136,.35)', marginTop:4 }}>
-          📷 Escanear otro producto
+          📷 {isUS ? 'Scan another product' : 'Escanear otro producto'}
         </button>
       </div>
     );
@@ -412,8 +412,8 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
     return (
       <div className="fade" style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'60vh', gap:16, textAlign:'center' }}>
         <div style={{ fontSize:'2.4rem', animation:'spin 1s linear infinite' }}>⏳</div>
-        <div style={{ fontWeight:700, fontSize:'1rem', color:'#0f766e' }}>Buscando producto…</div>
-        <div style={{ fontSize:'0.78rem', color:'#94a3b8' }}>Consultando base de datos mundial de alimentos</div>
+        <div style={{ fontWeight:700, fontSize:'1rem', color:'#0f766e' }}>{isUS ? 'Finding product...' : 'Buscando producto…'}</div>
+        <div style={{ fontSize:'0.78rem', color:'#94a3b8' }}>{isUS ? 'Checking global food database' : 'Consultando base de datos mundial de alimentos'}</div>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -430,15 +430,15 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         <div style={{ display:'flex', flexDirection:'column', gap:10, width:'100%', maxWidth:300 }}>
           <button onClick={startScanner}
             style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#fff', background:'#0d9488', border:'none', cursor:'pointer' }}>
-            📷 Intentar de nuevo
+            📷 {isUS ? 'Try again' : 'Intentar de nuevo'}
           </button>
           <button onClick={() => setMode('manual')}
             style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#0d9488', background:'#f0fdf4', border:'2px solid #5eead4', cursor:'pointer' }}>
-            ⌨️ Introducir código manualmente
+            ⌨️ {isUS ? 'Enter code manually' : 'Introducir código manualmente'}
           </button>
           <button onClick={reset}
             style={{ fontSize:'0.8rem', color:'#94a3b8', background:'none', border:'none', cursor:'pointer' }}>
-            ← Volver al inicio
+            ← {isUS ? 'Back to start' : 'Volver al inicio'}
           </button>
         </div>
       </div>
@@ -456,7 +456,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             style={{ width:36, height:36, borderRadius:12, background:'#f1f5f9', border:'none', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             ←
           </button>
-          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>Apunta al código de barras</div>
+          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Point at barcode' : 'Apunta al código de barras'}</div>
         </div>
 
         {/* Visor de cámara */}
@@ -500,7 +500,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
 
           <div style={{ position:'absolute', bottom:12, left:0, right:0, textAlign:'center' }}>
             <span style={{ fontSize:'0.72rem', color:'#fff', background:'rgba(0,0,0,.55)', padding:'4px 14px', borderRadius:20, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
-              <MagnifyingGlass size={14}/> Mantén el código dentro del marco
+              <MagnifyingGlass size={14}/> {isUS ? 'Keep the code in the frame' : 'Mantén el código dentro del marco'}
             </span>
           </div>
         </div>
@@ -542,7 +542,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         <div style={{ textAlign:'center' }}>
           <button onClick={() => { stopScanner(); setMode('manual'); }}
             style={{ fontSize:'0.75rem', color:'#64748b', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>
-            Introducir código manualmente
+            {isUS ? 'Enter code manually' : 'Introducir código manualmente'}
           </button>
         </div>
       </div>
@@ -560,12 +560,12 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             style={{ width:36, height:36, borderRadius:12, background:'#f1f5f9', border:'none', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             ←
           </button>
-          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>Código de barras manual</div>
+          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Manual barcode' : 'Código de barras manual'}</div>
         </div>
         <input
           value={manualCode}
           onChange={e => setManualCode(e.target.value.replace(/\D/g,''))}
-          placeholder="Ej: 8410128001234"
+          placeholder={isUS ? 'E.g. 8410128001234' : 'Ej: 8410128001234'}
           inputMode="numeric"
           autoFocus
           onKeyDown={e => e.key==='Enter' && manualCode.length>=8 && fetchProduct(manualCode)}
@@ -573,12 +573,12 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         />
         <button onClick={() => fetchProduct(manualCode)} disabled={manualCode.length < 8}
           style={{ width:'100%', borderRadius:14, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background: manualCode.length>=8?'#0d9488':'#d1d5db', border:'none', cursor: manualCode.length>=8?'pointer':'not-allowed', boxShadow: manualCode.length>=8?'0 4px 14px rgba(13,148,136,.35)':'none', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-          <MagnifyingGlass size={18}/> Buscar producto
+          <MagnifyingGlass size={18}/> {isUS ? 'Search product' : 'Buscar producto'}
         </button>
         <div style={{ textAlign:'center', marginTop:12 }}>
           <button onClick={startScanner}
             style={{ fontSize:'0.75rem', color:'#0d9488', fontWeight:700, background:'none', border:'none', cursor:'pointer' }}>
-            📷 Volver al escáner
+            📷 {isUS ? 'Back to scanner' : 'Volver al escáner'}
           </button>
         </div>
       </div>
@@ -593,18 +593,18 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
       {/* Hero */}
       <div style={{ borderRadius:24, padding:'28px 20px', textAlign:'center', marginBottom:20, background:'linear-gradient(135deg,#0f766e,#0d9488)', color:'#fff', boxShadow:'0 8px 28px rgba(13,148,136,.35)' }}>
         <div style={{ fontSize:'3rem', marginBottom:8 }}>📷</div>
-        <div style={{ fontWeight:900, fontSize:'1.2rem', marginBottom:6 }}>Escáner de alimentos</div>
+        <div style={{ fontWeight:900, fontSize:'1.2rem', marginBottom:6 }}>{isUS ? 'Food Scanner' : 'Escáner de alimentos'}</div>
         <div style={{ fontSize:'0.8rem', opacity:.8, marginBottom:20, lineHeight:1.5 }}>
-          Apunta la cámara al código de barras para ver Nutri-Score, Nova, aditivos y tabla nutricional
+          {isUS ? 'Point your camera at a barcode to see FDA nutrition facts, additives and more' : 'Apunta la cámara al código de barras para ver Nutri-Score, Nova, aditivos y tabla nutricional'}
         </div>
         <button onClick={startScanner}
           style={{ borderRadius:16, padding:'14px 32px', fontWeight:800, fontSize:'1rem', color:'#0d9488', background:'#fff', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(0,0,0,.15)', display:'inline-flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:'1.3rem' }}>📷</span> Abrir escáner
+          <span style={{ fontSize:'1.3rem' }}>📷</span> {isUS ? 'Open scanner' : 'Abrir escáner'}
         </button>
         <div style={{ marginTop:10 }}>
           <button onClick={() => setMode('manual')}
             style={{ fontSize:'0.72rem', color:'rgba(255,255,255,.7)', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>
-            Introducir código manualmente
+            {isUS ? 'Enter code manually' : 'Introducir código manualmente'}
           </button>
         </div>
       </div>

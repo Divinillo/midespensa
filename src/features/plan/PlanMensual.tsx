@@ -857,7 +857,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       {/* ── Header ── */}
       <div className="mb-4">
         <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-          {isPro ? 'Plan mensual' : 'Plan semanal'}
+          {isPro ? (isUS ? 'Monthly Planner' : 'Plan mensual') : (isUS ? 'Weekly Planner' : 'Plan semanal')}
         </h1>
         <p className="text-sm text-gray-400 mt-1">
           {isPro
@@ -903,7 +903,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       <div className="flex justify-end mb-2">
         <button onClick={()=>setClearModal(true)}
           className="text-xs text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 px-2 py-1 rounded-xl hover:bg-red-50">
-          <Trash size={13}/> Limpiar días
+          <Trash size={13}/> {isUS ? 'Clear days' : 'Limpiar días'}
         </button>
       </div>
 
@@ -1019,26 +1019,26 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
           <button onClick={()=>setAutoModal(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm text-white"
             style={{background:'linear-gradient(135deg,#0f766e,#0d9488)',boxShadow:'0 3px 10px rgba(13,148,136,.35)'}}>
-            <Sparkle size={16} weight="fill"/> Menú auto
+            <Sparkle size={16} weight="fill"/> {isUS ? 'Auto menu' : 'Menú auto'}
           </button>
         ):(
           <button onClick={()=>onUpgrade('automenu')}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm"
             style={{background:'#f0fdfa',color:'#0f766e',border:'1px solid #99f6e4'}}>
-            🔒 Menú auto <span className="font-normal text-xs" style={{color:'#5eead4'}}>Pro</span>
+            🔒 {isUS ? 'Auto menu' : 'Menú auto'} <span className="font-normal text-xs" style={{color:'#5eead4'}}>Pro</span>
           </button>
         )}
         {isPro?(
           <button onClick={()=>setNutriModal(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm"
             style={{background:'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',color:'#fff',boxShadow:'0 3px 10px rgba(124,58,237,.28)'}}>
-            <ChartBar size={16} weight="fill"/> Nutrición
+            <ChartBar size={16} weight="fill"/> {isUS ? 'Nutrition' : 'Nutrición'}
           </button>
         ):(
           <button onClick={()=>onUpgrade('upgrade')}
             className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm"
             style={{background:'#f5f3ff',color:'#d97706',border:'1px solid #ddd6fe'}}>
-            🔒 Nutrición <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Pro</span>
+            🔒 {isUS ? 'Nutrition' : 'Nutrición'} <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Pro</span>
           </button>
         )}
       </div>
