@@ -8,16 +8,17 @@ import {
   Barcode,
   CurrencyEur,
 } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 import type { Section } from '../../data/types';
 
-const NAV: { id: Section; label: string; Icon: React.ElementType }[] = [
-  { id: 'plan',   label: 'Plan',      Icon: CalendarBlank },
-  { id: 'platos', label: 'Platos',    Icon: CookingPot    },
-  { id: 'cat',    label: 'Despensa',  Icon: Basket        },
-  { id: 'ticket', label: 'Tickets',   Icon: Receipt       },
-  { id: 'lista',  label: 'Compra',    Icon: ShoppingCart  },
-  { id: 'nutri',  label: 'Nutrición', Icon: Barcode       },
-  { id: 'gastos', label: 'Gastos',    Icon: CurrencyEur   },
+const NAV_ITEMS: { id: Section; key: string; Icon: React.ElementType }[] = [
+  { id: 'plan',   key: 'plan',   Icon: CalendarBlank },
+  { id: 'platos', key: 'platos', Icon: CookingPot    },
+  { id: 'cat',    key: 'cat',    Icon: Basket        },
+  { id: 'ticket', key: 'ticket', Icon: Receipt       },
+  { id: 'lista',  key: 'lista',  Icon: ShoppingCart  },
+  { id: 'nutri',  key: 'nutri',  Icon: Barcode       },
+  { id: 'gastos', key: 'gastos', Icon: CurrencyEur   },
 ];
 
 interface NavProps {
@@ -29,6 +30,8 @@ interface NavProps {
 }
 
 export function Nav({ section, neededCount, pendingCount, isPro, onNavigate }: NavProps) {
+  const { t } = useTranslation();
+
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-40"
@@ -41,8 +44,9 @@ export function Nav({ section, neededCount, pendingCount, isPro, onNavigate }: N
         className="max-w-lg mx-auto flex"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 4px)' }}
       >
-        {NAV.map(({ id, label, Icon }) => {
+        {NAV_ITEMS.map(({ id, key, Icon }) => {
           const active = section === id;
+          const label = t(`nav.${key}`);
           return (
             <button
               key={id}

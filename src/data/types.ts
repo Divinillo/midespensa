@@ -12,6 +12,7 @@ export interface NutriPer100 {
 export interface Ingredient {
   id: string;
   name: string;
+  nameEn?: string;
   category: string;
   available: boolean;
   needed?: boolean;

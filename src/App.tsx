@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { Session } from '@supabase/supabase-js';
 import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from './data/categories';
 import { Header } from './components/layout/Header';
@@ -60,6 +61,9 @@ const TITLES: Record<Section, string> = {
 
 
 export function App() {
+  // ── i18n ──────────────────────────────────────────────────────
+  const { t, i18n } = useTranslation();
+
   // ── Supabase auth session ─────────────────────────────────────
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
@@ -306,6 +310,37 @@ export function App() {
       {/* Settings Modal */}
       <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title="⚙️ Ajustes y datos">
         <div className="space-y-4">
+          {/* Idioma / Language */}
+          <div className="rounded-xl p-4 border border-teal-100 bg-teal-50">
+            <h3 className="font-bold text-teal-800 text-sm mb-3">🌐 {t('settings.language')}</h3>
+            <div className="flex gap-2">
+              <button
+                onClick={() => i18n.changeLanguage('es')}
+                style={{
+                  flex: 1, borderRadius: 10, padding: '9px 0', fontSize: '0.82rem', fontWeight: 700,
+                  border: `2px solid ${i18n.language?.startsWith('es') ? '#0d9488' : '#cbd5e1'}`,
+                  background: i18n.language?.startsWith('es') ? '#0d9488' : '#fff',
+                  color: i18n.language?.startsWith('es') ? '#fff' : '#64748b',
+                  cursor: 'pointer', transition: 'all .15s',
+                }}
+              >
+                🇪🇸 {t('settings.langEs')}
+              </button>
+              <button
+                onClick={() => i18n.changeLanguage('en')}
+                style={{
+                  flex: 1, borderRadius: 10, padding: '9px 0', fontSize: '0.82rem', fontWeight: 700,
+                  border: `2px solid ${i18n.language?.startsWith('en') ? '#0d9488' : '#cbd5e1'}`,
+                  background: i18n.language?.startsWith('en') ? '#0d9488' : '#fff',
+                  color: i18n.language?.startsWith('en') ? '#fff' : '#64748b',
+                  cursor: 'pointer', transition: 'all .15s',
+                }}
+              >
+                🇺🇸 {t('settings.langEn')}
+              </button>
+            </div>
+          </div>
+
           {/* Cuenta */}
           <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
             <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ Cuenta</h3>

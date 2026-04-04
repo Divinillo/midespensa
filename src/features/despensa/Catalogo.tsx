@@ -5,6 +5,8 @@ import { Confirm } from '../../components/ui/Confirm';
 import { uid } from '../../utils/helpers';
 import { CAT_EMOJI, CATEGORIES, getIngEmoji, CAT_BG, CAT_TEXT } from '../../data/categories';
 import { useLS } from '../../hooks/useLS';
+import { useIngredientName } from '../../i18n/useIngredientName';
+import { useTranslation } from 'react-i18next';
 import type { Ingredient } from '../../data/types';
 
 /* ── Paleta pastel por categoría ───────────────────────────────── */
@@ -34,8 +36,10 @@ const DEFAULT_PASTEL = { bg: '#f1f5f9', border: '#cbd5e1', accent: '#475569' };
    - recent  → readOnly, sin borrar
 ════════════════════════════════════════════════════════════════ */
 function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
-  const pal   = CAT_PASTEL[ing.category] || DEFAULT_PASTEL;
-  const emoji = getIngEmoji(ing.name, ing.category);
+  const pal         = CAT_PASTEL[ing.category] || DEFAULT_PASTEL;
+  const emoji       = getIngEmoji(ing.name, ing.category);
+  const ingName     = useIngredientName();
+  const displayName = ingName(ing);
 
   // Colores según sección
   let bg     = pal.bg;
@@ -101,7 +105,7 @@ function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
           wordBreak: 'break-word',
           padding: '0 3px',
         }}>
-          {ing.name}
+          {displayName}
         </span>
       </button>
 
@@ -172,6 +176,9 @@ function SectionHeader({ label, count, isCollapsed, onToggle, badge }) {
    CATÁLOGO PRINCIPAL
 ════════════════════════════════════════════════════════════════ */
 export function Catalogo({ ingredients, setIngredients, isPro }) {
+  const { t, i18n }               = useTranslation();
+  const isEn                      = i18n.language?.startsWith('en');
+  const ingName                   = useIngredientName();
   const [recentIds, setRecentIds] = useLS<string[]>('despensa_recent_v1', []);
   const [search, setSearch]       = useState('');
   const [addModal, setAddModal]   = useState(false);
@@ -229,6 +236,14 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
   // Normaliza quitando tildes/diacríticos → búsqueda sin acento (brocoli → brócoli, etc.)
   const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const searchNorm   = norm(search);
+  // Busca tanto en nombre nativo como en el de la UI activa
+  const matchesSearch = (i: Ingredient) => {
+    if (!searchActive) return true;
+    const displayNorm = norm(ingName(i));
+    const nativeNorm  = norm(i.name);
+    const enNorm      = i.nameEn ? norm(i.nameEn) : '';
+    return displayNorm.includes(searchNorm) || nativeNorm.includes(searchNorm) || enNorm.includes(searchNorm);
+  };
 
   const neededIngs   = useMemo(() => ingredients.filter(i => i.needed),   [ingredients]);
   const availableIngs = useMemo(() => ingredients.filter(i => i.available), [ingredients]);
@@ -243,8 +258,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
       .map(cat => ({
         cat,
         items: ingredients.filter(i =>
-          i.category === cat &&
-          (!searchActive || norm(i.name).includes(searchNorm))
+          i.category === cat && matchesSearch(i)
         ),
       }))
       .filter(({ items }) => items.length > 0),

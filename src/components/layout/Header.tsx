@@ -4,27 +4,8 @@ import {
   ShoppingCart, Barcode, CurrencyEur,
   GearSix, ShoppingCartSimple, Warning,
 } from '@phosphor-icons/react';
+import { useTranslation } from 'react-i18next';
 import type { Section } from '../../data/types';
-
-const TITLES: Record<Section, string> = {
-  plan:   'Plan mensual',
-  platos: 'Mis platos',
-  cat:    'Mi despensa',
-  ticket: 'Tickets',
-  lista:  'Lista de compra',
-  nutri:  'Valor nutricional',
-  gastos: 'Gastos',
-};
-
-const SUBTITLES: Record<Section, string> = {
-  plan:   'Organiza tu semana',
-  platos: 'Tus recetas habituales',
-  cat:    'Gestiona tus ingredientes',
-  ticket: 'Escanea y guarda',
-  lista:  'Lo que necesitas comprar',
-  nutri:  'Macros por ingrediente',
-  gastos: 'Controla tu presupuesto',
-};
 
 const SECTION_ICON: Record<Section, React.ElementType> = {
   plan:   CalendarBlank,
@@ -47,6 +28,7 @@ interface HeaderProps {
 }
 
 export function Header({ section, isPro, neededCount, pendingCount, syncStatus, onSettings, onNavigate }: HeaderProps) {
+  const { t } = useTranslation();
   const [showWarning, setShowWarning] = useState(false);
   const popoverRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -68,6 +50,8 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
   }, [showWarning]);
 
   const SectionIcon = SECTION_ICON[section];
+  const title    = t(`header.${section}.title`);
+  const subtitle = t(`header.${section}.sub`);
 
   return (
     <header
@@ -90,10 +74,10 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
             </div>
             <div>
               <div className="font-black text-white" style={{ fontSize: '1rem', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
-                {TITLES[section]}
+                {title}
               </div>
               <div style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,.65)', fontWeight: 500, marginTop: 1 }}>
-                {SUBTITLES[section]}
+                {subtitle}
               </div>
             </div>
           </div>
@@ -143,11 +127,13 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
                     <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
                       <Warning size={22} color="#d97706" weight="fill" style={{ flexShrink: 0, marginTop: 1 }} />
                       <div>
-                        <div style={{ fontWeight: 800, fontSize: '0.82rem', color: '#92400e', marginBottom: 3 }}>Productos sin asignar</div>
+                        <div style={{ fontWeight: 800, fontSize: '0.82rem', color: '#92400e', marginBottom: 3 }}>
+                          {t('tickets.unmatched')}
+                        </div>
                         <div style={{ fontSize: '0.72rem', color: '#b45309', lineHeight: 1.5 }}>
                           {pendingCount === 1
-                            ? 'Tienes 1 ticket con artículos que no se han podido asociar a tu catálogo.'
-                            : `Tienes ${pendingCount} tickets con artículos sin asociar a tu catálogo.`}
+                            ? t('tickets.pendingOne', { count: pendingCount })
+                            : t('tickets.pendingMany', { count: pendingCount })}
                         </div>
                       </div>
                     </div>
@@ -155,7 +141,7 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
                       onClick={() => { setShowWarning(false); onNavigate('ticket'); }}
                       style={{ width: '100%', borderRadius: 10, padding: '9px', fontWeight: 700, fontSize: '0.78rem', color: '#fff', background: '#d97706', border: 'none', cursor: 'pointer' }}
                     >
-                      Ir a Tickets →
+                      {t('nav.ticket')} →
                     </button>
                   </div>
                 )}
@@ -170,7 +156,7 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
             <button
               onClick={onSettings}
               style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-              title="Ajustes"
+              title={t('settings.title')}
             >
               <GearSix size={18} color="#ffffff" weight="regular" />
             </button>
