@@ -279,6 +279,9 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
             const fills=preScored.filter(r=>!usedIds.has(r.id)&&!_usedGroups2.has(_ingGroup(r.name)));
             ordered=[...ordered,...fills.slice(0,qty-ordered.length)];
           }
+          // If Gemini returned names but none matched the recipe DB (e.g. US market / empty pantry),
+          // fall through to scoreRecipes() instead of showing 0 results
+          if(!ordered.length) { setLoading(false); scoreRecipes(); return; }
           const scored=ordered.map(recipe=>{
             const matched=recipe.ings.map(ri=>{const cat=matchRecipeIng(ri,ingredients);return{name:ri,catIng:cat||null,available:cat?cat.available:false};});
             const availCnt=matched.filter(m=>m.available).length;
