@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+  <!-- Auto-redirect English browsers to the US landing page -->
+  <script>
+    (function() {
+      var lang = navigator.language || navigator.userLanguage || '';
+      if (lang.toLowerCase().startsWith('en')) {
+        window.location.replace('/en');
+      }
+    })();
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MiDespensa · Olvídate de pensar qué cocinar</title>
