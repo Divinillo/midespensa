@@ -45,9 +45,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   // Use verified email from JWT — ignore any email in request body
   const verifiedEmail = authUser.email;
 
-  const { period = 'monthly', currency = 'eur' } = await request.json() as any;
-  const safePeriod   = period === 'yearly' ? 'yearly' : 'monthly';
-  const safeMarket   = currency === 'usd' ? 'usd' : 'eur';
+  const { period = 'monthly' } = await request.json() as any;
+  const safePeriod = period === 'yearly' ? 'yearly' : 'monthly';
+
+  // ── Market detection via Cloudflare IP geolocation (server-side, tamper-proof) ──
+  // CF-IPCountry is set automatically by Cloudflare — cannot be forged by the client.
+  // This prevents users from switching the UI language to get a cheaper price.
+  const cfCountry = request.headers.get('CF-IPCountry') ?? '';
+  const isUSCountry = cfCountry === 'US';
+  const safeMarket = isUSCountry ? 'usd' : 'eur';
 
   const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
     apiVersion: '2024-04-10' as any,
