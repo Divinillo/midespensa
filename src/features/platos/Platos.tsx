@@ -27,6 +27,7 @@ import { Confirm } from '../../components/ui/Confirm';
 import { uid } from '../../utils/helpers';
 import { CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES, FREE_DISH_LIMIT, FREE_SUGGESTION_LIMIT, ING_EMOJI } from '../../data/categories';
 import { RECIPE_DB } from '../../data/recipes';
+import { RECIPE_DB_US } from '../../data/recipes-us';
 import { useMarket } from '../../i18n/useMarket';
 import type { Ingredient, Dish } from '../../data/types';
 
@@ -34,10 +35,12 @@ import type { Ingredient, Dish } from '../../data/types';
    RECIPE MODAL — Ultra: pasos estáticos + YouTube
 ═══════════════════════════════════════ */
 function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='', customSteps=[] }) {
+  const { isUS } = useMarket();
   const recipeData = React.useMemo(() => {
     if (!dishName) return null;
-    return RECIPE_DB.find(r => r.name.toLowerCase() === dishName.toLowerCase()) ?? null;
-  }, [dishName]);
+    const db = isUS ? RECIPE_DB_US : RECIPE_DB;
+    return db.find(r => r.name.toLowerCase() === dishName.toLowerCase()) ?? null;
+  }, [dishName, isUS]);
 
   // Si el plato tiene enlace propio de YouTube, úsalo; si no, búsqueda genérica
   const ytUrl = youtubeUrl?.trim()
@@ -188,6 +191,7 @@ async function _geminiRecipes(availIngs, recipeNames, qty, diet) {
 ═══════════════════════════════════════ */
 function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrade}) {
   const { isUS, isEN } = useMarket();
+  const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const DIET_SETS = isUS ? DIET_SETS_US : DIET_SETS_ES;
   // Slots libres que le quedan al usuario free hasta llegar a FREE_DISH_LIMIT
   const freeSlots = Math.max(0, FREE_DISH_LIMIT - dishes.length);
@@ -210,7 +214,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
   function scoreRecipes() {
     const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
     // Solo recetas completas: 4+ ings y no son guarniciones/caldos ligeros (< 200 kcal Y < 10g prot)
-    let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length >= 4 && !(r.kcal < 200 && r.prot < 10));
+    let candidates=recipeDB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length >= 4 && !(r.kcal < 200 && r.prot < 10));
     if(isPro && diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
 
     const scored=candidates.map(recipe=>{
@@ -240,7 +244,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
       setLoading(true);
       try {
         const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
-        let candidates=RECIPE_DB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length>=4 && !(r.kcal<200&&r.prot<10));
+        let candidates=recipeDB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length>=4 && !(r.kcal<200&&r.prot<10));
         if(isPro&&diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
         const availIngs=ingredients.filter(i=>i.available).map(i=>i.name);
         // Pre-score candidates by ingredient match so Gemini only sees high-match recipes
@@ -659,6 +663,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
 
 export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
   const { isUS } = useMarket();
+  const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const [modal,setModal]=useState(null);
   const [form,setForm]=useState({name:'',ingredients:[]});
   const [confirm,setConfirm]=useState(null);
@@ -764,7 +769,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
               </div>
               <div className="flex gap-1 shrink-0">
                 <button onClick={()=>{
-                    const recipeMatch = RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
+                    const recipeMatch = recipeDB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
                     const ingNames = recipeMatch
                       ? recipeMatch.ings
                       : dish.ingredients.map((iid:string)=>ingMap[iid]?.name).filter(Boolean);

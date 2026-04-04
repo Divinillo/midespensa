@@ -127,20 +127,7 @@ function IngCard({ ing, onToggle, onDelete, mode = 'catalog' }) {
         </div>
       )}
 
-      {/* ✕ Borrar — esquina inferior izquierda (solo en catalog y pantry) */}
-      {(mode === 'catalog' || mode === 'pantry') && (
-        <button
-          onClick={e => { e.stopPropagation(); onDelete(ing.id); }}
-          style={{
-            position: 'absolute', bottom: -6, left: -6,
-            width: 18, height: 18, borderRadius: '50%',
-            background: '#fff', border: '1px solid #e2e8f0',
-            boxShadow: '0 1px 3px rgba(0,0,0,.1)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#94a3b8', cursor: 'pointer', zIndex: 2, padding: 0
-          }}
-        >×</button>
-      )}
+      {/* Delete button removed — users manage ingredients via long-press or settings */}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useMarket } from '../i18n/useMarket';
 
 type OS = 'android' | 'ios' | 'desktop';
 
@@ -19,8 +20,9 @@ function isStandalone(): boolean {
 const STORAGE_KEY = 'pwa_wizard_dismissed';
 
 interface Step { text: React.ReactNode }
+interface OSConfig { title: string; subtitle: string; steps: Step[]; tip?: string }
 
-const STEPS: Record<OS, { title: string; subtitle: string; steps: Step[] }> = {
+const STEPS_ES: Record<OS, OSConfig> = {
   ios: {
     title: 'Instalar en iPhone / iPad',
     subtitle: 'Safari',
@@ -29,6 +31,7 @@ const STEPS: Record<OS, { title: string; subtitle: string; steps: Step[] }> = {
       { text: <>Toca en <strong>Compartir</strong></> },
       { text: <>Toca <strong>"Ver más"</strong> y luego <strong>"Añadir a pantalla de inicio"</strong></> },
     ],
+    tip: '💡 En iOS solo funciona con Safari. Chrome en iPhone no permite instalar PWAs.',
   },
   android: {
     title: 'Instalar en Android',
@@ -38,6 +41,7 @@ const STEPS: Record<OS, { title: string; subtitle: string; steps: Step[] }> = {
       { text: <>Selecciona <strong>"Añadir a pantalla de inicio"</strong> o <strong>"Instalar app"</strong></> },
       { text: <>Pulsa <strong>"Añadir"</strong> en el diálogo de confirmación</> },
     ],
+    tip: '💡 En algunos móviles Chrome muestra un banner de instalación automático en la parte inferior.',
   },
   desktop: {
     title: 'Instalar en escritorio',
@@ -50,10 +54,45 @@ const STEPS: Record<OS, { title: string; subtitle: string; steps: Step[] }> = {
   },
 };
 
+const STEPS_EN: Record<OS, OSConfig> = {
+  ios: {
+    title: 'Install on iPhone / iPad',
+    subtitle: 'Safari',
+    steps: [
+      { text: <>Tap the <strong>three dots "..."</strong> next to the navigation bar</> },
+      { text: <>Tap <strong>Share</strong></> },
+      { text: <>Tap <strong>"More"</strong> and then <strong>"Add to Home Screen"</strong></> },
+    ],
+    tip: '💡 On iOS this only works with Safari. Chrome on iPhone does not support PWA installation.',
+  },
+  android: {
+    title: 'Install on Android',
+    subtitle: 'Chrome',
+    steps: [
+      { text: <>Tap the <strong>⋮</strong> menu (three dots) in the top right</> },
+      { text: <>Select <strong>"Add to Home Screen"</strong> or <strong>"Install app"</strong></> },
+      { text: <>Tap <strong>"Add"</strong> in the confirmation dialog</> },
+    ],
+    tip: '💡 On some Android phones Chrome shows an automatic install banner at the bottom.',
+  },
+  desktop: {
+    title: 'Install on desktop',
+    subtitle: 'Chrome / Edge',
+    steps: [
+      { text: <>Look for the <strong>⊕</strong> icon at the end of the address bar</> },
+      { text: <>Click it and press <strong>"Install"</strong></> },
+      { text: <>MiDespensa will open in its own window</> },
+    ],
+  },
+};
+
 export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; onClose?: () => void } = {}) {
+  const { isEN } = useMarket();
   const [visible, setVisible] = useState(false);
   const [os, setOs] = useState<OS>('android');
   const [activeTab, setActiveTab] = useState<OS>('android');
+
+  const STEPS = isEN ? STEPS_EN : STEPS_ES;
 
   useEffect(() => {
     if (forceOpen) {
@@ -85,7 +124,7 @@ export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; 
   const TABS: { key: OS; label: string }[] = [
     { key: 'ios', label: 'iPhone / iPad' },
     { key: 'android', label: 'Android' },
-    { key: 'desktop', label: 'Escritorio' },
+    { key: 'desktop', label: isEN ? 'Desktop' : 'Escritorio' },
   ];
 
   return (
@@ -111,10 +150,10 @@ export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
             <div style={{ fontWeight: 800, fontSize: '1rem', color: '#0f172a' }}>
-              Añade MiDespensa a tu inicio
+              {isEN ? 'Add MiDespensa to your home screen' : 'Añade MiDespensa a tu inicio'}
             </div>
             <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
-              Accede más rápido, sin navegador
+              {isEN ? 'Faster access, no browser needed' : 'Accede más rápido, sin navegador'}
             </div>
           </div>
           <button
@@ -158,15 +197,8 @@ export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; 
               </li>
             ))}
           </ol>
-          {activeTab === 'ios' && (
-            <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 12 }}>
-              💡 En iOS solo funciona con Safari. Chrome en iPhone no permite instalar PWAs.
-            </p>
-          )}
-          {activeTab === 'android' && (
-            <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 12 }}>
-              💡 En algunos móviles Chrome muestra un banner de instalación automático en la parte inferior.
-            </p>
+          {current.tip && (
+            <p style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: 12 }}>{current.tip}</p>
           )}
         </div>
 
@@ -175,7 +207,7 @@ export function PWAInstallWizard({ forceOpen, onClose }: { forceOpen?: boolean; 
           onClick={dismiss}
           style={{ width: '100%', marginTop: 14, padding: '11px', border: 'none', borderRadius: 12, background: '#f1f5f9', color: '#64748b', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
         >
-          No, gracias
+          {isEN ? 'No, thanks' : 'No, gracias'}
         </button>
       </div>
     </div>

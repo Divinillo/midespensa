@@ -7,6 +7,7 @@ import { generateNutriPDF } from '../../utils/pdfReport';
 import type { Ingredient, Dish, Plan, Ticket } from '../../data/types';
 import { FREE_DISH_LIMIT, MONTH_NAMES, WEEK_DAYS, CAT_EMOJI } from '../../data/categories';
 import { RECIPE_DB } from '../../data/recipes';
+import { RECIPE_DB_US } from '../../data/recipes-us';
 import { useMarket } from '../../i18n/useMarket';
 import { CaretLeft, CaretRight, Trash, Sparkle, ChartBar, X } from '@phosphor-icons/react';
 import {
@@ -173,6 +174,7 @@ function ClearDaysModal({open,onClose,year,month,plan,setPlan}) {
 ═══════════════════════════════════════ */
 function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,setIngredients}) {
   const { monthNames, isUS, isEN } = useMarket();
+  const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const now=new Date();
   const [range,setRange]=useState('semana');
   const [customDays,setCustomDays]=useState([]);
@@ -208,7 +210,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     // Obtener kcal de un plato (desde RECIPE_DB o del propio plato)
     const getKcal=dish=>{
       if(dish.kcal) return dish.kcal;
-      const rec=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
+      const rec=recipeDB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
       return rec?rec.kcal:300;
     };
 
@@ -240,7 +242,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     const PROTEIN_WORDS=/pollo|pechuga|muslos|pavo|ternera|cerdo|lomo|solomillo|costillas|carne|jamón|chorizo|bacon|salmón|merluza|bacalao|atún|gambas|mejillones|calamares|sepia|rape|dorada|langostinos|sardinas|huevo|huevos|tofu|tempeh|garbanzos|lentejas|alubias/i;
     const SOLO_VEG=/^(brócoli|espinacas|zanahoria|calabacín|berenjena|coliflor|judías verdes|pimientos?|tomate|lechuga|champiñones?|setas|acelgas|puerros?|alcachofas?|rúcula)(\s(al vapor|salteado|rehogado|asado|hervido|plancha))?$/i;
     const getWhen=dish=>{
-      const rec=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
+      const rec=recipeDB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
       if(rec?.when) return rec.when;
       // Platos con solo verdura sin proteína → nunca para cenar solos
       const n=dish.name.trim();
@@ -480,6 +482,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
 ═══════════════════════════════════════ */
 function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   const { monthNames, isUS } = useMarket();
+  const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const [selected,setSelected]=useState([]);
   const [showReport,setShowReport]=useState(false);
   const [pdfLoading,setPdfLoading]=useState(false);
@@ -500,7 +503,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   // Busca macros: primero en el plato guardado (si viene de AutoDishModal), luego en RECIPE_DB
   function getMacros(dish) {
     if(dish.kcal) return {kcal:dish.kcal,prot:dish.prot,carbs:dish.carbs,fat:dish.fat,sugar:dish.sugar||0};
-    const rec=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
+    const rec=recipeDB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
     if(rec) return {kcal:rec.kcal,prot:rec.prot,carbs:rec.carbs,fat:rec.fat,sugar:rec.sugar||0};
     return null;
   }
@@ -752,6 +755,7 @@ function addDays(d: Date, n: number): Date {
 export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tickets,isPro,onUpgrade}) {
   const now=new Date();
   const { isUS, monthNames, weekDays: weekDayNames } = useMarket();
+  const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const [year,setYear]=useState(now.getFullYear());
   const [month,setMonth]=useState(now.getMonth());
   // Vista semanal (free): Monday de la semana visible
@@ -817,7 +821,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   const getMacros100=useCallback((dishId)=>{
     if(!dishId) return null;
     const dish=dishMap[dishId]; if(!dish) return null;
-    const recipe=RECIPE_DB.find(r=>
+    const recipe=recipeDB.find(r=>
       r.name.toLowerCase()===dish.name.toLowerCase()||
       dish.name.toLowerCase().includes(r.name.toLowerCase().split(' ')[0])
     );
@@ -1063,7 +1067,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
 
       {/* ── Recipe modal – zIndex:70 para quedar sobre el modal del día ── */}
       {recipeModal && (()=>{
-        const rd=RECIPE_DB.find(r=>r.name.toLowerCase()===recipeModal.name.toLowerCase());
+        const rd=recipeDB.find(r=>r.name.toLowerCase()===recipeModal.name.toLowerCase());
         const ytUrl=recipeModal.youtubeUrl?.trim()
           ? recipeModal.youtubeUrl.trim()
           : `https://www.youtube.com/results?search_query=${encodeURIComponent('como preparar '+recipeModal.name)}`;
@@ -1171,7 +1175,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                         {isPro && dish && (
                           <button
                             onClick={()=>{
-                              const recipeMatch=RECIPE_DB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
+                              const recipeMatch=recipeDB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
                               const ingNames=recipeMatch?recipeMatch.ings:dish.ingredients||[];
                               setRecipeModal({name:dish.name,ings:ingNames,youtubeUrl:dish.youtubeUrl||''});
                             }}
