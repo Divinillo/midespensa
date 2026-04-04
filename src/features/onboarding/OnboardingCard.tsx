@@ -139,7 +139,15 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
 
   const close = () => { onClose(); };
 
-  const REASONS = {
+  const REASONS = isUS ? {
+    dishes:   { icon: '🍽️', title: 'Recipe limit reached',         desc: `The free plan lets you save up to ${FREE_DISH_LIMIT} recipes. Upgrade to Pro for unlimited recipes.` },
+    tickets:  { icon: '🧾', title: 'Receipt limit reached',         desc: `The free plan lets you upload ${FREE_TICKET_LIMIT} receipts. Upgrade to Pro for unlimited receipts.` },
+    reports:  { icon: '📊', title: 'PDF Reports — Pro feature',     desc: 'Generate monthly PDF reports with your spending history and more.' },
+    automenu: { icon: '✨', title: 'Auto menu — Pro feature',       desc: 'Fill your monthly planner automatically based on your pantry.' },
+    autodish: { icon: '✨', title: 'Suggest recipes — Pro feature', desc: 'Get recipe suggestions based on your pantry and add them directly.' },
+    upgrade:  { icon: '🎁', title: 'Subscribe to MiDespensa Pro',   desc: 'Access all features with no limits.' },
+    trial:    { icon: '⏳', title: 'Your free trial is ending soon', desc: 'Subscribe now to keep access to unlimited recipes, nutrition scanner, reports and everything Pro without interruption.' },
+  } : {
     dishes:   { icon: '🍽️', title: 'Límite de platos alcanzado',  desc: `Con el plan gratuito puedes guardar hasta ${FREE_DISH_LIMIT} platos. Actualiza a Pro para platos ilimitados.` },
     tickets:  { icon: '🧾', title: 'Límite de tickets alcanzado',  desc: `Con el plan gratuito puedes subir ${FREE_TICKET_LIMIT} tickets. Actualiza a Pro para tickets ilimitados.` },
     reports:  { icon: '📊', title: 'Informes PDF — función Pro',    desc: 'Genera informes mensuales en PDF con tu historial de gasto y más.' },
@@ -155,7 +163,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       const token = s?.access_token;
-      if (!token) { alert('Sesión expirada. Por favor recarga la página.'); setLoading(false); return; }
+      if (!token) { alert(isUS ? 'Session expired. Please reload the page.' : 'Sesión expirada. Por favor recarga la página.'); setLoading(false); return; }
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -163,12 +171,12 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else { alert('Error al iniciar el pago. Inténtalo de nuevo.'); setLoading(false); }
-    } catch { alert('Error de conexión. Inténtalo de nuevo.'); setLoading(false); }
+      else { alert(isUS ? 'Error starting payment. Please try again.' : 'Error al iniciar el pago. Inténtalo de nuevo.'); setLoading(false); }
+    } catch { alert(isUS ? 'Connection error. Please try again.' : 'Error de conexión. Inténtalo de nuevo.'); setLoading(false); }
   };
 
   return (
-    <Modal open={open} onClose={close} title="💎 Desbloquear versión Pro">
+    <Modal open={open} onClose={close} title={isUS ? '💎 Unlock Pro version' : '💎 Desbloquear versión Pro'}>
       <div className="space-y-4">
         <div className="rounded-2xl p-4 text-center border bg-gradient-to-br from-teal-50 to-purple-50 border-teal-100">
           <div className="text-3xl mb-1.5">{r.icon}</div>
@@ -177,8 +185,16 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">✨ Pro incluye todo, sin límites</p>
-          {[
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">{isUS ? '✨ Pro includes everything, no limits' : '✨ Pro incluye todo, sin límites'}</p>
+          {(isUS ? [
+            ['🍽️', 'Unlimited recipes'],
+            ['🧾', 'Unlimited receipts'],
+            ['✨', 'Auto menu'],
+            ['🍳', 'AI recipe suggestions'],
+            ['🥗', 'Diet filters & macros'],
+            ['📊', 'Spending reports in PDF'],
+            ['☁️', 'Cloud sync'],
+          ] : [
             ['🍽️', 'Platos ilimitados'],
             ['🧾', 'Tickets ilimitados'],
             ['✨', 'Menú automático'],
@@ -186,7 +202,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
             ['🥗', 'Filtros de dieta y macros'],
             ['📊', 'Informes de gasto en PDF'],
             ['☁️', 'Sincronización en la nube'],
-          ].map(([e, t]) => (
+          ]).map(([e, t]) => (
             <div key={t} className="flex items-center gap-2.5">
               <span className="text-base">{e}</span>
               <span className="text-sm text-gray-700">{t}</span>
@@ -212,7 +228,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
           </button>
         </div>
 
-        <p className="text-center text-xs text-gray-400">Cancela cuando quieras</p>
+        <p className="text-center text-xs text-gray-400">{isUS ? 'Cancel anytime' : 'Cancela cuando quieras'}</p>
 
         <button
           onClick={handleCheckout}

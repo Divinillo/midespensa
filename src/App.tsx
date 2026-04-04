@@ -63,7 +63,7 @@ const TITLES: Record<Section, string> = {
 export function App() {
   // ── i18n + market ──────────────────────────────────────────────
   const { t, i18n } = useTranslation();
-  const { market, isUS, initIngredients, formatPrice, currency } = useMarket();
+  const { market, isUS, initIngredients, formatPrice, currency, stripeConfig } = useMarket();
 
   // ── Supabase auth session ─────────────────────────────────────
   const [session, setSession] = useState<Session | null>(null);
@@ -259,8 +259,12 @@ export function App() {
 
   // ── Plan status for Settings modal ────────────────────────────
   const planLabel = isTrial
-    ? `🎁 Prueba gratuita · ${trialDaysLeft} día${trialDaysLeft !== 1 ? 's' : ''} restante${trialDaysLeft !== 1 ? 's' : ''}`
-    : isPro ? '✨ Versión Pro activa' : '🔒 Plan gratuito';
+    ? isUS
+      ? `🎁 Free trial · ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left`
+      : `🎁 Prueba gratuita · ${trialDaysLeft} día${trialDaysLeft !== 1 ? 's' : ''} restante${trialDaysLeft !== 1 ? 's' : ''}`
+    : isPro
+      ? (isUS ? '✨ Pro version active' : '✨ Versión Pro activa')
+      : (isUS ? '🔒 Free plan' : '🔒 Plan gratuito');
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
@@ -286,9 +290,11 @@ export function App() {
         }}>
           <span style={{ fontWeight: 500 }}>
             {trialDaysLeft <= 0
-              ? '⏰ Tu periodo de prueba ha terminado'
+              ? (isUS ? '⏰ Your free trial has ended' : '⏰ Tu periodo de prueba ha terminado')
               : trialDaysLeft === 1
-              ? '⏳ Último día de prueba gratuita'
+              ? (isUS ? '⏳ Last day of your free trial' : '⏳ Último día de prueba gratuita')
+              : isUS
+              ? `🎁 ${trialDaysLeft} days of free trial left`
               : `🎁 ${trialDaysLeft} días de prueba gratuita restantes`}
           </span>
           <button
@@ -305,7 +311,9 @@ export function App() {
               whiteSpace: 'nowrap',
             }}
           >
-            Suscribirse · 2,99€/mes →
+            {isUS
+              ? `Subscribe · ${formatPrice(stripeConfig.monthly)}/mo →`
+              : `Suscribirse · ${formatPrice(stripeConfig.monthly)}/mes →`}
           </button>
         </div>
       )}
@@ -409,16 +417,22 @@ export function App() {
             {isTrial ? (
               <div>
                 <p className="text-xs text-green-700 mb-2">
-                  Estás disfrutando de todas las funciones Pro. Tu prueba gratuita termina en <strong>{trialDaysLeft} día{trialDaysLeft !== 1 ? 's' : ''}</strong>.
+                  {isUS
+                    ? <>You're enjoying all Pro features. Your free trial ends in <strong>{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>
+                    : <>Estás disfrutando de todas las funciones Pro. Tu prueba gratuita termina en <strong>{trialDaysLeft} día{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>}
                 </p>
-                <button onClick={() => { setShowSettings(false); setUpgradeModal('trial'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>Continuar con Pro · 2,99€/mes →</button>
+                <button onClick={() => { setShowSettings(false); setUpgradeModal('trial'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>
+                  {isUS ? `Continue with Pro · ${formatPrice(stripeConfig.monthly)}/mo →` : `Continuar con Pro · ${formatPrice(stripeConfig.monthly)}/mes →`}
+                </button>
               </div>
             ) : isPro ? (
-              <p className="text-xs text-amber-600">Todas las funciones desbloqueadas. Gracias por apoyar MiDespensa.</p>
+              <p className="text-xs text-amber-600">{isUS ? 'All features unlocked. Thank you for supporting MiDespensa.' : 'Todas las funciones desbloqueadas. Gracias por apoyar MiDespensa.'}</p>
             ) : (
               <div>
-                <p className="text-xs text-teal-600 mb-2">Platos: {dishes.length}/{FREE_DISH_LIMIT} · Tickets: {tickets.length}/{FREE_TICKET_LIMIT}</p>
-                <button onClick={() => { setShowSettings(false); setUpgradeModal('reports'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>Desbloquear versión Pro →</button>
+                <p className="text-xs text-teal-600 mb-2">{isUS ? 'Recipes' : 'Platos'}: {dishes.length}/{FREE_DISH_LIMIT} · {isUS ? 'Receipts' : 'Tickets'}: {tickets.length}/{FREE_TICKET_LIMIT}</p>
+                <button onClick={() => { setShowSettings(false); setUpgradeModal('reports'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>
+                  {isUS ? 'Unlock Pro version →' : 'Desbloquear versión Pro →'}
+                </button>
               </div>
             )}
           </div>
