@@ -212,10 +212,12 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
   },[open]);
 
   function scoreRecipes() {
+    console.log('[scoreRecipes] isUS:', isUS, 'recipeDB size:', recipeDB?.length, 'dishes:', dishes.length, 'isPro:', isPro, 'qty:', qty);
     const existingNames=new Set(dishes.map(d=>d.name.toLowerCase()));
     // Solo recetas completas: 4+ ings y no son guarniciones/caldos ligeros (< 200 kcal Y < 10g prot)
     let candidates=recipeDB.filter(r=>!existingNames.has(r.name.toLowerCase()) && r.ings.length >= 4 && !(r.kcal < 200 && r.prot < 10));
     if(isPro && diet!=='omnivora') candidates=candidates.filter(r=>r.diets.includes(diet));
+    console.log('[scoreRecipes] candidates:', candidates.length, 'diet:', diet);
 
     const scored=candidates.map(recipe=>{
       const matched=recipe.ings.map(ri=>{
@@ -233,6 +235,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
     // Pro: ve qty*3 para poder seleccionar entre más opciones
     const showCount = isPro ? Math.min(qty*3, scored.length) : Math.min(FREE_SUGGESTION_LIMIT, scored.length);
     const top=scored.slice(0,showCount);
+    console.log('[scoreRecipes] scored:', scored.length, 'showCount:', showCount, 'top:', top.length);
     setResults({all:top,requested:qty});
     const pre={};
     top.slice(0,qty).forEach(s=>pre[s.recipe.id]=true);
