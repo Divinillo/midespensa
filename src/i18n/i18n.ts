@@ -11,6 +11,17 @@ if (urlLang === 'en' || urlLang === 'es') {
   try { localStorage.setItem('midespensa_lang', urlLang); } catch (_) {}
 }
 
+// Normalize the cached language: always store 'en' or 'es', never 'en-US' / 'es-ES'.
+// i18next LanguageDetector caches the raw navigator.language before load:'languageOnly'
+// strips the region suffix, so we fix it here.
+try {
+  const cached = localStorage.getItem('midespensa_lang');
+  if (cached && cached !== 'en' && cached !== 'es') {
+    const norm = cached.toLowerCase().startsWith('en') ? 'en' : 'es';
+    localStorage.setItem('midespensa_lang', norm);
+  }
+} catch (_) {}
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)

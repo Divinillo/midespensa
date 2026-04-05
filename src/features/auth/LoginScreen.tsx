@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { supabase } from '../../utils/supabase';
+import { useMarket } from '../../i18n/useMarket';
 
 type Mode = 'login' | 'register' | 'forgot';
 
 export default function LoginScreen() {
+  const { isEN } = useMarket();
+
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,6 +15,64 @@ export default function LoginScreen() {
 
   const msg = (text: string, ok = false, showResend = false) =>
     setMessage({ text, ok, showResend });
+
+  // ── Translations ───────────────────────────────────────────────
+  const T = {
+    titleLogin:    isEN ? 'Sign in'             : 'Iniciar sesión',
+    titleRegister: isEN ? 'Create account'      : 'Crear cuenta',
+    titleForgot:   isEN ? 'Reset password'      : 'Recuperar contraseña',
+    google:        isEN ? 'Continue with Google': 'Continuar con Google',
+    orEmail:       isEN ? 'or with email'       : 'o con correo',
+    emailLabel:    isEN ? 'Email'               : 'Correo electrónico',
+    emailPlaceholder: isEN ? 'you@email.com'    : 'tu@correo.com',
+    passwordLabel: isEN ? 'Password'            : 'Contraseña',
+    submitLogin:   isEN ? 'Sign in'             : 'Iniciar sesión',
+    submitRegister:isEN ? 'Create account'      : 'Crear cuenta',
+    submitForgot:  isEN ? 'Send reset link'     : 'Enviar enlace de recuperación',
+    tcNotice: isEN
+      ? <>By creating an account you accept the{' '}<a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Terms & Conditions</a>{' '}and the{' '}<a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Privacy Policy</a>.</>
+      : <>Al crear una cuenta aceptas los{' '}<a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Términos y Condiciones</a>{' '}y la{' '}<a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Política de Privacidad</a>.</>,
+    forgotLink:    isEN ? 'Forgot your password?'          : '¿Olvidaste tu contraseña?',
+    createLink:    isEN ? 'Create account'                 : 'Crear cuenta',
+    backLogin:     isEN ? '← Back to sign in'             : '← Volver al inicio de sesión',
+    alreadyHave:   isEN ? 'Already have an account? Sign in' : '¿Ya tienes cuenta? Inicia sesión',
+    resendBtn:     isEN ? 'Resend confirmation email →'    : 'Reenviar correo de confirmación →',
+    // Feedback messages
+    msgBadCreds:   isEN ? 'Email or password is incorrect.'
+                        : 'Correo o contraseña incorrectos.',
+    msgConfirmNeeded: isEN
+      ? 'You need to confirm your email before signing in. Check your inbox (and spam folder).'
+      : 'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada (y la carpeta de spam).',
+    msgAccountCreated: isEN
+      ? 'Account created! We sent you a confirmation email. Click the link to activate it (check spam too).'
+      : '¡Cuenta creada! Te enviamos un correo de confirmación. Haz clic en el enlace para activarla (revisa también el spam).',
+    msgPasswordSent: isEN
+      ? 'We sent you a password reset email. Check your spam folder too.'
+      : 'Te enviamos un correo para restablecer tu contraseña. Revisa también la carpeta de spam.',
+    msgResent: isEN
+      ? 'Confirmation email resent. Check your inbox and spam folder.'
+      : 'Correo de confirmación reenviado. Revisa tu bandeja de entrada y la carpeta de spam.',
+    msgNoEmail: isEN
+      ? 'Enter your email to resend the confirmation.'
+      : 'Introduce tu correo para reenviar la confirmación.',
+    msgSessionExpired: isEN
+      ? 'Session expired. Please reload the page.'
+      : 'Sesión expirada. Por favor recarga la página.',
+    terms:    isEN ? 'Terms'   : 'Términos',
+    privacy:  isEN ? 'Privacy' : 'Privacidad',
+  };
+
+  const titles = {
+    login:    T.titleLogin,
+    register: T.titleRegister,
+    forgot:   T.titleForgot,
+  };
+
+  const submitLabel = {
+    login:    T.submitLogin,
+    register: T.submitRegister,
+    forgot:   T.submitForgot,
+  };
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,29 +84,26 @@ export default function LoginScreen() {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
           if (error.message === 'Invalid login credentials') {
-            msg('Correo o contraseña incorrectos.');
+            msg(T.msgBadCreds);
           } else if (
             error.message.toLowerCase().includes('email not confirmed') ||
             error.message.toLowerCase().includes('email_not_confirmed')
           ) {
-            msg(
-              'Debes confirmar tu correo antes de iniciar sesión. Revisa tu bandeja de entrada (y la carpeta de spam).',
-              false,
-              true,
-            );
+            msg(T.msgConfirmNeeded, false, true);
           } else {
             msg(error.message);
           }
         }
       } else if (mode === 'register') {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) {
           msg(error.message);
+        } else if (data.session) {
+          // Auto-confirm is enabled in Supabase — user is immediately logged in
+          // The onAuthStateChange in App.tsx will pick up the session automatically
         } else {
-          msg(
-            '¡Cuenta creada! Te enviamos un correo de confirmación. Haz clic en el enlace para activarla (revisa también el spam).',
-            true,
-          );
+          // Email confirmation required
+          msg(T.msgAccountCreated, true);
           setMode('login');
         }
       } else {
@@ -53,7 +111,7 @@ export default function LoginScreen() {
           redirectTo: `${window.location.origin}/app`,
         });
         if (error) msg(error.message);
-        else msg('Te enviamos un correo para restablecer tu contraseña. Revisa también la carpeta de spam.', true);
+        else msg(T.msgPasswordSent, true);
       }
     } finally {
       setLoading(false);
@@ -61,12 +119,12 @@ export default function LoginScreen() {
   }
 
   async function handleResendConfirmation() {
-    if (!email) { msg('Introduce tu correo para reenviar la confirmación.'); return; }
+    if (!email) { msg(T.msgNoEmail); return; }
     setLoading(true);
     const { error } = await supabase.auth.resend({ type: 'signup', email });
     setLoading(false);
     if (error) msg(error.message);
-    else msg('Correo de confirmación reenviado. Revisa tu bandeja de entrada y la carpeta de spam.', true);
+    else msg(T.msgResent, true);
   }
 
   async function handleGoogle() {
@@ -81,12 +139,6 @@ export default function LoginScreen() {
     });
     if (error) { msg(error.message); setLoading(false); }
   }
-
-  const titles = {
-    login: 'Iniciar sesión',
-    register: 'Crear cuenta',
-    forgot: 'Recuperar contraseña',
-  };
 
   return (
     <div style={{
@@ -139,7 +191,7 @@ export default function LoginScreen() {
               <path fill="#FBBC05" d="M10.3 28.3A14.8 14.8 0 0 1 9.5 24c0-1.5.3-2.9.8-4.3v-6.2H2.1A23.9 23.9 0 0 0 0 24c0 3.9.9 7.5 2.1 10.5l8.2-6.2z"/>
               <path fill="#EA4335" d="M24 9.5c3.6 0 6.8 1.2 9.3 3.7l7-7C36.2 2.1 30.6 0 24 0 14.4 0 6.1 5.3 2.1 13.5l8.2 6.2C12.2 13.8 17.6 9.5 24 9.5z"/>
             </svg>
-            Continuar con Google
+            {T.google}
           </button>
         )}
 
@@ -147,7 +199,7 @@ export default function LoginScreen() {
         {mode !== 'forgot' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
             <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
-            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>o con correo</span>
+            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>{T.orEmail}</span>
             <div style={{ flex: 1, height: '1px', background: '#e5e7eb' }} />
           </div>
         )}
@@ -155,14 +207,14 @@ export default function LoginScreen() {
         {/* Form */}
         <form onSubmit={handleSubmit}>
           <label style={labelStyle}>
-            Correo electrónico
+            {T.emailLabel}
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-              required autoComplete="email" placeholder="tu@correo.com" style={inputStyle} />
+              required autoComplete="email" placeholder={T.emailPlaceholder} style={inputStyle} />
           </label>
 
           {mode !== 'forgot' && (
             <label style={labelStyle}>
-              Contraseña
+              {T.passwordLabel}
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 required autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
                 placeholder="••••••••" minLength={6} style={inputStyle} />
@@ -172,10 +224,7 @@ export default function LoginScreen() {
           {/* T&C notice on register */}
           {mode === 'register' && (
             <p style={{ fontSize: '0.75rem', color: '#9ca3af', marginBottom: '14px', lineHeight: 1.5 }}>
-              Al crear una cuenta aceptas los{' '}
-              <a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Términos y Condiciones</a>
-              {' '}y la{' '}
-              <a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#0d9488' }}>Política de Privacidad</a>.
+              {T.tcNotice}
             </p>
           )}
 
@@ -193,7 +242,7 @@ export default function LoginScreen() {
                   <button type="button" onClick={handleResendConfirmation} disabled={loading}
                     style={{ background: 'none', border: 'none', color: '#dc2626', fontWeight: 700,
                       cursor: 'pointer', fontSize: '0.85rem', padding: 0, textDecoration: 'underline' }}>
-                    Reenviar correo de confirmación →
+                    {T.resendBtn}
                   </button>
                 </div>
               )}
@@ -206,7 +255,7 @@ export default function LoginScreen() {
             border: 'none', borderRadius: '10px', fontSize: '1rem', fontWeight: 700,
             cursor: loading ? 'not-allowed' : 'pointer', transition: 'background 0.15s',
           }}>
-            {loading ? '…' : titles[mode]}
+            {loading ? '…' : submitLabel[mode]}
           </button>
         </form>
 
@@ -215,31 +264,31 @@ export default function LoginScreen() {
           {mode === 'login' && (
             <>
               <button style={linkBtn} onClick={() => { setMode('forgot'); setMessage(null); }}>
-                ¿Olvidaste tu contraseña?
+                {T.forgotLink}
               </button>
               <span style={{ margin: '0 8px' }}>·</span>
               <button style={linkBtn} onClick={() => { setMode('register'); setMessage(null); }}>
-                Crear cuenta
+                {T.createLink}
               </button>
             </>
           )}
           {mode === 'register' && (
             <button style={linkBtn} onClick={() => { setMode('login'); setMessage(null); }}>
-              ¿Ya tienes cuenta? Inicia sesión
+              {T.alreadyHave}
             </button>
           )}
           {mode === 'forgot' && (
             <button style={linkBtn} onClick={() => { setMode('login'); setMessage(null); }}>
-              ← Volver al inicio de sesión
+              {T.backLogin}
             </button>
           )}
         </div>
 
         {/* Legal links */}
         <div style={{ marginTop: '16px', textAlign: 'center', fontSize: '0.72rem', color: '#9ca3af' }}>
-          <a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#9ca3af' }}>Términos</a>
+          <a href="/terminos.html" target="_blank" rel="noopener" style={{ color: '#9ca3af' }}>{T.terms}</a>
           {' · '}
-          <a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#9ca3af' }}>Privacidad</a>
+          <a href="/privacidad.html" target="_blank" rel="noopener" style={{ color: '#9ca3af' }}>{T.privacy}</a>
         </div>
       </div>
     </div>
