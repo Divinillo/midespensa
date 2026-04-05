@@ -30,12 +30,12 @@ interface Props {
 }
 
 export function OnboardingWizard({ ingredients, setIngredients, dishes, setDishes, tickets, setTickets, priceHistory, setPriceHistory, onComplete }: Props) {
-  const { isUS, catEmoji } = useMarket();
+  const { isUS, isEN, catEmoji } = useMarket();
 
   const WIZARD_CATS = isUS ? WIZARD_CATS_US : WIZARD_CATS_ES;
 
   // ── Translations ──────────────────────────────────────────────────
-  const T = isUS ? {
+  const T = isEN ? {
     subtitle:        'Organize your kitchen, plan your meals\nand simplify shopping.',
     startBtn:        'Get started →',
     setupNote:       'Quick setup in 2 minutes',

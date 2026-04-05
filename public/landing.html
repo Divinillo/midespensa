@@ -4,6 +4,12 @@
   <!-- Auto-redirect English browsers to the US landing page; lock Spanish for everyone else -->
   <script>
     (function() {
+      // If ?lang=es is present, user explicitly chose Spanish — skip redirect
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('lang') === 'es') {
+        try { localStorage.setItem('midespensa_lang', 'es'); } catch(e) {}
+        return;
+      }
       var lang = navigator.language || navigator.userLanguage || '';
       if (lang.toLowerCase().startsWith('en')) {
         window.location.replace('/en');
@@ -97,6 +103,8 @@
     .btn-teal:hover { background: var(--teal-800); transform: translateY(-1px); }
     .btn-outline { background: transparent; color: var(--teal-700); border: 2px solid var(--teal-600); }
     .btn-outline:hover { background: var(--teal-50); }
+    .lang-switch { font-size: .78rem; color: var(--gray-400); text-decoration: none; padding: 4px 10px; border: 1px solid var(--gray-200); border-radius: 20px; }
+    .lang-switch:hover { border-color: var(--teal-200); color: var(--teal-700); background: var(--teal-50); }
     .nav-links a.btn-teal { color: #fff; }
     .nav-links a.btn-teal:hover { background: var(--teal-800); color: #fff; transform: translateY(-1px); }
 
@@ -243,7 +251,7 @@
 
     /* ── RESPONSIVE ── */
     @media (max-width: 760px) {
-      .nav-links a:not(:last-child) { display: none; }
+      .nav-links a:not(:last-child):not(.lang-switch) { display: none; }
       section { padding: 56px 20px; }
       .hero { padding: 60px 20px 50px; }
       .phones-row { gap: 12px; }
@@ -283,6 +291,7 @@
       <a href="#funciones">Funciones</a>
       <a href="#precios">Precios</a>
       <a href="#faq">FAQ</a>
+      <a href="/en" class="lang-switch">EN 🇺🇸</a>
       <a href="/app" class="btn btn-teal">Probar gratis →</a>
     </div>
   </div>
@@ -602,6 +611,7 @@
     <div class="footer-links">
       <a href="/privacidad.html">Privacidad</a>
       <a href="/terminos.html">Términos</a>
+      <a href="/en">English 🇺🇸</a>
       <a href="/app" style="color:#fff;font-weight:600;">Abrir la app →</a>
     </div>
   </div>

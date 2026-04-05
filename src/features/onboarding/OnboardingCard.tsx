@@ -9,39 +9,40 @@ import { useMarket } from '../../i18n/useMarket';
 
 export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, onDismiss}) {
   const [expanded, setExpanded] = useState(true);
+  const { isEN } = useMarket();
 
   const steps = [
     {
       emoji: '📤',
-      title: 'Sube tu primer ticket',
-      desc: 'Sube un ticket del supermercado. La app detectará automáticamente qué ingredientes tienes en casa y los añadirá a tu despensa.',
+      title: isEN ? 'Upload your first receipt' : 'Sube tu primer ticket',
+      desc: isEN ? 'Upload a supermarket receipt. The app will automatically detect what ingredients you have at home and add them to your pantry.' : 'Sube un ticket del supermercado. La app detectará automáticamente qué ingredientes tienes en casa y los añadirá a tu despensa.',
       done: tickets.length > 0,
       action: () => onNavigate('ticket'),
-      actionLabel: 'Ir a Tickets',
+      actionLabel: isEN ? 'Go to Receipts' : 'Ir a Tickets',
     },
     {
       emoji: '🥕',
-      title: 'Añade tus ingredientes habituales',
-      desc: 'Si compras cosas que el ticket no detecta, añádelas manualmente a la despensa. Los ingredientes que ves ahora son solo ejemplos.',
+      title: isEN ? 'Add your usual ingredients' : 'Añade tus ingredientes habituales',
+      desc: isEN ? "If you buy things the receipt doesn't detect, add them manually to the pantry. The ingredients you see now are just examples." : 'Si compras cosas que el ticket no detecta, añádelas manualmente a la despensa. Los ingredientes que ves ahora son solo ejemplos.',
       done: ingredients.some(i => i.available),
       action: () => onNavigate('cat'),
-      actionLabel: 'Ir a Despensa',
+      actionLabel: isEN ? 'Go to Pantry' : 'Ir a Despensa',
     },
     {
       emoji: '🍽️',
-      title: 'Crea tus propios platos',
-      desc: 'Define los platos que cocinas habitualmente y asígnales sus ingredientes. Los 2 platos que ves son solo ejemplos: edítalos o elimínalos.',
+      title: isEN ? 'Create your own recipes' : 'Crea tus propios platos',
+      desc: isEN ? 'Define the dishes you usually cook and assign their ingredients. The recipes you see are just examples: edit or delete them.' : 'Define los platos que cocinas habitualmente y asígnales sus ingredientes. Los 2 platos que ves son solo ejemplos: edítalos o elimínalos.',
       done: dishes.some(d => !d.example),
       action: () => onNavigate('platos'),
-      actionLabel: 'Crear un plato',
+      actionLabel: isEN ? 'Create a recipe' : 'Crear un plato',
     },
     {
       emoji: '📅',
-      title: 'Planifica tu menú mensual',
-      desc: 'Asigna platos a los días del mes. Así podrás generar la lista de la compra automáticamente con lo que te falta.',
+      title: isEN ? 'Plan your monthly menu' : 'Planifica tu menú mensual',
+      desc: isEN ? 'Assign dishes to days of the month. This way you can automatically generate the shopping list with what you need.' : 'Asigna platos a los días del mes. Así podrás generar la lista de la compra automáticamente con lo que te falta.',
       done: Object.keys(plan).length > 0,
       action: () => onNavigate('plan'),
-      actionLabel: 'Ver el calendario',
+      actionLabel: isEN ? 'View calendar' : 'Ver el calendario',
     },
   ];
 
@@ -52,10 +53,10 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
     <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 mb-5 flex items-center gap-3 fade">
       <span className="text-3xl">🎉</span>
       <div className="flex-1">
-        <p className="font-bold text-emerald-700 text-sm">¡Configuración completada!</p>
-        <p className="text-xs text-emerald-600 mt-0.5">Ya tienes todo listo para usar Despensa Familiar.</p>
+        <p className="font-bold text-emerald-700 text-sm">{isEN ? 'Setup complete!' : '¡Configuración completada!'}</p>
+        <p className="text-xs text-emerald-600 mt-0.5">{isEN ? 'You\'re all set to use Family Pantry.' : 'Ya tienes todo listo para usar Despensa Familiar.'}</p>
       </div>
-      <button onClick={onDismiss} className="text-xs text-emerald-400 hover:text-emerald-600 font-medium shrink-0">Ocultar</button>
+      <button onClick={onDismiss} className="text-xs text-emerald-400 hover:text-emerald-600 font-medium shrink-0">{isEN ? 'Hide' : 'Ocultar'}</button>
     </div>
   );
 
@@ -66,8 +67,8 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
         <div className="flex items-center gap-3">
           <span className="text-2xl">🚀</span>
           <div>
-            <h2 className="font-bold text-gray-800 text-sm leading-tight">Primeros pasos</h2>
-            <p className="text-xs text-gray-400 mt-0.5">{doneCount} de {steps.length} completados</p>
+            <h2 className="font-bold text-gray-800 text-sm leading-tight">{isEN ? 'Getting started' : 'Primeros pasos'}</h2>
+            <p className="text-xs text-gray-400 mt-0.5">{isEN ? `${doneCount} of ${steps.length} completed` : `${doneCount} de ${steps.length} completados`}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -114,7 +115,7 @@ export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, 
             </div>
           ))}
           <div className="flex justify-end pt-1">
-            <button onClick={onDismiss} className="text-xs text-gray-300 hover:text-gray-500">Ocultar guía</button>
+            <button onClick={onDismiss} className="text-xs text-gray-300 hover:text-gray-500">{isEN ? 'Hide guide' : 'Ocultar guía'}</button>
           </div>
         </div>
       )}
@@ -139,7 +140,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
 
   const close = () => { onClose(); };
 
-  const REASONS = isUS ? {
+  const REASONS = isEN ? {
     dishes:   { icon: '🍽️', title: 'Recipe limit reached',         desc: `The free plan lets you save up to ${FREE_DISH_LIMIT} recipes. Upgrade to Pro for unlimited recipes.` },
     tickets:  { icon: '🧾', title: 'Receipt limit reached',         desc: `The free plan lets you upload ${FREE_TICKET_LIMIT} receipts. Upgrade to Pro for unlimited receipts.` },
     reports:  { icon: '📊', title: 'PDF Reports — Pro feature',     desc: 'Generate monthly PDF reports with your spending history and more.' },
@@ -163,7 +164,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       const token = s?.access_token;
-      if (!token) { alert(isUS ? 'Session expired. Please reload the page.' : 'Sesión expirada. Por favor recarga la página.'); setLoading(false); return; }
+      if (!token) { alert(isEN ? 'Session expired. Please reload the page.' : 'Sesión expirada. Por favor recarga la página.'); setLoading(false); return; }
       const res = await fetch('/api/create-checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -171,8 +172,8 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
       });
       const data = await res.json();
       if (data.url) window.location.href = data.url;
-      else { alert(isUS ? 'Error starting payment. Please try again.' : 'Error al iniciar el pago. Inténtalo de nuevo.'); setLoading(false); }
-    } catch { alert(isUS ? 'Connection error. Please try again.' : 'Error de conexión. Inténtalo de nuevo.'); setLoading(false); }
+      else { alert(isEN ? 'Error starting payment. Please try again.' : 'Error al iniciar el pago. Inténtalo de nuevo.'); setLoading(false); }
+    } catch { alert(isEN ? 'Connection error. Please try again.' : 'Error de conexión. Inténtalo de nuevo.'); setLoading(false); }
   };
 
   return (

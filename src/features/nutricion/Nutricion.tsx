@@ -13,7 +13,8 @@ const NUTRI_COLOR = { a:'#038141', b:'#85bb2f', c:'#fecb02', d:'#ee8100', e:'#e6
 const NUTRI_BG    = { a:'#e8f5e9', b:'#f1f8e9', c:'#fffde7', d:'#fff3e0', e:'#fce4ec' };
 
 /* ── Nova group ───────────────────────────────────────────────── */
-const NOVA_LABEL = ['','Sin procesar','Ingrediente culinario','Procesado','Ultraprocesado'];
+const NOVA_LABEL_ES = ['','Sin procesar','Ingrediente culinario','Procesado','Ultraprocesado'];
+const NOVA_LABEL_EN = ['','Unprocessed','Culinary ingredient','Processed','Ultra-processed'];
 const NOVA_COLOR = ['','#038141','#85bb2f','#ee8100','#e63e11'];
 const NOVA_BG    = ['','#e8f5e9','#f1f8e9','#fff3e0','#fce4ec'];
 
@@ -57,6 +58,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
   const { t } = useTranslation();
   const { isUS, isEN } = useMarket();
   const NUTRI_FIELDS = isUS ? NUTRI_FIELDS_US : NUTRI_FIELDS_ES;
+  const NOVA_LABEL = isEN ? NOVA_LABEL_EN : NOVA_LABEL_ES;
 
   const [history, setHistory] = useLS<ScannedProduct[]>('scanner_history_v1', []);
 
@@ -322,7 +324,9 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
                 {ns.toUpperCase()}
               </div>
               <div style={{ fontSize:'0.65rem', color: NUTRI_COLOR[ns], fontWeight:700 }}>
-                {ns==='a'?'Excelente':ns==='b'?'Bueno':ns==='c'?'Aceptable':ns==='d'?'Malo':'Muy malo'}
+                {isEN
+                  ? (ns==='a'?'Excellent':ns==='b'?'Good':ns==='c'?'Fair':ns==='d'?'Poor':'Very poor')
+                  : (ns==='a'?'Excelente':ns==='b'?'Bueno':ns==='c'?'Aceptable':ns==='d'?'Malo':'Muy malo')}
               </div>
             </div>
           )}
@@ -336,10 +340,10 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             </div>
           )}
           <div style={{ flex:1, borderRadius:16, padding:'12px', background: addCount>0?'#fff3e0':'#e8f5e9', border:`2px solid ${addCount>0?'#ee8100':'#038141'}`, textAlign:'center' }}>
-            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{isUS ? 'Additives' : 'Aditivos'}</div>
+            <div style={{ fontSize:'0.62rem', fontWeight:700, color:'#64748b', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:4 }}>{isEN ? 'Additives' : 'Aditivos'}</div>
             <div style={{ fontWeight:900, fontSize:'1.4rem', color: addCount>0?'#ee8100':'#038141', lineHeight:1, marginBottom:4 }}>{addCount}</div>
             <div style={{ fontSize:'0.65rem', color: addCount>0?'#ee8100':'#038141', fontWeight:700 }}>
-              {isUS
+              {isEN
                 ? (addCount===0?'None':addCount<=3?'Few':addCount<=6?'Moderate':'Many')
                 : (addCount===0?'Ninguno':addCount<=3?'Pocos':addCount<=6?'Moderados':'Muchos')}
             </div>
@@ -350,8 +354,8 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         {product.nutriments && Object.keys(product.nutriments).length > 0 && (
           <div style={{ borderRadius:16, background:'#fff', border:'1.5px solid #e2e8f0', overflow:'hidden', marginBottom:12, boxShadow:'0 1px 6px rgba(0,0,0,.05)' }}>
             <div style={{ padding:'10px 14px', background:'#f8fafc', borderBottom:'1px solid #f1f5f9' }}>
-              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}><Heartbeat size={16} weight="fill"/> {isUS ? 'Nutrition Facts' : 'Valores nutricionales'}</div>
-              <div style={{ fontSize:'0.65rem', color:'#94a3b8', marginTop:1 }}>{isUS ? 'Per 100g / 100ml' : 'Por 100g / 100ml'}</div>
+              <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', display:'flex', alignItems:'center', gap:6 }}><Heartbeat size={16} weight="fill"/> {isEN ? 'Nutrition Facts' : 'Valores nutricionales'}</div>
+              <div style={{ fontSize:'0.65rem', color:'#94a3b8', marginTop:1 }}>{isEN ? 'Per 100g / 100ml' : 'Por 100g / 100ml'}</div>
             </div>
             {NUTRI_FIELDS.map(f => {
               const val = product.nutriments![f.key];
@@ -375,7 +379,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         {/* Ingredientes */}
         {product.ingredients && (
           <div style={{ borderRadius:16, background:'#fff', border:'1.5px solid #e2e8f0', padding:'12px 14px', marginBottom:12, boxShadow:'0 1px 6px rgba(0,0,0,.05)' }}>
-            <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', marginBottom:6 }}>🧪 Ingredientes</div>
+            <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#1e293b', marginBottom:6 }}>{isEN ? '🧪 Ingredients' : '🧪 Ingredientes'}</div>
             <div style={{ fontSize:'0.72rem', color:'#475569', lineHeight:1.6 }}>
               {product.ingredients.length > 300 ? product.ingredients.slice(0,300)+'…' : product.ingredients}
             </div>
@@ -385,21 +389,21 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         {/* Aditivos */}
         {addCount > 0 && (
           <div style={{ borderRadius:16, background:'#fff3e0', border:'1.5px solid #fde68a', padding:'12px 14px', marginBottom:12 }}>
-            <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#92400e', marginBottom:8 }}>Aditivos detectados ({addCount})</div>
+            <div style={{ fontWeight:800, fontSize:'0.82rem', color:'#92400e', marginBottom:8 }}>{isEN ? `Additives detected (${addCount})` : `Aditivos detectados (${addCount})`}</div>
             <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
               {product.additives!.slice(0,15).map(a => (
                 <span key={a} style={{ fontSize:'0.68rem', padding:'3px 8px', borderRadius:8, background:'#fff', border:'1px solid #fde68a', color:'#92400e', fontWeight:600 }}>
                   {a.replace('en:','').toUpperCase()}
                 </span>
               ))}
-              {addCount > 15 && <span style={{ fontSize:'0.68rem', color:'#b45309' }}>+{addCount-15} más</span>}
+              {addCount > 15 && <span style={{ fontSize:'0.68rem', color:'#b45309' }}>+{addCount-15} {isEN ? 'more' : 'más'}</span>}
             </div>
           </div>
         )}
 
         <button onClick={startScanner}
           style={{ width:'100%', borderRadius:16, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background:'linear-gradient(135deg,#0f766e,#0d9488)', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(13,148,136,.35)', marginTop:4 }}>
-          📷 {isUS ? 'Scan another product' : 'Escanear otro producto'}
+          📷 {isEN ? 'Scan another product' : 'Escanear otro producto'}
         </button>
       </div>
     );
@@ -412,8 +416,8 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
     return (
       <div className="fade" style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', minHeight:'60vh', gap:16, textAlign:'center' }}>
         <div style={{ fontSize:'2.4rem', animation:'spin 1s linear infinite' }}>⏳</div>
-        <div style={{ fontWeight:700, fontSize:'1rem', color:'#0f766e' }}>{isUS ? 'Finding product...' : 'Buscando producto…'}</div>
-        <div style={{ fontSize:'0.78rem', color:'#94a3b8' }}>{isUS ? 'Checking global food database' : 'Consultando base de datos mundial de alimentos'}</div>
+        <div style={{ fontWeight:700, fontSize:'1rem', color:'#0f766e' }}>{isEN ? 'Finding product...' : 'Buscando producto…'}</div>
+        <div style={{ fontSize:'0.78rem', color:'#94a3b8' }}>{isEN ? 'Checking global food database' : 'Consultando base de datos mundial de alimentos'}</div>
         <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
       </div>
     );
@@ -430,15 +434,15 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         <div style={{ display:'flex', flexDirection:'column', gap:10, width:'100%', maxWidth:300 }}>
           <button onClick={startScanner}
             style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#fff', background:'#0d9488', border:'none', cursor:'pointer' }}>
-            📷 {isUS ? 'Try again' : 'Intentar de nuevo'}
+            📷 {isEN ? 'Try again' : 'Intentar de nuevo'}
           </button>
           <button onClick={() => setMode('manual')}
             style={{ borderRadius:14, padding:'12px 24px', fontWeight:700, fontSize:'0.9rem', color:'#0d9488', background:'#f0fdf4', border:'2px solid #5eead4', cursor:'pointer' }}>
-            ⌨️ {isUS ? 'Enter code manually' : 'Introducir código manualmente'}
+            ⌨️ {isEN ? 'Enter code manually' : 'Introducir código manualmente'}
           </button>
           <button onClick={reset}
             style={{ fontSize:'0.8rem', color:'#94a3b8', background:'none', border:'none', cursor:'pointer' }}>
-            ← {isUS ? 'Back to start' : 'Volver al inicio'}
+            ← {isEN ? 'Back to start' : 'Volver al inicio'}
           </button>
         </div>
       </div>
@@ -456,7 +460,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             style={{ width:36, height:36, borderRadius:12, background:'#f1f5f9', border:'none', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             ←
           </button>
-          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Point at barcode' : 'Apunta al código de barras'}</div>
+          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isEN ? 'Point at barcode' : 'Apunta al código de barras'}</div>
         </div>
 
         {/* Visor de cámara */}
@@ -500,7 +504,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
 
           <div style={{ position:'absolute', bottom:12, left:0, right:0, textAlign:'center' }}>
             <span style={{ fontSize:'0.72rem', color:'#fff', background:'rgba(0,0,0,.55)', padding:'4px 14px', borderRadius:20, fontWeight:600, display:'flex', alignItems:'center', justifyContent:'center', gap:4 }}>
-              <MagnifyingGlass size={14}/> {isUS ? 'Keep the code in the frame' : 'Mantén el código dentro del marco'}
+              <MagnifyingGlass size={14}/> {isEN ? 'Keep the code in the frame' : 'Mantén el código dentro del marco'}
             </span>
           </div>
         </div>
@@ -520,11 +524,10 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
 
         {/* Consejos de uso */}
         <div style={{ display:'flex', gap:8, marginBottom:12, flexWrap:'wrap' }}>
-          {[
-            '📏 Acércate 10-20cm',
-            '💡 Buena luz',
-            '📐 Encuadra bien',
-          ].map(t => (
+          {(isEN
+            ? ['📏 Get close 10-20cm', '💡 Good lighting', '📐 Frame it well']
+            : ['📏 Acércate 10-20cm', '💡 Buena luz', '📐 Encuadra bien']
+          ).map(t => (
             <span key={t} style={{ fontSize:'0.65rem', padding:'3px 9px', borderRadius:20, background:'#f1f5f9', color:'#64748b', fontWeight:600 }}>
               {t}
             </span>
@@ -542,7 +545,7 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         <div style={{ textAlign:'center' }}>
           <button onClick={() => { stopScanner(); setMode('manual'); }}
             style={{ fontSize:'0.75rem', color:'#64748b', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>
-            {isUS ? 'Enter code manually' : 'Introducir código manualmente'}
+            {isEN ? 'Enter code manually' : 'Introducir código manualmente'}
           </button>
         </div>
       </div>
@@ -560,12 +563,12 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
             style={{ width:36, height:36, borderRadius:12, background:'#f1f5f9', border:'none', fontSize:'1.1rem', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
             ←
           </button>
-          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isUS ? 'Manual barcode' : 'Código de barras manual'}</div>
+          <div style={{ fontWeight:800, fontSize:'1rem', color:'#1e293b' }}>{isEN ? 'Manual barcode' : 'Código de barras manual'}</div>
         </div>
         <input
           value={manualCode}
           onChange={e => setManualCode(e.target.value.replace(/\D/g,''))}
-          placeholder={isUS ? 'E.g. 8410128001234' : 'Ej: 8410128001234'}
+          placeholder={isEN ? 'E.g. 8410128001234' : 'Ej: 8410128001234'}
           inputMode="numeric"
           autoFocus
           onKeyDown={e => e.key==='Enter' && manualCode.length>=8 && fetchProduct(manualCode)}
@@ -573,12 +576,12 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         />
         <button onClick={() => fetchProduct(manualCode)} disabled={manualCode.length < 8}
           style={{ width:'100%', borderRadius:14, padding:'14px', fontWeight:800, fontSize:'0.9rem', color:'#fff', background: manualCode.length>=8?'#0d9488':'#d1d5db', border:'none', cursor: manualCode.length>=8?'pointer':'not-allowed', boxShadow: manualCode.length>=8?'0 4px 14px rgba(13,148,136,.35)':'none', display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-          <MagnifyingGlass size={18}/> {isUS ? 'Search product' : 'Buscar producto'}
+          <MagnifyingGlass size={18}/> {isEN ? 'Search product' : 'Buscar producto'}
         </button>
         <div style={{ textAlign:'center', marginTop:12 }}>
           <button onClick={startScanner}
             style={{ fontSize:'0.75rem', color:'#0d9488', fontWeight:700, background:'none', border:'none', cursor:'pointer' }}>
-            📷 {isUS ? 'Back to scanner' : 'Volver al escáner'}
+            📷 {isEN ? 'Back to scanner' : 'Volver al escáner'}
           </button>
         </div>
       </div>
@@ -593,18 +596,18 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
       {/* Hero */}
       <div style={{ borderRadius:24, padding:'28px 20px', textAlign:'center', marginBottom:20, background:'linear-gradient(135deg,#0f766e,#0d9488)', color:'#fff', boxShadow:'0 8px 28px rgba(13,148,136,.35)' }}>
         <div style={{ fontSize:'3rem', marginBottom:8 }}>📷</div>
-        <div style={{ fontWeight:900, fontSize:'1.2rem', marginBottom:6 }}>{isUS ? 'Food Scanner' : 'Escáner de alimentos'}</div>
+        <div style={{ fontWeight:900, fontSize:'1.2rem', marginBottom:6 }}>{isEN ? 'Food Scanner' : 'Escáner de alimentos'}</div>
         <div style={{ fontSize:'0.8rem', opacity:.8, marginBottom:20, lineHeight:1.5 }}>
-          {isUS ? 'Point your camera at a barcode to see FDA nutrition facts, additives and more' : 'Apunta la cámara al código de barras para ver Nutri-Score, Nova, aditivos y tabla nutricional'}
+          {isEN ? 'Point your camera at a barcode to see FDA nutrition facts, additives and more' : 'Apunta la cámara al código de barras para ver Nutri-Score, Nova, aditivos y tabla nutricional'}
         </div>
         <button onClick={startScanner}
           style={{ borderRadius:16, padding:'14px 32px', fontWeight:800, fontSize:'1rem', color:'#0d9488', background:'#fff', border:'none', cursor:'pointer', boxShadow:'0 4px 14px rgba(0,0,0,.15)', display:'inline-flex', alignItems:'center', gap:8 }}>
-          <span style={{ fontSize:'1.3rem' }}>📷</span> {isUS ? 'Open scanner' : 'Abrir escáner'}
+          <span style={{ fontSize:'1.3rem' }}>📷</span> {isEN ? 'Open scanner' : 'Abrir escáner'}
         </button>
         <div style={{ marginTop:10 }}>
           <button onClick={() => setMode('manual')}
             style={{ fontSize:'0.72rem', color:'rgba(255,255,255,.7)', background:'none', border:'none', cursor:'pointer', textDecoration:'underline' }}>
-            {isUS ? 'Enter code manually' : 'Introducir código manualmente'}
+            {isEN ? 'Enter code manually' : 'Introducir código manualmente'}
           </button>
         </div>
       </div>
@@ -615,25 +618,25 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
         <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
           <div style={{ fontWeight:900, fontSize:'1.1rem', color:'#038141', marginBottom:4, lineHeight:1 }}>A</div>
           <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Nutri-Score</div>
-          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Calidad nutricional A→E</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>{isEN ? 'Nutritional quality A→E' : 'Calidad nutricional A→E'}</div>
         </div>
         {/* NOVA */}
         <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
           <div style={{ fontWeight:900, fontSize:'0.9rem', color:'#ee8100', marginBottom:4, lineHeight:1.2, letterSpacing:'-0.5px' }}>1→4</div>
-          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Grupo Nova</div>
-          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Nivel de procesamiento</div>
+          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>{isEN ? 'Nova Group' : 'Grupo Nova'}</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>{isEN ? 'Processing level' : 'Nivel de procesamiento'}</div>
         </div>
         {/* Aditivos */}
         <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
           <div style={{ marginBottom:4 }}><Warning size={22} weight="fill" color="#f59e0b"/></div>
-          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Aditivos</div>
-          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Conservantes, colorantes…</div>
+          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>{isEN ? 'Additives' : 'Aditivos'}</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>{isEN ? 'Preservatives, colorings…' : 'Conservantes, colorantes…'}</div>
         </div>
         {/* Nutrición */}
         <div style={{ borderRadius:14, background:'#fff', border:'1px solid #f1f5f9', padding:'10px 12px', boxShadow:'0 1px 4px rgba(0,0,0,.05)' }}>
           <div style={{ marginBottom:4 }}><Heartbeat size={22} weight="fill" color="#0f766e"/></div>
-          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>Nutrición</div>
-          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>Kcal, grasas, proteínas…</div>
+          <div style={{ fontWeight:700, fontSize:'0.78rem', color:'#1e293b', marginBottom:1 }}>{isEN ? 'Nutrition' : 'Nutrición'}</div>
+          <div style={{ fontSize:'0.65rem', color:'#94a3b8' }}>{isEN ? 'Kcal, fats, proteins…' : 'Kcal, grasas, proteínas…'}</div>
         </div>
       </div>
 
@@ -641,10 +644,10 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
       {history.length > 0 && (
         <div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-            <div style={{ fontWeight:800, fontSize:'0.9rem', color:'#1e293b' }}>🕓 Escaneados recientemente</div>
+            <div style={{ fontWeight:800, fontSize:'0.9rem', color:'#1e293b' }}>{isEN ? '🕓 Recently scanned' : '🕓 Escaneados recientemente'}</div>
             <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              {!isPro && <span style={{ fontSize:'0.65rem', color:'#0d9488', fontWeight:700 }}>Últimos {FREE_SCAN_HISTORY} · <span style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>onUpgrade&&onUpgrade('upgrade')}>Pro: 30</span></span>}
-              <button onClick={() => setHistory([])} style={{ fontSize:'0.7rem', color:'#f87171', background:'none', border:'none', cursor:'pointer' }}>Borrar</button>
+              {!isPro && <span style={{ fontSize:'0.65rem', color:'#0d9488', fontWeight:700 }}>{isEN ? 'Last' : 'Últimos'} {FREE_SCAN_HISTORY} · <span style={{cursor:'pointer',textDecoration:'underline'}} onClick={()=>onUpgrade&&onUpgrade('upgrade')}>Pro: 30</span></span>}
+              <button onClick={() => setHistory([])} style={{ fontSize:'0.7rem', color:'#f87171', background:'none', border:'none', cursor:'pointer' }}>{isEN ? 'Clear' : 'Borrar'}</button>
             </div>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -674,7 +677,9 @@ export function Nutricion({ isPro = false, onUpgrade = null }: { isPro?: boolean
       )}
 
       <div style={{ textAlign:'center', marginTop:24, fontSize:'0.65rem', color:'#cbd5e1' }}>
-        Datos de <strong>Open Food Facts</strong> · Licencia ODbL · Más de 3 millones de productos
+        {isEN
+          ? <>Data from <strong>Open Food Facts</strong> · ODbL License · Over 3 million products</>
+          : <>Datos de <strong>Open Food Facts</strong> · Licencia ODbL · Más de 3 millones de productos</>}
       </div>
     </div>
   );

@@ -258,15 +258,15 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
           ${ticketAtLimit?'border-gray-200 bg-gray-50':'border-teal-200 hover:bg-teal-50 hover:border-teal-300'}`}>
         {ticketAtLimit&&<div className="absolute inset-0 bg-white/70 flex flex-col items-center justify-center z-10">
           <span className="text-4xl mb-2">🔒</span>
-          <p className="font-bold text-gray-700 text-sm">Límite alcanzado</p>
-          <p className="text-xs text-gray-400 mt-1">Actualiza a Pro para subir más tickets</p>
-          <button onClick={e=>{e.stopPropagation();onUpgrade('tickets');}} className="mt-3 bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-teal-700">✨ Desbloquear Pro</button>
+          <p className="font-bold text-gray-700 text-sm">{isEN ? 'Limit reached' : 'Límite alcanzado'}</p>
+          <p className="text-xs text-gray-400 mt-1">{isEN ? 'Upgrade to Pro to upload more receipts' : 'Actualiza a Pro para subir más tickets'}</p>
+          <button onClick={e=>{e.stopPropagation();onUpgrade('tickets');}} className="mt-3 bg-teal-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-teal-700">✨ {isEN ? 'Unlock Pro' : 'Desbloquear Pro'}</button>
         </div>}
         <div className="text-4xl mb-2">📤</div>
-        <p className="font-semibold text-gray-700 text-sm">{isUS ? 'Upload receipt PDF' : 'Subir ticket en PDF'}</p>
-        <p className="text-xs text-gray-400 mt-1">{isUS ? 'Walmart, Target, Kroger' : 'Mercadona online y Consum'} · {isUS ? 'Drag or click' : 'Arrastra o haz clic'}</p>
-        {!pdfjsReady&&<p className="text-xs text-amber-500 mt-1">⏳ Cargando lector PDF...</p>}
-        {loading&&ocrProgress===null&&<p className="text-xs text-teal-500 mt-1 animate-pulse">🔄 Procesando ticket...</p>}
+        <p className="font-semibold text-gray-700 text-sm">{isEN ? 'Upload receipt PDF' : 'Subir ticket en PDF'}</p>
+        <p className="text-xs text-gray-400 mt-1">{isUS ? 'Walmart, Target, Kroger' : 'Mercadona online y Consum'} · {isEN ? 'Drag or click' : 'Arrastra o haz clic'}</p>
+        {!pdfjsReady&&<p className="text-xs text-amber-500 mt-1">{isEN ? '⏳ Loading PDF reader...' : '⏳ Cargando lector PDF...'}</p>}
+        {loading&&ocrProgress===null&&<p className="text-xs text-teal-500 mt-1 animate-pulse">{isEN ? '🔄 Processing receipt...' : '🔄 Procesando ticket...'}</p>}
         <input ref={fileRef} type="file" accept=".pdf" multiple onChange={onFileChange} className="hidden"/>
       </div>
 
@@ -280,10 +280,10 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             {loading && ocrProgress!==null ? (
               <>
                 <span className="animate-spin">⏳</span>
-                {ocrProgress===-1 ? 'Cargando OCR…' : `Reconociendo texto… ${ocrProgress}%`}
+                {ocrProgress===-1 ? (isEN?'Loading OCR…':'Cargando OCR…') : (isEN?`Recognizing text… ${ocrProgress}%`:`Reconociendo texto… ${ocrProgress}%`)}
               </>
             ) : (
-              <><span style={{fontSize:'1.4rem'}}>📷</span> {isUS ? 'Photo of receipt' : 'Foto de ticket'}</>
+              <><span style={{fontSize:'1.4rem'}}>📷</span> {isEN ? 'Photo of receipt' : 'Foto de ticket'}</>
             )}
           </button>
           {ocrProgress!==null && ocrProgress>=0 && (
@@ -292,31 +292,31 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             </div>
           )}
           <p className="text-[10px] text-teal-600 text-center mt-1.5 font-medium">
-            📱 {isUS ? 'Point your camera at the receipt — OCR will recognize products automatically' : 'Enfoca el ticket con la cámara — el OCR reconocerá los productos automáticamente'}
+            📱 {isEN ? 'Point your camera at the receipt — OCR will recognize products automatically' : 'Enfoca el ticket con la cámara — el OCR reconocerá los productos automáticamente'}
           </p>
           <input ref={cameraRef} type="file" accept="image/*" capture="environment" onChange={onCameraChange} className="hidden"/>
         </div>
       ) : (
         <button onClick={()=>onUpgrade('tickets')}
           className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl py-3.5 border-2 border-dashed border-gray-200 text-gray-400 text-sm font-semibold hover:bg-gray-50 transition-all">
-          <span>📷</span> {isUS ? 'Photo of receipt' : 'Foto de ticket'}
-          <span className="text-[10px] bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-bold ml-1">{isUS ? 'Pro · unlimited' : 'Pro · ilimitado'}</span>
+          <span>📷</span> {isEN ? 'Photo of receipt' : 'Foto de ticket'}
+          <span className="text-[10px] bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-bold ml-1">{isEN ? 'Pro · unlimited' : 'Pro · ilimitado'}</span>
         </button>
       )}
 
-      <p className="text-xs text-teal-500 font-medium text-center mt-3 mb-5">{isUS ? 'Ingredients are added to your pantry automatically' : 'Los ingredientes se añaden a la despensa automáticamente'}</p>
+      <p className="text-xs text-teal-500 font-medium text-center mt-3 mb-5">{isEN ? 'Ingredients are added to your pantry automatically' : 'Los ingredientes se añaden a la despensa automáticamente'}</p>
 
       {/* Lista de tickets procesados */}
       {tickets.length>0&&(
         <div className="flex justify-between items-center mb-3">
-          <p className="text-sm text-gray-400">{tickets.length} {isUS ? 'receipt' : 'ticket'}{tickets.length>1?'s':''} {isUS ? 'uploaded' : 'subido'}{tickets.length>1?'s':''}</p>
+          <p className="text-sm text-gray-400">{tickets.length} {isEN ? 'receipt' : 'ticket'}{tickets.length>1?'s':''} {isEN ? 'uploaded' : 'subido'}{tickets.length>1?'s':''}</p>
           <button onClick={()=>setConfirm('__all__')} className="text-xs text-rose-400 hover:text-rose-600 border border-rose-200 hover:border-rose-400 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 transition-all" style={{display:'flex',alignItems:'center',gap:6}}>
-            <Trash size={14}/> {isUS ? 'Clear all' : 'Limpiar todos'}
+            <Trash size={14}/> {isEN ? 'Clear all' : 'Limpiar todos'}
           </button>
         </div>
       )}
       {!tickets.length
-        ? <div className="text-center py-10 text-gray-300"><div className="text-5xl mb-3"><Receipt size={56}/></div><p className="text-sm">{isUS ? 'No receipts uploaded' : 'Sin tickets subidos'}</p></div>
+        ? <div className="text-center py-10 text-gray-300"><div className="text-5xl mb-3"><Receipt size={56}/></div><p className="text-sm">{isEN ? 'No receipts uploaded' : 'Sin tickets subidos'}</p></div>
         : <div className="space-y-3">
             {[...tickets].reverse().map(tk=>{
               const matchedCount=(tk.matched||[]).length;
@@ -355,10 +355,10 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                             <PencilSimple size={12} color="#cbd5e1" style={{flexShrink:0}}/>
                           </button>
                         )}
-                        <p className="text-xs text-gray-400">{tk.date} · {(tk.products||[]).length} {isUS ? 'items' : 'líneas'} · <span className="font-medium text-gray-600">{fp(tk.total)}</span></p>
+                        <p className="text-xs text-gray-400">{tk.date} · {(tk.products||[]).length} {isEN ? 'items' : 'líneas'} · <span className="font-medium text-gray-600">{fp(tk.total)}</span></p>
                       </div>
                       <div className="flex gap-1 shrink-0">
-                        <button onClick={()=>setDetail(tk.id)} className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-100 font-medium">{isUS ? 'View' : 'Ver'}</button>
+                        <button onClick={()=>setDetail(tk.id)} className="text-xs bg-gray-50 text-gray-600 border border-gray-200 px-3 py-1.5 rounded-xl hover:bg-gray-100 font-medium">{isEN ? 'View' : 'Ver'}</button>
                         <button onClick={()=>setConfirm(tk.id)} className="text-xs text-gray-300 hover:text-rose-400 px-2" style={{display:'flex',alignItems:'center'}}><X size={14}/></button>
                       </div>
                     </div>
@@ -366,16 +366,16 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                     <div className="flex gap-2 mt-3 flex-wrap">
                       {matchedCount>0&&(
                         <span className="text-xs bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full font-medium" style={{display:'flex',alignItems:'center',gap:4}}>
-                          {matchedCount} {isUS ? 'ingredient' : 'ingrediente'}{matchedCount>1?'s':''} {isUS ? 'added' : 'añadido'}{matchedCount>1?'s':''}
+                          {matchedCount} {isEN ? 'ingredient' : 'ingrediente'}{matchedCount>1?'s':''} {isEN ? 'added' : 'añadido'}{matchedCount>1?'s':''}
                         </span>
                       )}
                       {unmatchedCount>0&&(
                         <button onClick={()=>setDetail(tk.id)} className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium hover:bg-amber-200" style={{display:'flex',alignItems:'center',gap:4}}>
-                          {unmatchedCount} {isUS ? 'unidentified' : 'sin identificar'}
+                          {unmatchedCount} {isEN ? 'unidentified' : 'sin identificar'}
                         </button>
                       )}
                       {matchedCount===0&&unmatchedCount===0&&(
-                        <span className="text-xs text-gray-300">{isUS ? 'No products detected' : 'Sin productos detectados'}</span>
+                        <span className="text-xs text-gray-300">{isEN ? 'No products detected' : 'Sin productos detectados'}</span>
                       )}
                     </div>
                   </div>
@@ -409,7 +409,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             {/* Productos reconocidos */}
             {(activeTicket.matched||[]).length>0&&(
               <div>
-                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:8}}>{isUS ? 'Added to pantry' : 'Añadidos a la despensa'} ({activeTicket.matched.length})</h3>
+                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:8}}>{isEN ? 'Added to pantry' : 'Añadidos a la despensa'} ({activeTicket.matched.length})</h3>
                 <div style={{display:'flex',flexDirection:'column',gap:4}}>
                   {(activeTicket.matched||[]).map((m,i)=>(
                     <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#f0fdf4',borderRadius:10,padding:'8px 12px',border:'1px solid #99f6e4'}}>
@@ -427,11 +427,11 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
             {/* Productos no reconocidos */}
             {(activeTicket.unmatched||[]).length>0&&(
               <div>
-                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:4}}>{isUS ? 'Unidentified' : 'Sin identificar'} ({activeTicket.unmatched.length})</h3>
+                <h3 style={{fontSize:'0.875rem',fontWeight:700,color:'#374151',marginBottom:4}}>{isEN ? 'Unidentified' : 'Sin identificar'} ({activeTicket.unmatched.length})</h3>
                 <p style={{fontSize:'0.7rem',color:'#94a3b8',marginBottom:10,lineHeight:1.5}}>
-                  <strong style={{color:'#374151'}}>{isUS ? 'New' : 'Nuevo'}</strong> {isUS ? 'creates the ingredient · ' : 'crea el ingrediente ·'}
-                  <strong style={{color:'#374151'}}> {isUS ? 'Assign' : 'Asignar'}</strong> {isUS ? 'links to an existing one · ' : 'vincula a uno existente ·'}
-                  <strong style={{color:'#374151'}}> {isUS ? 'Remove' : 'Quitar'}</strong> {isUS ? 'discards the product (cleaning, etc.)' : 'descarta el producto (limpieza, etc.)'}
+                  <strong style={{color:'#374151'}}>{isEN ? 'New' : 'Nuevo'}</strong> {isEN ? 'creates the ingredient · ' : 'crea el ingrediente ·'}
+                  <strong style={{color:'#374151'}}> {isEN ? 'Assign' : 'Asignar'}</strong> {isEN ? 'links to an existing one · ' : 'vincula a uno existente ·'}
+                  <strong style={{color:'#374151'}}> {isEN ? 'Remove' : 'Quitar'}</strong> {isEN ? 'discards the product (cleaning, etc.)' : 'descarta el producto (limpieza, etc.)'}
                 </p>
                 <div style={{display:'flex',flexDirection:'column',gap:8}}>
                   {(activeTicket.unmatched||[]).map(prod=>(
@@ -450,17 +450,17 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                             setAddModal({ticketId:activeTicket.id, productId:prod.id});
                           }}
                           style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'none',cursor:'pointer',background:'#10b981',color:'#fff'}}>
-                          {isUS ? 'New' : 'Nuevo'}
+                          {isEN ? 'New' : 'Nuevo'}
                         </button>
                         <button
                           onClick={()=>{setMapModal({ticketId:activeTicket.id,productId:prod.id});setMapTarget('');}}
                           style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'none',cursor:'pointer',background:'#f59e0b',color:'#fff'}}>
-                          {isUS ? 'Assign' : 'Asignar'}
+                          {isEN ? 'Assign' : 'Asignar'}
                         </button>
                         <button
                           onClick={()=>dismissUnmatched(activeTicket.id,prod.id)}
                           style={{flex:1,fontSize:'0.72rem',padding:'6px 4px',borderRadius:8,fontWeight:700,border:'1px solid #e2e8f0',cursor:'pointer',background:'#f8fafc',color:'#64748b',display:'flex',alignItems:'center',justifyContent:'center',gap:4}}>
-                          {isUS ? 'Remove' : 'Quitar'}
+                          {isEN ? 'Remove' : 'Quitar'}
                         </button>
                       </div>
                     </div>
@@ -473,32 +473,32 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       </Modal>
 
       {/* Modal: añadir nuevo ingrediente al catálogo */}
-      <Modal open={!!addModal} onClose={()=>setAddModal(null)} title={isUS ? 'Add to catalog' : 'Añadir al catálogo'}>
+      <Modal open={!!addModal} onClose={()=>setAddModal(null)} title={isEN ? 'Add to catalog' : 'Añadir al catálogo'}>
         <div className="space-y-4">
           {addModal&&(()=>{
             const tk=tickets.find(t=>t.id===addModal.ticketId);
             const prod=tk?.unmatched?.find(p=>p.id===addModal.productId);
             return prod?(<>
               <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
-                <p className="text-xs text-gray-400 mb-0.5">{isUS ? 'Receipt product' : 'Producto del ticket'}</p>
+                <p className="text-xs text-gray-400 mb-0.5">{isEN ? 'Receipt product' : 'Producto del ticket'}</p>
                 <p className="text-sm font-semibold text-gray-800">{prod.rawName}</p>
                 <p className="text-xs text-gray-400">{fp(prod.price)} · {tk.date}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{isUS ? 'What\'s it called in your pantry?' : '¿Cómo se llama en tu despensa?'}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{isEN ? 'What\'s it called in your pantry?' : '¿Cómo se llama en tu despensa?'}</label>
                 <input
                   value={addForm.name}
                   onChange={e=>setAddForm(f=>({...f,name:e.target.value}))}
-                  placeholder={isUS ? 'e.g. zucchini, tuna, pasta...' : 'ej: calabacín, atún, pasta...'}
+                  placeholder={isEN ? 'e.g. zucchini, tuna, pasta...' : 'ej: calabacín, atún, pasta...'}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-200"
                   style={{fontSize:'16px'}}
                   onKeyDown={e=>e.key==='Enter'&&applyAddToCatalog()}
                   autoFocus
                 />
-                <p className="text-xs text-gray-400 mt-1">{isUS ? 'Use a generic name so receipts recognize it in the future' : 'Usa un nombre genérico para que el ticket lo reconozca en el futuro'}</p>
+                <p className="text-xs text-gray-400 mt-1">{isEN ? 'Use a generic name so receipts recognize it in the future' : 'Usa un nombre genérico para que el ticket lo reconozca en el futuro'}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">{isUS ? 'Category' : 'Categoría'}</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{isEN ? 'Category' : 'Categoría'}</label>
                 <select value={addForm.category} onChange={e=>setAddForm(f=>({...f,category:e.target.value}))}
                   className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-emerald-200">
                   {CATEGORIES.map(c=><option key={c} value={c}>{CAT_EMOJI[c]} {c}</option>)}
@@ -509,16 +509,16 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 style={addForm.name.trim()
                   ? {background:'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.25)'}
                   : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
-                {isUS ? 'Add to pantry and mark available' : 'Añadir a la despensa y marcar disponible'}
+                {isEN ? 'Add to pantry and mark available' : 'Añadir a la despensa y marcar disponible'}
               </button>
-              <p className="text-xs text-gray-300 text-center">{isUS ? `Price (${fp(prod.price)}) will be saved to history automatically` : `El precio (${fp(prod.price)}) se guardará en el historial automáticamente`}</p>
+              <p className="text-xs text-gray-300 text-center">{isEN ? `Price (${fp(prod.price)}) will be saved to history automatically` : `El precio (${fp(prod.price)}) se guardará en el historial automáticamente`}</p>
             </>):null;
           })()}
         </div>
       </Modal>
 
       {/* Modal mapeo manual — con buscador */}
-      <Modal open={!!mapModal} onClose={()=>{setMapModal(null);setMapTarget('');setMapSearch('');}} title={isUS ? 'Assign to ingredient' : 'Asignar a ingrediente'}>
+      <Modal open={!!mapModal} onClose={()=>{setMapModal(null);setMapTarget('');setMapSearch('');}} title={isEN ? 'Assign to ingredient' : 'Asignar a ingrediente'}>
         <div className="space-y-3">
           {mapModal&&(()=>{
             const tk=tickets.find(t=>t.id===mapModal.ticketId);
@@ -528,7 +528,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               .sort((a,b)=>a.name.localeCompare(b.name,'es'));
             return prod?(<>
               <div className="bg-gray-50 rounded-xl p-3 text-sm">
-                <p className="text-xs text-gray-400 mb-0.5">{isUS ? 'Receipt product' : 'Producto del ticket'}</p>
+                <p className="text-xs text-gray-400 mb-0.5">{isEN ? 'Receipt product' : 'Producto del ticket'}</p>
                 <span className="font-semibold text-gray-800">{prod.rawName}</span>
                 <span className="text-gray-400 text-xs ml-2">{fp(prod.price)}</span>
               </div>
@@ -536,7 +536,7 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               <input
                 value={mapSearch}
                 onChange={e=>{setMapSearch(e.target.value);setMapTarget('');}}
-                placeholder={isUS ? 'Search ingredient...' : 'Buscar ingrediente...'}
+                placeholder={isEN ? 'Search ingredient...' : 'Buscar ingrediente...'}
                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-teal-200"
                 style={{fontSize:'16px'}}
                 autoFocus
@@ -545,14 +545,14 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
               <div className="border border-gray-100 rounded-xl overflow-hidden">
                 <div className="max-h-56 overflow-y-auto">
                   {filtered.length===0
-                    ?<p className="text-center text-gray-300 text-sm py-6">{isUS ? `No results for "${mapSearch}"` : `Sin resultados para "${mapSearch}"`}</p>
+                    ?<p className="text-center text-gray-300 text-sm py-6">{isEN ? `No results for "${mapSearch}"` : `Sin resultados para "${mapSearch}"`}</p>
                     :filtered.map(ing=>(
                       <button key={ing.id} onClick={()=>setMapTarget(ing.name)}
                         className={`w-full text-left px-4 py-2.5 flex items-center gap-2.5 transition-all border-b border-gray-50 last:border-0
                           ${mapTarget===ing.name?'bg-teal-600 text-white':'hover:bg-gray-50 text-gray-700'}`}>
                         <span className={`text-sm shrink-0 ${mapTarget===ing.name?'opacity-80':''}`}>{CAT_EMOJI[ing.category]}</span>
                         <span className="text-sm font-medium">{ing.name}</span>
-                        {mapTarget===ing.name&&<span className="ml-auto text-xs opacity-80">{isUS ? 'selected' : 'seleccionado'}</span>}
+                        {mapTarget===ing.name&&<span className="ml-auto text-xs opacity-80">{isEN ? 'selected' : 'seleccionado'}</span>}
                       </button>
                     ))
                   }
@@ -563,14 +563,14 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
                 style={mapTarget
                   ? {background:'#0d9488',color:'#fff'}
                   : {background:'#e5e7eb',color:'#9ca3af',cursor:'not-allowed'}}>
-                {mapTarget ? (isUS ? `Assign to "${mapTarget}"` : `Asignar a "${mapTarget}"`) : (isUS ? 'Select an ingredient' : 'Selecciona un ingrediente')}
+                {mapTarget ? (isEN ? `Assign to "${mapTarget}"` : `Asignar a "${mapTarget}"`) : (isEN ? 'Select an ingredient' : 'Selecciona un ingrediente')}
               </button>
             </>):null;
           })()}
         </div>
       </Modal>
 
-      <Confirm open={!!confirm} msg={confirm==='__all__' ? (isUS ? 'Delete all receipts? Price history will be preserved.' : '¿Eliminar todos los tickets? El historial de precios se mantendrá.') : (isUS ? 'Delete this receipt? Associated price history will be preserved.' : '¿Eliminar este ticket? El historial de precios asociado se mantendrá.')} onOk={()=>deleteTicket(confirm)} onCancel={()=>setConfirm(null)}/>
+      <Confirm open={!!confirm} msg={confirm==='__all__' ? (isEN ? 'Delete all receipts? Price history will be preserved.' : '¿Eliminar todos los tickets? El historial de precios se mantendrá.') : (isEN ? 'Delete this receipt? Associated price history will be preserved.' : '¿Eliminar este ticket? El historial de precios asociado se mantendrá.')} onOk={()=>deleteTicket(confirm)} onCancel={()=>setConfirm(null)}/>
     </div>
   );
 }

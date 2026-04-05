@@ -49,14 +49,22 @@ function reconcileAvailability(ingredients: Ingredient[], tickets: Ticket[]): In
   );
 }
 
-const INIT_DISHES: Dish[] = [
+const INIT_DISHES_ES: Dish[] = [
   { id: 'd12', name: 'Salmón con espárragos', ingredients: ['i3', 'i24'], example: true },
 ];
+const INIT_DISHES_US: Dish[] = [
+  { id: 'd12', name: 'Salmon with asparagus', ingredients: ['u199', 'u100'], example: true },
+];
 
-const TITLES: Record<Section, string> = {
+const TITLES_ES: Record<Section, string> = {
   plan: 'Plan mensual', platos: 'Platos habituales', cat: 'Catálogo de ingredientes',
   ticket: 'Tickets del supermercado', lista: 'Lista de la compra',
   nutri: 'Valor nutricional', gastos: 'Resumen de gasto',
+};
+const TITLES_EN: Record<Section, string> = {
+  plan: 'Monthly Plan', platos: 'Your Recipes', cat: 'Ingredient Catalog',
+  ticket: 'Receipts', lista: 'Shopping List',
+  nutri: 'Nutrition', gastos: 'Spending Summary',
 };
 
 
@@ -85,7 +93,8 @@ export function App() {
   // Use market-specific ingredient key so US and ES users have separate pantries
   const ingKey = isUS ? 'despensa_ings_us_v1' : 'despensa_ings_v4';
   const [ingredients, setIngredients] = useLS<Ingredient[]>(ingKey, initIngredients);
-  const [dishes, setDishes] = useLS<Dish[]>('despensa_dishes_v4', INIT_DISHES);
+  const dishKey = isUS ? 'despensa_dishes_us_v1' : 'despensa_dishes_v4';
+  const [dishes, setDishes] = useLS<Dish[]>(dishKey, isUS ? INIT_DISHES_US : INIT_DISHES_ES);
   const [plan, setPlan] = useLS<Plan>('despensa_plan_v4', {});
   const [tickets, setTickets] = useLS<Ticket[]>('despensa_tickets_v4', []);
   const [priceHistory, setPriceHistory] = useLS<PriceHistory>('despensa_prices_v4', {});
@@ -319,7 +328,7 @@ export function App() {
       )}
 
       {/* Settings Modal */}
-      <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title="⚙️ Ajustes y datos">
+      <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title={isEN ? '⚙️ Settings and data' : '⚙️ Ajustes y datos'}>
         <div className="space-y-4">
           {/* Idioma / Language */}
           <div className="rounded-xl p-4 border border-teal-100 bg-teal-50">

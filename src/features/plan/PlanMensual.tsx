@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 
 function DayPicker({year,month,plan,selected,setSelected,highlightHasFood=true}) {
+  const { weekDays: wdNames } = useMarket();
   const days=getDays(year,month);
   const firstWD=getFirstWD(year,month);
   const isDragging=React.useRef(false);
@@ -78,7 +79,7 @@ function DayPicker({year,month,plan,selected,setSelected,highlightHasFood=true})
       style={{touchAction:'none',userSelect:'none'}}>
       {/* Cabecera días semana */}
       <div className="grid grid-cols-7 mb-1">
-        {WEEK_DAYS.map(w=><div key={w} className="text-center text-[10px] font-bold text-teal-500 py-1">{w}</div>)}
+        {wdNames.map(w=><div key={w} className="text-center text-[10px] font-bold text-teal-500 py-1">{w}</div>)}
       </div>
       {/* Celdas */}
       <div className="grid grid-cols-7 gap-1">
@@ -346,14 +347,14 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
   const canGenerate=dishes.length>=2&&(range!=='custom'||customDays.length>0);
 
   return (
-    <Modal open={open} onClose={handleClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><Sparkle size={18} weight="fill"/> {isUS ? 'Auto menu' : 'Menú automático'}</div>}>
+    <Modal open={open} onClose={handleClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><Sparkle size={18} weight="fill"/> {isEN ? 'Auto menu' : 'Menú automático'}</div>}>
       {!result?(
         <div className="space-y-5">
           {/* Selector de rango */}
           <div>
-            <p className="text-sm font-semibold text-gray-700 mb-2">{isUS ? 'For which period?' : '¿Para qué período?'}</p>
+            <p className="text-sm font-semibold text-gray-700 mb-2">{isEN ? 'For which period?' : '¿Para qué período?'}</p>
             <div className="grid grid-cols-2 gap-2 mb-2">
-              {(isUS
+              {(isEN
                 ?[['hoy','Today','today only'],['semana','Week','Mon → Sun'],['mes','Month',monthNames[month]],['custom','Custom','pick days']]
                 :[['hoy','Hoy','solo hoy'],['semana','Semana','lun → dom'],['mes','Mes',monthNames[month]],['custom','Personalizado','elige días']]
               ).map(([r,label,sub])=>(
@@ -367,7 +368,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
             </div>
             {range==='custom'&&(
               <div className="border border-teal-100 rounded-2xl p-3 bg-teal-50/40">
-                <p className="text-xs text-gray-500 mb-2">{isUS ? 'Tap or drag to select days · ' : 'Toca o arrastra para seleccionar días · '}<span className="font-semibold text-teal-700">{customDays.length} {isUS ? 'days' : 'días'}</span></p>
+                <p className="text-xs text-gray-500 mb-2">{isEN ? 'Tap or drag to select days · ' : 'Toca o arrastra para seleccionar días · '}<span className="font-semibold text-teal-700">{customDays.length} {isEN ? 'days' : 'días'}</span></p>
                 <DayPicker year={year} month={month} plan={plan} selected={customDays} setSelected={setCustomDays}/>
               </div>
             )}
@@ -375,38 +376,38 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
 
           {/* Cómo funciona */}
           <div className="bg-teal-50 rounded-xl p-3 space-y-1">
-            <p className="text-xs font-bold text-green-800 mb-1.5">{isUS ? 'How it works' : '¿Cómo funciona?'}</p>
+            <p className="text-xs font-bold text-green-800 mb-1.5">{isEN ? 'How it works' : '¿Cómo funciona?'}</p>
             <div className="flex items-start gap-2">
               <span className="text-teal-600 font-bold text-xs shrink-0">1.</span>
-              <p className="text-xs text-teal-700">{isUS ? <>Assigns recipes with <strong>all ingredients available</strong> in your pantry first.</> : <>Asigna primero los platos con <strong>todos los ingredientes disponibles</strong> en tu despensa.</>}</p>
+              <p className="text-xs text-teal-700">{isEN ? <>Assigns recipes with <strong>all ingredients available</strong> in your pantry first.</> : <>Asigna primero los platos con <strong>todos los ingredientes disponibles</strong> en tu despensa.</>}</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-teal-600 font-bold text-xs shrink-0">2.</span>
-              <p className="text-xs text-teal-700">{isUS ? <>Fills in with recipes that are <strong>missing the fewest ingredients</strong>.</> : <>Completa con los platos a los que les faltan <strong>menos ingredientes</strong>.</>}</p>
+              <p className="text-xs text-teal-700">{isEN ? <>Fills in with recipes that are <strong>missing the fewest ingredients</strong>.</> : <>Completa con los platos a los que les faltan <strong>menos ingredientes</strong>.</>}</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-teal-600 font-bold text-xs shrink-0">3.</span>
-              <p className="text-xs text-teal-700">{isUS ? <>Shows you the <strong>shopping list</strong> of ingredients you need.</> : <>Te muestra la <strong>lista de la compra</strong> de ingredientes que necesitas.</>}</p>
+              <p className="text-xs text-teal-700">{isEN ? <>Shows you the <strong>shopping list</strong> of ingredients you need.</> : <>Te muestra la <strong>lista de la compra</strong> de ingredientes que necesitas.</>}</p>
             </div>
           </div>
 
           {/* Opción sobrescribir */}
           <label className="flex items-center gap-2.5 cursor-pointer select-none">
             <input type="checkbox" checked={overwrite} onChange={e=>setOverwrite(e.target.checked)} className="w-4 h-4 rounded accent-teal-600"/>
-            <span className="text-sm text-gray-600">{isUS ? 'Overwrite already planned days' : 'Sobrescribir días ya planificados'}</span>
+            <span className="text-sm text-gray-600">{isEN ? 'Overwrite already planned days' : 'Sobrescribir días ya planificados'}</span>
           </label>
 
           {dishes.length===0&&(
             <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2">
-              <span style={{display:'flex',alignItems:'center',gap:6}}><Sparkle size={16} weight="fill"/> {isUS ? <>You have no saved recipes. Add recipes in the <strong>Recipes</strong> tab first.</> : <>No tienes platos guardados. Añade platos en la pestaña <strong>Platos</strong> primero.</>}</span>
+              <span style={{display:'flex',alignItems:'center',gap:6}}><Sparkle size={16} weight="fill"/> {isEN ? <>You have no saved recipes. Add recipes in the <strong>Recipes</strong> tab first.</> : <>No tienes platos guardados. Añade platos en la pestaña <strong>Platos</strong> primero.</>}</span>
             </p>
           )}
           {dishes.length===1&&(
             <div style={{borderRadius:12,padding:'12px 14px',background:'#fef3c7',border:'1px solid #fde68a',display:'flex',gap:10,alignItems:'flex-start'}}>
               <span style={{fontSize:'1.2rem',flexShrink:0}}>🍽️</span>
               <div>
-                <div style={{fontSize:'0.8rem',fontWeight:700,color:'#92400e',marginBottom:3}}>{isUS ? 'You only have 1 recipe' : 'Solo tienes 1 plato'}</div>
-                <div style={{fontSize:'0.72rem',color:'#b45309',lineHeight:1.5}}>{isUS ? <>With a single recipe, lunch and dinner would always be the same. Add at least one more recipe in the <strong>Recipes</strong> tab for variety.</> : <>Con un único plato, comida y cena serían siempre lo mismo. Añade al menos otro plato en la pestaña <strong>Platos</strong> para tener variedad.</>}</div>
+                <div style={{fontSize:'0.8rem',fontWeight:700,color:'#92400e',marginBottom:3}}>{isEN ? 'You only have 1 recipe' : 'Solo tienes 1 plato'}</div>
+                <div style={{fontSize:'0.72rem',color:'#b45309',lineHeight:1.5}}>{isEN ? <>With a single recipe, lunch and dinner would always be the same. Add at least one more recipe in the <strong>Recipes</strong> tab for variety.</> : <>Con un único plato, comida y cena serían siempre lo mismo. Añade al menos otro plato en la pestaña <strong>Platos</strong> para tener variedad.</>}</div>
               </div>
             </div>
           )}
@@ -420,27 +421,27 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
               boxShadow: !canGenerate ? 'none' : '0 4px 14px rgba(13,148,136,.35)',
               border: !canGenerate ? '1px solid #d1d5db' : 'none',
             }}>
-            {dishes.length===0?(isUS?'Add recipes first':'Añade platos primero'):dishes.length===1?(isUS?'Add at least 2 recipes':'Añade al menos 2 platos'):range==='custom'&&customDays.length===0?(isUS?'Select days on the calendar':'Selecciona días en el calendario'):(isUS?'🚀 Generate menu':'🚀 Generar menú')}
+            {dishes.length===0?(isEN?'Add recipes first':'Añade platos primero'):dishes.length===1?(isEN?'Add at least 2 recipes':'Añade al menos 2 platos'):range==='custom'&&customDays.length===0?(isEN?'Select days on the calendar':'Selecciona días en el calendario'):(isEN?'🚀 Generate menu':'🚀 Generar menú')}
           </button>
         </div>
       ):(
         <div className="space-y-4">
           <div className="text-center py-1">
             <div className="text-4xl mb-2">🎉</div>
-            <p className="font-bold text-gray-800 text-base">{isUS ? 'Menu generated!' : '¡Menú generado!'}</p>
-            <p className="text-sm text-gray-500 mt-0.5">{result.filled} {isUS ? 'meals added' : 'comidas añadidas'} · {result.daysCount} {isUS ? 'days' : 'días'}</p>
+            <p className="font-bold text-gray-800 text-base">{isEN ? 'Menu generated!' : '¡Menú generado!'}</p>
+            <p className="text-sm text-gray-500 mt-0.5">{result.filled} {isEN ? 'meals added' : 'comidas añadidas'} · {result.daysCount} {isEN ? 'days' : 'días'}</p>
           </div>
 
           {result.missing.length===0?(
             <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 text-center">
               <div className="text-3xl mb-1.5"><Sparkle size={32} weight="fill" color="#10b981"/></div>
-              <p className="font-semibold text-teal-700 text-sm">{isUS ? 'You have all the ingredients!' : '¡Tienes todos los ingredientes!'}</p>
-              <p className="text-xs text-teal-600 mt-0.5">{isUS ? "You don't need to buy anything extra for this menu." : 'No necesitas comprar nada extra para este menú.'}</p>
+              <p className="font-semibold text-teal-700 text-sm">{isEN ? 'You have all the ingredients!' : '¡Tienes todos los ingredientes!'}</p>
+              <p className="text-xs text-teal-600 mt-0.5">{isEN ? "You don't need to buy anything extra for this menu." : 'No necesitas comprar nada extra para este menú.'}</p>
             </div>
           ):(
             <div>
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-gray-700" style={{display:'flex',alignItems:'center',gap:6}}>{isUS ? `You're missing ${result.missing.length} ingredient${result.missing.length!==1?'s':''}` : `Te faltan ${result.missing.length} ingredientes`}</p>
+                <p className="text-sm font-semibold text-gray-700" style={{display:'flex',alignItems:'center',gap:6}}>{isEN ? `You're missing ${result.missing.length} ingredient${result.missing.length!==1?'s':''}` : `Te faltan ${result.missing.length} ingredientes`}</p>
               </div>
               <div className="max-h-44 overflow-y-auto space-y-1.5 pr-0.5">
                 {result.missing.map(({ing,dishNames},idx)=>(
@@ -448,7 +449,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
                     <span className="text-lg leading-none mt-0.5">{CAT_EMOJI[ing?.category]||'🥗'}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-amber-800 leading-tight">{ing?.name||'Ingrediente'}</p>
-                      <p className="text-[10px] text-amber-500 leading-tight mt-0.5 truncate">{isUS ? 'For' : 'Para'}: {dishNames.join(', ')}</p>
+                      <p className="text-[10px] text-amber-500 leading-tight mt-0.5 truncate">{isEN ? 'For' : 'Para'}: {dishNames.join(', ')}</p>
                     </div>
                   </div>
                 ))}
@@ -460,7 +461,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
                 }}
                   className="mt-2.5 w-full rounded-xl py-2.5 text-sm font-semibold active:scale-95 transition-all"
                   style={{background:'#f59e0b',color:'#fff',boxShadow:'0 3px 10px rgba(245,158,11,.35)'}}>
-                  {isUS ? 'Add to shopping list' : 'Agregar a lista de la compra'}
+                  {isEN ? 'Add to shopping list' : 'Agregar a lista de la compra'}
                 </button>
               )}
             </div>
@@ -469,7 +470,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
           <button onClick={handleClose}
             className="w-full rounded-xl py-2.5 text-sm font-semibold"
             style={{background:'#0d9488',color:'#fff'}}>
-            {isUS ? 'Great, close' : 'Perfecto, cerrar'}
+            {isEN ? 'Great, close' : 'Perfecto, cerrar'}
           </button>
         </div>
       )}
@@ -481,7 +482,7 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
    PDF EXPORT — Informe Nutricional
 ═══════════════════════════════════════ */
 function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
-  const { monthNames, isUS } = useMarket();
+  const { monthNames, isUS, isEN } = useMarket();
   const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const [selected,setSelected]=useState([]);
   const [showReport,setShowReport]=useState(false);
@@ -555,22 +556,22 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
   });
 
   return (
-    <Modal open={open} onClose={onClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={18} weight="fill"/> {isUS ? 'Nutrition report' : 'Informe nutricional'}</div>} wide>
+    <Modal open={open} onClose={onClose} title={<div style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={18} weight="fill"/> {isEN ? 'Nutrition report' : 'Informe nutricional'}</div>} wide>
       {!showReport?(
         <div className="space-y-4">
-          <p className="text-xs text-gray-500">{isUS ? 'Select the days to generate the report with macronutrient estimates.' : 'Selecciona los días para generar el informe con estimación de macronutrientes.'}</p>
+          <p className="text-xs text-gray-500">{isEN ? 'Select the days to generate the report with macronutrient estimates.' : 'Selecciona los días para generar el informe con estimación de macronutrientes.'}</p>
           <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
-            <button onClick={()=>setSelected(daysWithFood)} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f0fdf4',color:'#0f766e',fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>🍽️ {isUS ? `With meals (${daysWithFood.length})` : `Con comida (${daysWithFood.length})`}</button>
-            <button onClick={()=>setSelected(Array.from({length:days},(_,i)=>i+1))} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#475569',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>{isUS ? 'All' : 'Todos'}</button>
-            <button onClick={()=>setSelected([])} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#94a3b8',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>{isUS ? 'Clear' : 'Limpiar'}</button>
+            <button onClick={()=>setSelected(daysWithFood)} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f0fdf4',color:'#0f766e',fontWeight:600,border:'1px solid #99f6e4',cursor:'pointer'}}>🍽️ {isEN ? `With meals (${daysWithFood.length})` : `Con comida (${daysWithFood.length})`}</button>
+            <button onClick={()=>setSelected(Array.from({length:days},(_,i)=>i+1))} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#475569',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>{isEN ? 'All' : 'Todos'}</button>
+            <button onClick={()=>setSelected([])} style={{fontSize:'0.75rem',padding:'6px 12px',borderRadius:12,background:'#f8fafc',color:'#94a3b8',fontWeight:600,border:'1px solid #e2e8f0',cursor:'pointer'}}>{isEN ? 'Clear' : 'Limpiar'}</button>
           </div>
-          <p style={{fontSize:'0.75rem',color:'#94a3b8'}}>{isUS ? 'Tap or drag to select days · ' : 'Toca o arrastra para seleccionar días · '}<span style={{fontWeight:700,color:'#d97706'}}>{selected.length} {isUS ? 'days' : 'días'}</span></p>
+          <p style={{fontSize:'0.75rem',color:'#94a3b8'}}>{isEN ? 'Tap or drag to select days · ' : 'Toca o arrastra para seleccionar días · '}<span style={{fontWeight:700,color:'#d97706'}}>{selected.length} {isEN ? 'days' : 'días'}</span></p>
           <DayPicker year={year} month={month} plan={plan} selected={selected} setSelected={setSelected}/>
           <button onClick={()=>setShowReport(true)} disabled={selected.length===0}
             style={{width:'100%',padding:'10px',borderRadius:12,fontWeight:700,fontSize:'0.875rem',border:'none',cursor:selected.length===0?'not-allowed':'pointer',
               background:selected.length===0?'#e2e8f0':'#d97706',color:selected.length===0?'#94a3b8':'#fff',
               boxShadow:selected.length===0?'none':'0 2px 8px rgba(124,58,237,.3)'}}>
-            {selected.length===0?(isUS?'Select days':'Selecciona días'):<span style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> {isUS?'Generate report':'Generar informe'}</span>}
+            {selected.length===0?(isEN?'Select days':'Selecciona días'):<span style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> {isEN?'Generate report':'Generar informe'}</span>}
           </button>
         </div>
       ):report&&(()=>{
@@ -590,17 +591,17 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
         return (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-bold text-gray-800" style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> {report.rows.length} {isUS?'days':'días'} · {monthNames[month]} {year}</p>
-              <button onClick={()=>setShowReport(false)} className="text-xs text-gray-400 hover:text-gray-600">← {isUS ? 'Back' : 'Volver'}</button>
+              <p className="text-sm font-bold text-gray-800" style={{display:'flex',alignItems:'center',gap:6}}><ChartBar size={16}/> {report.rows.length} {isEN?'days':'días'} · {monthNames[month]} {year}</p>
+              <button onClick={()=>setShowReport(false)} className="text-xs text-gray-400 hover:text-gray-600">← {isEN ? 'Back' : 'Volver'}</button>
             </div>
 
             {/* KPI cards */}
             <div className="grid grid-cols-4 gap-2">
               {[
-                {label:isUS?'Avg kcal':'Media kcal',val:report.avg.kcal,unit:'',bg:'#fff7ed',col:'#ea580c'},
-                {label:isUS?'Protein':'Proteína',val:report.avg.prot,unit:'g',bg:'#eff6ff',col:'#2563eb'},
-                {label:isUS?'Carbs':'Hidratos',val:report.avg.carbs,unit:'g',bg:'#fefce8',col:'#ca8a04'},
-                {label:isUS?'Fat':'Grasas',val:report.avg.fat,unit:'g',bg:'#fef2f2',col:'#dc2626'},
+                {label:isEN?'Avg kcal':'Media kcal',val:report.avg.kcal,unit:'',bg:'#fff7ed',col:'#ea580c'},
+                {label:isEN?'Protein':'Proteína',val:report.avg.prot,unit:'g',bg:'#eff6ff',col:'#2563eb'},
+                {label:isEN?'Carbs':'Hidratos',val:report.avg.carbs,unit:'g',bg:'#fefce8',col:'#ca8a04'},
+                {label:isEN?'Fat':'Grasas',val:report.avg.fat,unit:'g',bg:'#fef2f2',col:'#dc2626'},
               ].map(c=>(
                 <div key={c.label} style={{background:c.bg,borderRadius:12,padding:'8px',textAlign:'center'}}>
                   <div style={{fontSize:16,fontWeight:800,color:c.col,lineHeight:1}}>{c.val}{c.unit}</div>
@@ -611,7 +612,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
 
             {/* Chart tabs */}
             <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-              {(isUS?[['kcal','🔥 Calories'],['macros','💪 Macros'],['dist','🥧 Distribution'],['detalle','📋 Days']]:[['kcal','🔥 Calorías'],['macros','💪 Macros'],['dist','🥧 Distribución'],['detalle','📋 Días']]).map(([t,l])=>(
+              {(isEN?[['kcal','🔥 Calories'],['macros','💪 Macros'],['dist','🥧 Distribution'],['detalle','📋 Days']]:[['kcal','🔥 Calorías'],['macros','💪 Macros'],['dist','🥧 Distribución'],['detalle','📋 Días']]).map(([t,l])=>(
                 <button key={t} onClick={()=>setNutriTab(t)}
                   style={{fontSize:'0.7rem',padding:'4px 10px',borderRadius:20,fontWeight:700,border:'none',cursor:'pointer',
                     background:nutriTab===t?'#d97706':'#f1f5f9',
@@ -624,7 +625,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
             {/* Chart content */}
             {nutriTab==='kcal'&&(
               <div>
-                <p style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>{isUS ? 'Estimated daily calories (line = 2000 kcal goal)' : 'Calorías diarias estimadas (línea = objetivo 2000 kcal)'}</p>
+                <p style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>{isEN ? 'Estimated daily calories (line = 2000 kcal goal)' : 'Calorías diarias estimadas (línea = objetivo 2000 kcal)'}</p>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={kcalData} margin={{top:4,right:4,left:-20,bottom:0}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
@@ -636,28 +637,28 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
                   </BarChart>
                 </ResponsiveContainer>
                 <div style={{display:'flex',justifyContent:'center',gap:16,marginTop:4}}>
-                  <span style={{fontSize:9,color:'#f97316',fontWeight:700}}>■ {isUS ? 'Actual kcal' : 'Kcal reales'}</span>
-                  <span style={{fontSize:9,color:'#94a3b8',fontWeight:700}}>-- {isUS ? 'Goal 2000' : 'Objetivo 2000'}</span>
+                  <span style={{fontSize:9,color:'#f97316',fontWeight:700}}>■ {isEN ? 'Actual kcal' : 'Kcal reales'}</span>
+                  <span style={{fontSize:9,color:'#94a3b8',fontWeight:700}}>-- {isEN ? 'Goal 2000' : 'Objetivo 2000'}</span>
                 </div>
               </div>
             )}
 
             {nutriTab==='macros'&&(
               <div>
-                <p style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>{isUS ? 'Macronutrients per day (grams)' : 'Macronutrientes por día (gramos)'}</p>
+                <p style={{fontSize:10,color:'#9ca3af',marginBottom:6}}>{isEN ? 'Macronutrients per day (grams)' : 'Macronutrientes por día (gramos)'}</p>
                 <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={macroData} margin={{top:4,right:4,left:-20,bottom:0}}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
                     <XAxis dataKey="name" tick={{fontSize:9}} interval={Math.floor(macroData.length/6)}/>
                     <YAxis tick={{fontSize:9}}/>
                     <Tooltip content={<CustomTip/>}/>
-                    <Bar dataKey="Proteína" stackId="a" fill="#3b82f6" name={isUS?'Protein':'Proteína'}/>
-                    <Bar dataKey="Hidratos" stackId="a" fill="#f59e0b" name={isUS?'Carbs':'Hidratos'}/>
-                    <Bar dataKey="Grasas" stackId="a" fill="#ef4444" radius={[4,4,0,0]} name={isUS?'Fat':'Grasas'}/>
+                    <Bar dataKey="Proteína" stackId="a" fill="#3b82f6" name={isEN?'Protein':'Proteína'}/>
+                    <Bar dataKey="Hidratos" stackId="a" fill="#f59e0b" name={isEN?'Carbs':'Hidratos'}/>
+                    <Bar dataKey="Grasas" stackId="a" fill="#ef4444" radius={[4,4,0,0]} name={isEN?'Fat':'Grasas'}/>
                   </BarChart>
                 </ResponsiveContainer>
                 <div style={{display:'flex',justifyContent:'center',gap:12,marginTop:4}}>
-                  {(isUS?[['Protein','#3b82f6'],['Carbs','#f59e0b'],['Fat','#ef4444']]:[['Proteína','#3b82f6'],['Hidratos','#f59e0b'],['Grasas','#ef4444']]).map(([n,c])=>(
+                  {(isEN?[['Protein','#3b82f6'],['Carbs','#f59e0b'],['Fat','#ef4444']]:[['Proteína','#3b82f6'],['Hidratos','#f59e0b'],['Grasas','#ef4444']]).map(([n,c])=>(
                     <span key={n} style={{fontSize:9,color:c,fontWeight:700}}>■ {n}</span>
                   ))}
                 </div>
@@ -666,7 +667,7 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
 
             {nutriTab==='dist'&&(
               <div>
-                <p style={{fontSize:10,color:'#9ca3af',marginBottom:4}}>{isUS ? 'Total energy distribution for the period' : 'Distribución energética total del período'}</p>
+                <p style={{fontSize:10,color:'#9ca3af',marginBottom:4}}>{isEN ? 'Total energy distribution for the period' : 'Distribución energética total del período'}</p>
                 {pieTotals.length>0?(
                   <>
                     <ResponsiveContainer width="100%" height={180}>
@@ -684,9 +685,9 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
                         return <span key={e.name} style={{fontSize:10,color:e.color,fontWeight:700}}>■ {e.name} {pct}%</span>;
                       })}
                     </div>
-                    <p style={{fontSize:9,color:'#cbd5e1',textAlign:'center',marginTop:4}}>{isUS ? 'Prot 4kcal/g · Carbs 4kcal/g · Fat 9kcal/g' : 'Prot 4kcal/g · HC 4kcal/g · Grasa 9kcal/g'}</p>
+                    <p style={{fontSize:9,color:'#cbd5e1',textAlign:'center',marginTop:4}}>{isEN ? 'Prot 4kcal/g · Carbs 4kcal/g · Fat 9kcal/g' : 'Prot 4kcal/g · HC 4kcal/g · Grasa 9kcal/g'}</p>
                   </>
-                ):<p style={{textAlign:'center',fontSize:12,color:'#94a3b8',padding:'40px 0'}}>{isUS ? 'No macro data available' : 'Sin datos de macros disponibles'}</p>}
+                ):<p style={{textAlign:'center',fontSize:12,color:'#94a3b8',padding:'40px 0'}}>{isEN ? 'No macro data available' : 'Sin datos de macros disponibles'}</p>}
               </div>
             )}
 
@@ -708,13 +709,13 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
                         {r.totSugar>0&&<span style={{fontSize:9,background:'#fdf2f8',color:'#db2777',padding:'2px 5px',borderRadius:6,fontWeight:700}}>🍬 {r.totSugar}g</span>}
                       </div>
                     )}
-                    {!r.totKcal&&<p style={{fontSize:10,color:'#d1d5db',fontStyle:'italic'}}>{isUS ? 'No macro data' : 'Sin datos de macros'}</p>}
+                    {!r.totKcal&&<p style={{fontSize:10,color:'#d1d5db',fontStyle:'italic'}}>{isEN ? 'No macro data' : 'Sin datos de macros'}</p>}
                   </div>
                 ))}
               </div>
             )}
 
-            <p className="text-[9px] text-gray-300 text-center">{isUS ? '* Indicative estimates per serving. Not a substitute for nutritional advice.' : '* Estimaciones orientativas por ración. No sustituyen asesoramiento nutricional.'}</p>
+            <p className="text-[9px] text-gray-300 text-center">{isEN ? '* Indicative estimates per serving. Not a substitute for nutritional advice.' : '* Estimaciones orientativas por ración. No sustituyen asesoramiento nutricional.'}</p>
 
             {/* Botones acción */}
             <div style={{display:'flex',gap:8}}>
@@ -725,12 +726,12 @@ function NutriReportModal({open,onClose,year,month,plan,dishes,tickets=[]}) {
                   color:pdfLoading?'#a78bfa':'#fff',
                   boxShadow:pdfLoading?'none':'0 2px 12px rgba(109,40,217,0.35)'}}>
                 {pdfLoading
-                  ? <><span style={{display:'inline-block',animation:'spin 1s linear infinite'}}>⏳</span> {isUS ? 'Generating…' : 'Generando…'}</>
-                  : <><span>📄</span> {isUS ? 'Download PDF' : 'Descargar PDF'}</>}
+                  ? <><span style={{display:'inline-block',animation:'spin 1s linear infinite'}}>⏳</span> {isEN ? 'Generating…' : 'Generando…'}</>
+                  : <><span>📄</span> {isEN ? 'Download PDF' : 'Descargar PDF'}</>}
               </button>
               <button onClick={onClose}
                 style={{flex:1,borderRadius:12,padding:'10px',fontSize:'0.875rem',fontWeight:600,border:'1px solid #e2e8f0',background:'#f8fafc',color:'#475569',cursor:'pointer'}}>
-                {isUS ? 'Close' : 'Cerrar'}
+                {isEN ? 'Close' : 'Cerrar'}
               </button>
             </div>
           </div>
@@ -754,7 +755,7 @@ function addDays(d: Date, n: number): Date {
 
 export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tickets,isPro,onUpgrade}) {
   const now=new Date();
-  const { isUS, monthNames, weekDays: weekDayNames } = useMarket();
+  const { isUS, isEN, monthNames, weekDays: weekDayNames } = useMarket();
   const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const [year,setYear]=useState(now.getFullYear());
   const [month,setMonth]=useState(now.getMonth());
@@ -867,12 +868,12 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       {/* ── Header ── */}
       <div className="mb-4">
         <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-          {isPro ? (isUS ? 'Monthly Planner' : 'Plan mensual') : (isUS ? 'Weekly Planner' : 'Plan semanal')}
+          {isPro ? (isEN ? 'Monthly Planner' : 'Plan mensual') : (isEN ? 'Weekly Planner' : 'Plan semanal')}
         </h1>
         <p className="text-sm text-gray-400 mt-1">
           {isPro
-            ? (planned>0 ? <><span className="font-bold text-teal-600">{planned}</span> {isUS?'days planned in':'días planificados en'} {monthNames[month]}</> : (isUS?'Tap a day to assign a meal':'Toca un día para asignar un plato'))
-            : (weekPlanned>0 ? <><span className="font-bold text-teal-600">{weekPlanned}</span> {isUS?'days planned this week':'días planificados esta semana'}</> : (isUS?'Tap a day to assign a meal':'Toca un día para asignar un plato'))}
+            ? (planned>0 ? <><span className="font-bold text-teal-600">{planned}</span> {isEN?'days planned in':'días planificados en'} {monthNames[month]}</> : (isEN?'Tap a day to assign a meal':'Toca un día para asignar un plato'))
+            : (weekPlanned>0 ? <><span className="font-bold text-teal-600">{weekPlanned}</span> {isEN?'days planned this week':'días planificados esta semana'}</> : (isEN?'Tap a day to assign a meal':'Toca un día para asignar un plato'))}
         </p>
       </div>
 
@@ -886,9 +887,9 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         <div className="text-center">
           {isPro
             ? <><h2 className="font-black text-gray-900 leading-none" style={{fontSize:'1.05rem',letterSpacing:'-0.02em'}}>{monthNames[month]} <span style={{color:'#94a3b8',fontWeight:500}}>{year}</span></h2>
-              {planned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{planned} días planificados</p>}</>
+              {planned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{planned} {isEN?'days planned':'días planificados'}</p>}</>
             : <><h2 className="font-black text-gray-900 leading-none" style={{fontSize:'0.9rem',letterSpacing:'-0.02em'}}>{weekLabel()}</h2>
-              {weekPlanned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{weekPlanned} días planificados</p>}</>
+              {weekPlanned>0&&<p style={{fontSize:'0.65rem',color:'#0d9488',fontWeight:600,marginTop:2}}>{weekPlanned} {isEN?'days planned':'días planificados'}</p>}</>
           }
         </div>
         <button onClick={isPro ? nextM : nextW}
@@ -903,8 +904,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         <div className="mb-3 flex items-center gap-3 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('automenu')}>
           <span className="text-lg">📅</span>
           <div className="flex-1">
-            <p className="text-xs font-bold text-teal-700">Vista mensual — Pro</p>
-            <p className="text-[10px] text-teal-600">Planifica el mes completo y genera menús automáticos</p>
+            <p className="text-xs font-bold text-teal-700">{isEN?'Monthly view — Pro':'Vista mensual — Pro'}</p>
+            <p className="text-[10px] text-teal-600">{isEN?'Plan the full month and generate automatic menus':'Planifica el mes completo y genera menús automáticos'}</p>
           </div>
           <span className="text-xs font-bold text-teal-600 shrink-0">Ver →</span>
         </div>
@@ -913,7 +914,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       <div className="flex justify-end mb-2">
         <button onClick={()=>setClearModal(true)}
           className="text-xs text-gray-400 hover:text-red-500 transition-colors flex items-center gap-1 px-2 py-1 rounded-xl hover:bg-red-50">
-          <Trash size={13}/> {isUS ? 'Clear days' : 'Limpiar días'}
+          <Trash size={13}/> {isEN ? 'Clear days' : 'Limpiar días'}
         </button>
       </div>
 
@@ -921,7 +922,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       <div className="-mx-4 bg-white rounded-none overflow-hidden" style={{borderTop:'1px solid #f1f5f9',borderBottom:'1px solid #f1f5f9'}}>
         {/* Cabecera días */}
         <div className="grid grid-cols-7 border-b border-gray-100">
-          {WEEK_DAYS.map(w=>(
+          {weekDayNames.map(w=>(
             <div key={w} className="text-center py-2" style={{fontSize:'0.65rem',fontWeight:700,color:'#0d9488',letterSpacing:'.05em'}}>
               {w}
             </div>
@@ -1029,26 +1030,26 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
           <button onClick={()=>setAutoModal(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm text-white"
             style={{background:'linear-gradient(135deg,#0f766e,#0d9488)',boxShadow:'0 3px 10px rgba(13,148,136,.35)'}}>
-            <Sparkle size={16} weight="fill"/> {isUS ? 'Auto menu' : 'Menú auto'}
+            <Sparkle size={16} weight="fill"/> {isEN ? 'Auto menu' : 'Menú auto'}
           </button>
         ):(
           <button onClick={()=>onUpgrade('automenu')}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm"
             style={{background:'#f0fdfa',color:'#0f766e',border:'1px solid #99f6e4'}}>
-            🔒 {isUS ? 'Auto menu' : 'Menú auto'} <span className="font-normal text-xs" style={{color:'#5eead4'}}>Pro</span>
+            🔒 {isEN ? 'Auto menu' : 'Menú auto'} <span className="font-normal text-xs" style={{color:'#5eead4'}}>Pro</span>
           </button>
         )}
         {isPro?(
           <button onClick={()=>setNutriModal(true)}
             className="flex-1 flex items-center justify-center gap-2 py-3 rounded-2xl font-bold text-sm"
             style={{background:'linear-gradient(135deg,#b45309,#d97706,#fbbf24)',color:'#fff',boxShadow:'0 3px 10px rgba(124,58,237,.28)'}}>
-            <ChartBar size={16} weight="fill"/> {isUS ? 'Nutrition' : 'Nutrición'}
+            <ChartBar size={16} weight="fill"/> {isEN ? 'Nutrition' : 'Nutrición'}
           </button>
         ):(
           <button onClick={()=>onUpgrade('upgrade')}
             className="flex-1 flex items-center justify-center gap-1.5 py-3 rounded-2xl font-bold text-sm"
             style={{background:'#f5f3ff',color:'#d97706',border:'1px solid #ddd6fe'}}>
-            🔒 {isUS ? 'Nutrition' : 'Nutrición'} <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Pro</span>
+            🔒 {isEN ? 'Nutrition' : 'Nutrición'} <span className="font-normal text-xs" style={{color:'#c4b5fd'}}>Pro</span>
           </button>
         )}
       </div>
@@ -1059,7 +1060,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
       <NutriReportModal open={nutriModal} onClose={()=>setNutriModal(false)}
         year={year} month={month} plan={plan} dishes={dishes} tickets={tickets}/>
       <Confirm open={confirmDayClear}
-        msg={`¿Borrar los platos del día ${selDay} de ${monthNames[month]}? Esta acción no se puede deshacer.`}
+        msg={isEN?`Delete meals for ${monthNames[month]} ${selDay}? This cannot be undone.`:`¿Borrar los platos del día ${selDay} de ${monthNames[month]}? Esta acción no se puede deshacer.`}
         onOk={()=>{if(selDay){clearDay(selDay);setSelDay(null);}setConfirmDayClear(false);}}
         onCancel={()=>setConfirmDayClear(false)}/>
       <ClearDaysModal open={clearModal} onClose={()=>setClearModal(false)}
@@ -1095,8 +1096,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                   style={{display:'flex',alignItems:'center',gap:10,padding:'10px 14px',borderRadius:14,background:'#fef2f2',border:'1.5px solid #fecaca',textDecoration:'none',color:'#dc2626',fontWeight:700,fontSize:'0.85rem'}}>
                   <span style={{fontSize:'1.4rem',flexShrink:0}}>▶️</span>
                   <div>
-                    <div style={{fontSize:'0.85rem',fontWeight:700}}>Ver en YouTube</div>
-                    <div style={{fontSize:'0.72rem',fontWeight:400,color:'#f87171'}}>Tutoriales de "{recipeModal.name}"</div>
+                    <div style={{fontSize:'0.85rem',fontWeight:700}}>{isEN?'Watch on YouTube':'Ver en YouTube'}</div>
+                    <div style={{fontSize:'0.72rem',fontWeight:400,color:'#f87171'}}>{isEN?`"${recipeModal.name}" tutorials`:`Tutoriales de "${recipeModal.name}"`}</div>
                   </div>
                   <span style={{marginLeft:'auto',fontSize:'0.75rem',opacity:.7}}>↗</span>
                 </a>
@@ -1123,8 +1124,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                   </div>
                 ):(
                   <div style={{background:'#f9fafb',borderRadius:12,padding:14,textAlign:'center',border:'1px solid #e5e7eb'}}>
-                    <p style={{color:'#6b7280',fontSize:'0.82rem',margin:0}}>Ingredientes: {recipeModal.ings?.join(', ')||'sin datos'}</p>
-                    <p style={{color:'#9ca3af',fontSize:'0.75rem',marginTop:6}}>Busca el vídeo en YouTube para ver la preparación</p>
+                    <p style={{color:'#6b7280',fontSize:'0.82rem',margin:0}}>{isEN?'Ingredients':'Ingredientes'}: {recipeModal.ings?.join(', ')||(isEN?'no data':'sin datos')}</p>
+                    <p style={{color:'#9ca3af',fontSize:'0.75rem',marginTop:6}}>{isEN?'Search for the video on YouTube to see the preparation':'Busca el vídeo en YouTube para ver la preparación'}</p>
                   </div>
                 )}
               </div>
@@ -1145,10 +1146,10 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
             <div style={{background:'linear-gradient(135deg,#0f766e,#0d9488)',borderRadius:'24px 24px 0 0',padding:'18px 20px 14px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
               <div>
                 <div style={{color:'#fff',fontWeight:900,fontSize:'1.1rem',letterSpacing:'-0.02em'}}>
-                  📅 {isUS ? `${monthNames[month]} ${selDay}` : `${selDay} de ${monthNames[month]}`}
+                  📅 {isEN ? `${monthNames[month]} ${selDay}` : `${selDay} de ${monthNames[month]}`}
                 </div>
                 <div style={{color:'rgba(255,255,255,.7)',fontSize:'0.7rem',marginTop:2}}>
-                  {isUS ? 'Edit meals for this day' : 'Edita comida y cena de este día'}
+                  {isEN ? 'Edit meals for this day' : 'Edita comida y cena de este día'}
                 </div>
               </div>
               <button onClick={()=>setSelDay(null)}
@@ -1162,16 +1163,16 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               {/* Current meals preview */}
               <div style={{display:'grid',gridTemplateColumns:isUS?'repeat(3,1fr)':'1fr 1fr',gap:10}}>
                 {[
-                  ...(isUS?[['breakfast','🌅','Breakfast','#ffedd5','#9a3412','#fff7ed']]:[] ),
-                  ['lunch','🍽️',isUS?'Lunch':'Comida','#fef3c7','#d97706','#fffbeb'],
-                  ['dinner','🌙',isUS?'Dinner':'Cena','#f0fdfa','#0d9488','#f0fdf4']
+                  ...(isUS?[['breakfast','🌅',isEN?'Breakfast':'Desayuno','#ffedd5','#9a3412','#fff7ed']]:[] ),
+                  ['lunch','🍽️',isEN?'Lunch':'Comida','#fef3c7','#d97706','#fffbeb'],
+                  ['dinner','🌙',isEN?'Dinner':'Cena','#f0fdfa','#0d9488','#f0fdf4']
                 ].map(([k,icon,lbl,borderC,textC,bgC])=>{
                   const dish=dishMap[dayMeal[k]];
                   return (
                     <div key={k} style={{borderRadius:14,padding:'10px 12px',border:`1.5px solid ${borderC}`,background:bgC}}>
                       <div style={{fontSize:'0.65rem',fontWeight:700,color:textC,textTransform:'uppercase',letterSpacing:'.05em',marginBottom:4}}>{icon} {lbl}</div>
                       <div style={{fontSize:'0.78rem',fontWeight:600,color:dish?textC:'#cbd5e1',minHeight:32,display:'flex',alignItems:'center',justifyContent:'space-between',gap:6}}>
-                        <span>{dish?dish.name:(isUS?'Not assigned':'Sin asignar')}</span>
+                        <span>{dish?dish.name:(isEN?'Not assigned':'Sin asignar')}</span>
                         {isPro && dish && (
                           <button
                             onClick={()=>{
@@ -1194,11 +1195,11 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                   <span style={{fontSize:'1rem',flexShrink:0}}><Sparkle size={20} weight="fill" color="#f59e0b"/></span>
                   <div>
                     <div style={{fontSize:'0.75rem',color:'#d97706',fontWeight:700,marginBottom:2}}>
-                      {repeatWarning.names.join(', ')} {isUS ? (repeatWarning.names.length===1?'already appears':'already appear') + ' this month' : 'ya ' + (repeatWarning.names.length===1?'aparece':'aparecen') + ' este mes'}
+                      {repeatWarning.names.join(', ')} {isEN ? (repeatWarning.names.length===1?'already appears':'already appear') + ' this month' : 'ya ' + (repeatWarning.names.length===1?'aparece':'aparecen') + ' este mes'}
                     </div>
                     {repeatWarning.fewDishes && (
                       <div style={{fontSize:'0.7rem',color:'#92400e'}}>
-                        {isUS ? 'You have few recipes. Add more ingredients to get more variety.' : 'Tienes pocos platos disponibles. Compra más ingredientes para tener más variedad'}
+                        {isEN ? 'You have few recipes. Add more ingredients to get more variety.' : 'Tienes pocos platos disponibles. Compra más ingredientes para tener más variedad'}
                       </div>
                     )}
                   </div>
@@ -1207,9 +1208,9 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
 
               {/* Selects + macros */}
               {[
-                ...(isUS?[['breakfast','🌅 Breakfast']]:[] ),
-                ['lunch',isUS?'🍽️ Lunch':'🍽️ Comida'],
-                ['dinner',isUS?'🌙 Dinner':'🌙 Cena']
+                ...(isUS?[['breakfast',isEN?'🌅 Breakfast':'🌅 Desayuno']]:[] ),
+                ['lunch',isEN?'🍽️ Lunch':'🍽️ Comida'],
+                ['dinner',isEN?'🌙 Dinner':'🌙 Cena']
               ].map(([k,label])=>{
                 const macros=(isPro||isPro)?getMacros100(dayMeal[k]):null;
                 return (
@@ -1217,7 +1218,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                     <label style={{display:'block',fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:'#94a3b8',marginBottom:6}}>{label}</label>
                     <select value={dayMeal[k]||''} onChange={e=>setDayMeal(m=>({...m,[k]:e.target.value}))}
                       style={{width:'100%',borderRadius:14,padding:'12px 14px',fontSize:'0.85rem',border:'1.5px solid #e2e8f0',background:'#f8fafc',outline:'none',appearance:'auto'}}>
-                      <option value="">— {isUS?'Not assigned':'Sin asignar'} —</option>
+                      <option value="">— {isEN?'Not assigned':'Sin asignar'} —</option>
                       {dishes
                         .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : k==='dinner' ? d.id!==dayMeal.lunch : d.id!==dayMeal.lunch&&d.id!==dayMeal.dinner)
                         .map(d=>{
@@ -1228,12 +1229,12 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                     </select>
                     {macros && (
                       <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
-                        {[['🔥',macros.kcal,'kcal'],['💪',macros.prot,isUS?'g protein':'g prot'],['🍞',macros.carbs,'g carbs'],['🧈',macros.fat,isUS?'g fat':'g grasa']].map(([ic,val,unit])=>(
+                        {[['🔥',macros.kcal,'kcal'],['💪',macros.prot,isEN?'g protein':'g prot'],['🍞',macros.carbs,'g carbs'],['🧈',macros.fat,isEN?'g fat':'g grasa']].map(([ic,val,unit])=>(
                           <span key={unit} style={{fontSize:'0.64rem',fontWeight:700,padding:'2px 9px',borderRadius:10,background:'#f1f5f9',color:'#475569',border:'1px solid #e2e8f0'}}>
                             {ic} {val}{unit}
                           </span>
                         ))}
-                        <span style={{fontSize:'0.6rem',color:'#cbd5e1',alignSelf:'center'}}>{isUS?'per 100g':'por 100g'}</span>
+                        <span style={{fontSize:'0.6rem',color:'#cbd5e1',alignSelf:'center'}}>{isEN?'per 100g':'por 100g'}</span>
                       </div>
                     )}
                   </div>
@@ -1242,7 +1243,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
 
               {dishes.length < 2 && (
                 <p style={{fontSize:'0.72rem',color:'#94a3b8',textAlign:'center',marginTop:2}}>
-                  {isUS ? '💡 Add at least two different recipes to assign meals.' : '💡 Añade al menos dos platos diferentes para poder asignar comida y cena.'}
+                  {isEN ? '💡 Add at least two different recipes to assign meals.' : '💡 Añade al menos dos platos diferentes para poder asignar comida y cena.'}
                 </p>
               )}
 
@@ -1250,11 +1251,11 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
               <div style={{display:'flex',gap:10,paddingTop:4}}>
                 <button onClick={saveDay} disabled={sameDayDup}
                   style={{flex:1,borderRadius:14,padding:'14px',fontSize:'0.9rem',fontWeight:800,color:'#fff',background:sameDayDup?'#d1d5db':'#0d9488',boxShadow:sameDayDup?'none':'0 4px 14px rgba(13,148,136,.35)',border:'none',cursor:sameDayDup?'not-allowed':'pointer',transition:'all .15s'}}>
-                  {isUS ? '💾 Save' : '💾 Guardar'}
+                  {isEN ? '💾 Save' : '💾 Guardar'}
                 </button>
                 <button onClick={()=>setConfirmDayClear(true)}
                   style={{padding:'14px 18px',borderRadius:14,fontSize:'0.85rem',fontWeight:700,color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fecaca',cursor:'pointer'}}>
-                  <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> {isUS ? 'Clear' : 'Limpiar'}</span>
+                  <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> {isEN ? 'Clear' : 'Limpiar'}</span>
                 </button>
               </div>
 

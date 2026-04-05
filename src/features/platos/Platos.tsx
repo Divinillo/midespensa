@@ -35,7 +35,7 @@ import type { Ingredient, Dish } from '../../data/types';
    RECIPE MODAL — Ultra: pasos estáticos + YouTube
 ═══════════════════════════════════════ */
 function RecipeModal({ open, onClose, dishName, ings, youtubeUrl='', customSteps=[] }) {
-  const { isUS } = useMarket();
+  const { isUS, isEN } = useMarket();
   const recipeData = React.useMemo(() => {
     if (!dishName) return null;
     const db = isUS ? RECIPE_DB_US : RECIPE_DB;
@@ -322,20 +322,20 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
 
   return (
     <>
-    <Modal open={open} onClose={onClose} title={isUS ? '✨ Suggest recipes' : '✨ Sugerir platos'} wide>
+    <Modal open={open} onClose={onClose} title={isEN ? '✨ Suggest recipes' : '✨ Sugerir platos'} wide>
       {added?(
         <div className="space-y-4 text-center py-2">
           <div className="text-4xl">🎉</div>
-          <p className="font-bold text-gray-800">{isUS ? 'Recipes added!' : '¡Platos añadidos!'}</p>
-          <p className="text-sm text-gray-500">{selCount} {isUS ? 'recipe' : 'plato'}{selCount!==1?'s':''} {isUS ? 'added' : 'añadido'}{selCount!==1?'s':''} {isUS ? 'to your list.' : 'a tu lista.'}</p>
-          <button onClick={onClose} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#0d9488',color:'#fff'}}>{isUS ? 'Perfect, close' : 'Perfecto, cerrar'}</button>
+          <p className="font-bold text-gray-800">{isEN ? 'Recipes added!' : '¡Platos añadidos!'}</p>
+          <p className="text-sm text-gray-500">{selCount} {isEN ? 'recipe' : 'plato'}{selCount!==1?'s':''} {isEN ? 'added' : 'añadido'}{selCount!==1?'s':''} {isEN ? 'to your list.' : 'a tu lista.'}</p>
+          <button onClick={onClose} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#0d9488',color:'#fff'}}>{isEN ? 'Perfect, close' : 'Perfecto, cerrar'}</button>
         </div>
       ):!results?(
         <div className="space-y-4">
           {/* Diet selector — Pro only */}
           {isPro?(
             <div>
-              <p className="text-sm font-semibold text-gray-700 mb-2">{isUS ? 'Diet type' : 'Tipo de dieta'}</p>
+              <p className="text-sm font-semibold text-gray-700 mb-2">{isEN ? 'Diet type' : 'Tipo de dieta'}</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {DIET_SETS.map(ds=>(
                   <button key={ds.id} type="button" onClick={()=>setDiet(ds.id)}
@@ -353,10 +353,10 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
             <div className="flex items-center gap-2 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('upgrade')}>
               <span className="text-lg">🥗</span>
               <div className="flex-1">
-                <p className="text-xs font-bold text-teal-700">{isUS ? 'Diet filters — Pro' : 'Filtros de dieta — Pro'}</p>
-                <p className="text-[10px] text-teal-600">{isUS ? 'Vegan · Healthy · Paleo · Foodie and more' : 'Vegano · Saludable · Paleo · Foodie y más'}</p>
+                <p className="text-xs font-bold text-teal-700">{isEN ? 'Diet filters — Pro' : 'Filtros de dieta — Pro'}</p>
+                <p className="text-[10px] text-teal-600">{isEN ? 'Vegan · Healthy · Paleo · Foodie and more' : 'Vegano · Saludable · Paleo · Foodie y más'}</p>
               </div>
-              <span className="text-xs font-bold text-teal-600">🔒 {isUS ? 'See' : 'Ver'}</span>
+              <span className="text-xs font-bold text-teal-600">🔒 {isEN ? 'See' : 'Ver'}</span>
             </div>
           )}
           {/* ── Toggle "Con lo que tengo en despensa" ── */}
@@ -366,8 +366,8 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
             style={{boxShadow:useGemini?'0 3px 10px rgba(16,185,129,.18)':'0 2px 6px rgba(0,0,0,.07)'}}>
             <span className="text-lg">🥬</span>
             <div className="flex-1 min-w-0">
-              <p className={`text-xs font-bold leading-tight ${useGemini?'text-emerald-700':'text-gray-600'}`}>{isUS ? 'From my pantry' : 'Con lo que tengo en despensa'}</p>
-              <p className={`text-[10px] leading-tight mt-0.5 ${useGemini?'text-emerald-500':'text-gray-400'}`}>{isUS ? 'Prioritize ingredients you already have' : 'Prioriza los ingredientes que ya tienes disponibles'}</p>
+              <p className={`text-xs font-bold leading-tight ${useGemini?'text-emerald-700':'text-gray-600'}`}>{isEN ? 'From my pantry' : 'Con lo que tengo en despensa'}</p>
+              <p className={`text-[10px] leading-tight mt-0.5 ${useGemini?'text-emerald-500':'text-gray-400'}`}>{isEN ? 'Prioritize ingredients you already have' : 'Prioriza los ingredientes que ya tienes disponibles'}</p>
             </div>
             <div className={`w-10 h-5 rounded-full transition-all flex items-center px-0.5 shrink-0 ${useGemini?'bg-emerald-500':'bg-gray-200'}`}>
               <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-all ${useGemini?'translate-x-5':'translate-x-0'}`}/>
@@ -376,13 +376,13 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
 
           <div>
             <p className="text-sm font-semibold text-gray-700 mb-2">
-              {isUS ? 'How many recipes?' : '¿Cuántos platos?'}
-              {!isPro && <span className="ml-2 text-xs text-gray-400 font-normal">{freeSlots > 0 ? (isUS ? `you can add ${freeSlots} more` : `puedes añadir ${freeSlots} más`) : (isUS ? 'limit reached' : 'límite alcanzado')}</span>}
+              {isEN ? 'How many recipes?' : '¿Cuántos platos?'}
+              {!isPro && <span className="ml-2 text-xs text-gray-400 font-normal">{freeSlots > 0 ? (isEN ? `you can add ${freeSlots} more` : `puedes añadir ${freeSlots} más`) : (isEN ? 'limit reached' : 'límite alcanzado')}</span>}
             </p>
             {!isPro && freeSlots === 0 ? (
               <div className="rounded-xl bg-amber-50 border border-amber-200 px-3 py-3 text-center">
-                <p className="text-xs font-bold text-amber-700 mb-1">{isUS ? `You've reached the limit of ${FREE_DISH_LIMIT} recipes` : `Has alcanzado el límite de ${FREE_DISH_LIMIT} platos`}</p>
-                <button onClick={()=>onUpgrade('upgrade')} className="text-xs font-bold text-teal-600">{isUS ? 'Unlock Pro →' : 'Desbloquear Pro →'}</button>
+                <p className="text-xs font-bold text-amber-700 mb-1">{isEN ? `You've reached the limit of ${FREE_DISH_LIMIT} recipes` : `Has alcanzado el límite de ${FREE_DISH_LIMIT} platos`}</p>
+                <button onClick={()=>onUpgrade('upgrade')} className="text-xs font-bold text-teal-600">{isEN ? 'Unlock Pro →' : 'Desbloquear Pro →'}</button>
               </div>
             ) : (
               <div className="flex gap-2">
@@ -398,22 +398,22 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
             )}
           </div>
           <div className="text-xs text-gray-400 bg-gray-50 rounded-xl px-3 py-2">
-            📦 +100 {isUS ? 'recipes' : 'recetas'} · {ingredients.filter(i=>i.available).length} {isUS ? 'ingredients available' : 'ingredientes disponibles'}
+            📦 +100 {isEN ? 'recipes' : 'recetas'} · {ingredients.filter(i=>i.available).length} {isEN ? 'ingredients available' : 'ingredientes disponibles'}
             {isPro&&diet!=='omnivora'&&<span className="ml-1 text-amber-600 font-semibold">· {DIET_SETS.find(d=>d.id===diet)?.label}</span>}
           </div>
           <button onClick={searchRecipes} disabled={loading}
             className="w-full rounded-xl py-3 font-bold text-sm transition-all"
             style={{background:loading?'#5eead4':'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.3)',opacity:loading?.85:1}}>
-            {loading ? (isUS ? 'Searching...' : 'Buscando...') : (isUS ? 'Find recipes' : 'Buscar recetas')}
+            {loading ? (isEN ? 'Searching...' : 'Buscando...') : (isEN ? 'Find recipes' : 'Buscar recetas')}
           </button>
         </div>
       ):(
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-semibold text-gray-700">{isUS ? 'Suggested recipes' : 'Recetas sugeridas'}</p>
-            <button onClick={()=>setResults(null)} className="text-xs text-gray-400 hover:text-gray-600">← {isUS ? 'Change' : 'Cambiar'}</button>
+            <p className="text-sm font-semibold text-gray-700">{isEN ? 'Suggested recipes' : 'Recetas sugeridas'}</p>
+            <button onClick={()=>setResults(null)} className="text-xs text-gray-400 hover:text-gray-600">← {isEN ? 'Change' : 'Cambiar'}</button>
           </div>
-          <p className="text-xs text-gray-400">{isUS ? 'Select the ones you want to add.' : 'Selecciona las que quieres añadir.'} {selCount} {isUS ? 'selected' : 'seleccionada'}{selCount!==1?'s':''}.</p>
+          <p className="text-xs text-gray-400">{isEN ? 'Select the ones you want to add.' : 'Selecciona las que quieres añadir.'} {selCount} {isEN ? 'selected' : 'seleccionada'}{selCount!==1?'s':''}.</p>
           <div className="max-h-[60vh] overflow-y-auto space-y-2 pr-0.5">
             {results.all.map((s)=>{
               const isSel=!!selected[s.recipe.id];
@@ -498,7 +498,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
               boxShadow: selCount===0 ? 'none' : '0 3px 12px rgba(13,148,136,.35)',
               cursor: selCount===0 ? 'not-allowed' : 'pointer',
             }}>
-            {isUS ? 'Add' : 'Añadir'} {selCount>0 ? (isUS ? `${selCount} recipe${selCount!==1?'s':''}` : `${selCount} plato${selCount!==1?'s':''}`) : (isUS ? 'selected recipes' : ' platos seleccionados')}
+            {isEN ? 'Add' : 'Añadir'} {selCount>0 ? (isEN ? `${selCount} recipe${selCount!==1?'s':''}` : `${selCount} plato${selCount!==1?'s':''}`) : (isEN ? 'selected recipes' : ' platos seleccionados')}
           </button>
         </div>
       )}
@@ -517,7 +517,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
    PLATOS
 ═══════════════════════════════════════ */
 function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
-  const { isUS } = useMarket();
+  const { isUS, isEN } = useMarket();
   const [openCats,setOpenCats]=useState({});
   const toggleCat=cat=>setOpenCats(o=>({...o,[cat]:!o[cat]}));
   const photoRef=useRef(null);
@@ -532,7 +532,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
     <div className="space-y-4">
       {/* ── Foto del plato ── */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">{isUS ? 'Recipe photo' : 'Foto del plato'}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">{isEN ? 'Recipe photo' : 'Foto del plato'}</label>
         <div style={{display:'flex',gap:10,alignItems:'flex-start'}}>
           {/* Preview */}
           <div style={{
@@ -548,11 +548,11 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
           <div style={{display:'flex',flexDirection:'column',gap:6,flex:1}}>
             <button type="button" onClick={()=>cameraRef.current?.click()}
               style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#fff',background:'#0d9488',border:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
-              📷 {isUS ? 'Take photo' : 'Hacer foto'}
+              📷 {isEN ? 'Take photo' : 'Hacer foto'}
             </button>
             <button type="button" onClick={()=>photoRef.current?.click()}
               style={{borderRadius:12,padding:'8px 12px',fontWeight:700,fontSize:'0.78rem',color:'#0d9488',background:'#f0fdf4',border:'1.5px solid #5eead4',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
-              🖼️ {isUS ? 'Upload image' : 'Subir imagen'}
+              🖼️ {isEN ? 'Upload image' : 'Subir imagen'}
             </button>
             {form.photo && (
               <button type="button" onClick={()=>setForm(f=>({...f,photo:''}))}
@@ -570,12 +570,12 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">{isUS ? 'Name' : 'Nombre'}</label>
-        <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder={isUS ? 'Recipe name...' : 'Nombre del plato...'}
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">{isEN ? 'Name' : 'Nombre'}</label>
+        <input value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder={isEN ? 'Recipe name...' : 'Nombre del plato...'}
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-200"/>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">▶️ {isUS ? 'YouTube link' : 'Enlace YouTube'} <span style={{fontWeight:400,color:'#9ca3af'}}>{isUS ? '(optional)' : '(opcional)'}</span></label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">▶️ {isEN ? 'YouTube link' : 'Enlace YouTube'} <span style={{fontWeight:400,color:'#9ca3af'}}>{isEN ? '(optional)' : '(opcional)'}</span></label>
         <input value={form.youtubeUrl||''} onChange={e=>setForm(f=>({...f,youtubeUrl:e.target.value}))}
           placeholder="https://youtube.com/watch?v=..."
           className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-100"
@@ -588,15 +588,15 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
       {/* ── Preparación ── */}
       <div>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
-          <label className="block text-sm font-medium text-gray-700">🍳 {isUS ? 'Instructions' : 'Preparación'} <span style={{fontWeight:400,color:'#9ca3af'}}>{isUS ? '(optional)' : '(opcional)'}</span></label>
+          <label className="block text-sm font-medium text-gray-700">🍳 {isEN ? 'Instructions' : 'Preparación'} <span style={{fontWeight:400,color:'#9ca3af'}}>{isEN ? '(optional)' : '(opcional)'}</span></label>
           <button type="button"
             onClick={()=>setForm(f=>({...f,steps:[...(f.steps||[]),'']}))}
             style={{fontSize:'0.72rem',fontWeight:700,color:'#0d9488',background:'#f0fdf4',border:'1.5px solid #5eead4',borderRadius:8,padding:'3px 10px',cursor:'pointer'}}>
-            + {isUS ? 'Step' : 'Paso'}
+            + {isEN ? 'Step' : 'Paso'}
           </button>
         </div>
         {(form.steps||[]).length===0 && (
-          <p style={{fontSize:'0.75rem',color:'#9ca3af',padding:'8px 0'}}>{isUS ? 'No steps — press "+ Step" to add instructions' : 'Sin pasos — pulsa "+ Paso" para añadir instrucciones'}</p>
+          <p style={{fontSize:'0.75rem',color:'#9ca3af',padding:'8px 0'}}>{isEN ? 'No steps — press "+ Step" to add instructions' : 'Sin pasos — pulsa "+ Paso" para añadir instrucciones'}</p>
         )}
         <div style={{display:'flex',flexDirection:'column',gap:8}}>
           {(form.steps||[]).map((step,i)=>(
@@ -605,7 +605,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
               <textarea
                 value={step}
                 onChange={e=>{const s=[...(form.steps||[])];s[i]=e.target.value;setForm(f=>({...f,steps:s}));}}
-                placeholder={isUS ? `Step ${i+1}...` : `Paso ${i+1}...`}
+                placeholder={isEN ? `Step ${i+1}...` : `Paso ${i+1}...`}
                 rows={2}
                 style={{flex:1,borderRadius:10,border:'1.5px solid #e2e8f0',padding:'7px 10px',fontSize:'0.82rem',resize:'vertical',lineHeight:1.4,fontFamily:'inherit'}}
                 className="focus:outline-none focus:ring-2 focus:ring-teal-200"
@@ -621,7 +621,7 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">{isUS ? 'Ingredients' : 'Ingredientes'} ({form.ingredients.length} {isUS ? 'sel.' : 'sel.'})</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{isEN ? 'Ingredients' : 'Ingredientes'} ({form.ingredients.length} {isEN ? 'sel.' : 'sel.'})</label>
         <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
           {CATEGORIES.map(cat=>{
             const ci=ingredients.filter(i=>i.category===cat);
@@ -658,14 +658,14 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
       <button onClick={onSave}
         className="w-full rounded-xl py-3 text-sm font-bold"
         style={{background:'#0d9488',color:'#fff',boxShadow:'0 2px 8px rgba(13,148,136,.3)'}}>
-        💾 {isUS ? 'Save recipe' : 'Guardar plato'}
+        💾 {isEN ? 'Save recipe' : 'Guardar plato'}
       </button>
     </div>
   );
 }
 
 export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
-  const { isUS } = useMarket();
+  const { isUS, isEN } = useMarket();
   const recipeDB = isUS ? RECIPE_DB_US : RECIPE_DB;
   const [modal,setModal]=useState(null);
   const [form,setForm]=useState({name:'',ingredients:[]});
@@ -698,8 +698,8 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
       {!isPro&&(
         <div className="rounded-2xl px-4 py-3 mb-4 flex items-center justify-between"
           style={{background:'#fffbeb',border:'1px solid #fde68a'}}>
-          <span className="text-xs text-amber-700 font-semibold">{isUS ? 'Free plan' : 'Plan gratuito'} · {dishes.length}/{FREE_DISH_LIMIT} {isUS ? 'recipes' : 'platos'}</span>
-          <button onClick={()=>onUpgrade('dishes')} className="text-xs font-bold text-teal-600">{isUS ? 'Unlock Pro →' : 'Desbloquear Pro →'}</button>
+          <span className="text-xs text-amber-700 font-semibold">{isEN ? 'Free plan' : 'Plan gratuito'} · {dishes.length}/{FREE_DISH_LIMIT} {isEN ? 'recipes' : 'platos'}</span>
+          <button onClick={()=>onUpgrade('dishes')} className="text-xs font-bold text-teal-600">{isEN ? 'Unlock Pro →' : 'Desbloquear Pro →'}</button>
         </div>
       )}
 
@@ -708,11 +708,11 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
         <div className="flex justify-between items-start">
           <div>
             <h1 className="text-2xl font-black text-gray-900 leading-none" style={{letterSpacing:'-0.02em'}}>
-              {isUS ? 'My Recipes' : 'Mis platos'}
+              {isEN ? 'My Recipes' : 'Mis platos'}
             </h1>
             <p className="text-sm text-gray-400 mt-1">
-              <span className="font-bold text-teal-600">{dishes.filter(d=>!d.example).length}</span> {isUS ? 'own' : 'propios'}
-              {dishes.some(d=>d.example) && <> · <span className="text-gray-300">{dishes.filter(d=>d.example).length} {isUS ? 'examples' : 'ejemplos'}</span></>}
+              <span className="font-bold text-teal-600">{dishes.filter(d=>!d.example).length}</span> {isEN ? 'own' : 'propios'}
+              {dishes.some(d=>d.example) && <> · <span className="text-gray-300">{dishes.filter(d=>d.example).length} {isEN ? 'examples' : 'ejemplos'}</span></>}
             </p>
           </div>
           <div className="flex gap-2">
@@ -720,13 +720,13 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
               <button onClick={()=>setConfirmClear(true)}
                 className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold transition-all"
                 style={{background:'#fef2f2',color:'#ef4444',border:'1px solid #fecaca'}}>
-                <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> {isUS ? 'All' : 'Todos'}</span>
+                <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> {isEN ? 'All' : 'Todos'}</span>
               </button>
             )}
             <button onClick={()=>setAutoModal(true)}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all"
               style={{background:'#f0fdf4',color:'#0d9488',border:'1px solid #99f6e4'}}>
-              {isUS ? 'Suggest' : 'Sugerir'}
+              {isEN ? 'Suggest' : 'Sugerir'}
             </button>
             <button onClick={openAdd}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
@@ -735,7 +735,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
                 color: atLimit ? '#94a3b8' : '#fff',
                 boxShadow: atLimit ? 'none' : '0 2px 8px rgba(13,148,136,.3)',
               }}>
-              {atLimit ? (isUS ? 'New recipe' : 'Nuevo plato') : (isUS ? 'New recipe' : 'Nuevo plato')}
+              {atLimit ? (isEN ? 'New recipe' : 'Nuevo plato') : (isEN ? 'New recipe' : 'Nuevo plato')}
             </button>
           </div>
         </div>
@@ -760,14 +760,14 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
                   </div>
                   <div>
                     <h3 className="font-bold text-gray-900 text-sm leading-tight">{dish.name}</h3>
-                    {dish.example&&<span className="text-[10px] font-bold uppercase tracking-wide" style={{color:'#d97706'}}>{isUS ? 'example' : 'ejemplo'}</span>}
+                    {dish.example&&<span className="text-[10px] font-bold uppercase tracking-wide" style={{color:'#d97706'}}>{isEN ? 'example' : 'ejemplo'}</span>}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-1 ml-10">
                   {[...new Set(dish.ingredients)].map(iid=>{const ing=ingMap[iid];if(!ing)return null;return(
                     <span key={iid} className={`text-[11px] px-2 py-0.5 rounded-full font-medium ${CAT_BG[ing.category]} ${CAT_TEXT[ing.category]}`}>{ing.name}</span>
                   );})}
-                  {!dish.ingredients.length&&<span className="text-xs text-gray-300">{isUS ? 'No ingredients' : 'Sin ingredientes'}</span>}
+                  {!dish.ingredients.length&&<span className="text-xs text-gray-300">{isEN ? 'No ingredients' : 'Sin ingredientes'}</span>}
                 </div>
               </div>
               <div className="flex gap-1 shrink-0">
@@ -780,7 +780,7 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
                   }}
                     className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                     style={{background:'#f0fdf4',border:'1px solid #99f6e4'}}
-                    title={isUS ? 'View recipe' : 'Ver receta'}>📖</button>
+                    title={isEN ? 'View recipe' : 'Ver receta'}>📖</button>
                 <button onClick={()=>openEdit(dish)}
                   className="w-8 h-8 flex items-center justify-center rounded-xl text-sm"
                   style={{background:'#f8fafc',border:'1px solid #e2e8f0'}}>✏️</button>
@@ -794,19 +794,19 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
         {!dishes.length&&(
           <div className="text-center py-12">
             <div className="text-5xl mb-3" style={{display:'flex',alignItems:'center',justifyContent:'center'}}></div>
-            <p className="font-semibold text-gray-400 text-sm">{isUS ? 'You have no recipes yet' : 'Aún no tienes platos'}</p>
-            <p className="text-xs text-gray-300 mt-1">{isUS ? 'Add your favorite recipes' : 'Añade tus recetas habituales'}</p>
+            <p className="font-semibold text-gray-400 text-sm">{isEN ? 'You have no recipes yet' : 'Aún no tienes platos'}</p>
+            <p className="text-xs text-gray-300 mt-1">{isEN ? 'Add your favorite recipes' : 'Añade tus recetas habituales'}</p>
           </div>
         )}
       </div>
 
-      <Modal open={!!modal} onClose={()=>setModal(null)} title={modal==='add' ? (isUS ? 'New recipe' : 'Nuevo plato') : (isUS ? 'Edit recipe' : 'Editar plato')} wide>
+      <Modal open={!!modal} onClose={()=>setModal(null)} title={modal==='add' ? (isEN ? 'New recipe' : 'Nuevo plato') : (isEN ? 'Edit recipe' : 'Editar plato')} wide>
         <DishForm form={form} setForm={setForm} ingredients={ingredients} toggleIng={toggleIng} onSave={save}/>
       </Modal>
-      <Confirm open={!!confirm} msg={isUS ? 'Delete this recipe?' : '¿Eliminar este plato?'}
+      <Confirm open={!!confirm} msg={isEN ? 'Delete this recipe?' : '¿Eliminar este plato?'}
         onOk={()=>{setDishes(ds=>ds.filter(d=>d.id!==confirm));setConfirm(null);}}
         onCancel={()=>setConfirm(null)}/>
-      <Confirm open={confirmClear} msg={isUS ? `Delete all ${dishes.length} recipes? This action cannot be undone.` : `¿Eliminar los ${dishes.length} platos? Esta acción no se puede deshacer.`}
+      <Confirm open={confirmClear} msg={isEN ? `Delete all ${dishes.length} recipes? This action cannot be undone.` : `¿Eliminar los ${dishes.length} platos? Esta acción no se puede deshacer.`}
         onOk={()=>{setDishes([]);setConfirmClear(false);}}
         onCancel={()=>setConfirmClear(false)}/>
       <AutoDishModal open={autoModal} onClose={()=>setAutoModal(false)}

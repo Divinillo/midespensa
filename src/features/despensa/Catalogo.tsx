@@ -337,7 +337,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
       {!searchActive && recentIngs.length > 0 && (
         <section style={{ marginBottom: 8 }}>
           <SectionHeader
-            label="Utilizados recientemente"
+            label={isEN ? 'Recently used' : 'Utilizados recientemente'}
             isCollapsed={collapsed['recientes']}
             onToggle={() => toggleSection('recientes')}
             badge={null}
@@ -406,7 +406,7 @@ export function Catalogo({ ingredients, setIngredients, isPro }) {
                 ))}
                 {catalogItems.length === 0 && (
                   <p style={{ gridColumn: '1/-1', fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center', padding: '8px 0' }}>
-                    Todos los productos de esta categoría están en la lista o en la despensa
+                    {isEN ? 'All products in this category are in the list or pantry' : 'Todos los productos de esta categoría están en la lista o en la despensa'}
                   </p>
                 )}
               </div>
