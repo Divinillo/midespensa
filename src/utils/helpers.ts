@@ -9,8 +9,8 @@ export function getFirstWD(y,m) { let d=new Date(y,m,1).getDay(); return d===0?6
 
 // Prefixes/keywords that indicate a COMPOSITE/PROCESSED product —
 // these should NOT be normalized to a raw ingredient even if they contain one.
-const COMPOSITE_ES = /\b(bizc|bizcocho|tarta|galleta|pastel|magdalena|croissan|bolleri|donut|snack|pizza|bocata|bocad|bocadillo|helado|sorbete|salsa|caldo|crema\s+de|sopa|zumo|mermelada|confitura|conserva|precocinado|preparado|empanada|croqueta|nugget|lasaña|canelone|burrito)\b/i;
-const COMPOSITE_US = /\b(cake|pie|cookie|muffin|donut|croissant|pastry|pizza|sandwich|ice\s*cream|sorbet|sauce|broth|soup|juice|jam|jelly|preserv|frozen\s+meal|nugget|burrito|lasagna|potpie|snack|chips|crackers|cereal|granola\s+bar)\b/i;
+const COMPOSITE_ES = /\b(bizc|bizcocho|tarta|galletas?|pastel|magdalena|croissan|bolleri|donut|snack|pizza|bocata|bocad|bocadillo|helado|sorbete|salsa|caldo|crema\s+de|sopa|zumo|mermelada|confitura|conserva|precocinado|preparado|empanadas?|croquetas?|nuggets?|lasaña|canelone|burrito)\b/i;
+const COMPOSITE_US = /\b(cake|pie|cookie|muffin|donut|croissant|pastry|pizza|sandwich|ice\s*cream|sorbet|sauce|broth|soup|juice|jam|jelly|preserv|frozen\s+meal|nuggets?|burrito|lasagna|potpie|snack|chips|crackers|cereal|granola\s+bar)\b/i;
 
 export function normalizeName(raw, isUS = false) {
   const s = raw.trim();
