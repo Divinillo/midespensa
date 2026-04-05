@@ -237,21 +237,35 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     };
     const shuffled=shuffleGroup(scored);
 
-    // Separar en comidas y cenas usando el campo 'when' de RECIPE_DB
-    // lunch: when==='lunch' || when==='both'   (hidratos OK al mediodía)
-    // dinner: when==='dinner' || when==='both'  (sin pasta/arroz/legumbres pesadas por la noche)
-    const PROTEIN_WORDS=/pollo|pechuga|muslos|pavo|ternera|cerdo|lomo|solomillo|costillas|carne|jamón|chorizo|bacon|salmón|merluza|bacalao|atún|gambas|mejillones|calamares|sepia|rape|dorada|langostinos|sardinas|huevo|huevos|tofu|tempeh|garbanzos|lentejas|alubias/i;
-    const SOLO_VEG=/^(brócoli|espinacas|zanahoria|calabacín|berenjena|coliflor|judías verdes|pimientos?|tomate|lechuga|champiñones?|setas|acelgas|puerros?|alcachofas?|rúcula)(\s(al vapor|salteado|rehogado|asado|hervido|plancha))?$/i;
+    // ── Determine meal slot for each dish ──
+    // US idiosyncrasy: breakfast is a real meal (eggs, pancakes, bacon…)
+    // ES idiosyncrasy: no breakfast slot — only comida (lunch) and cena (dinner)
+    const PROTEIN_WORDS_ES=/pollo|pechuga|muslos|pavo|ternera|cerdo|lomo|solomillo|costillas|carne|jamón|chorizo|bacon|salmón|merluza|bacalao|atún|gambas|mejillones|calamares|sepia|rape|dorada|langostinos|sardinas|huevo|huevos|tofu|tempeh|garbanzos|lentejas|alubias/i;
+    const SOLO_VEG_ES=/^(brócoli|espinacas|zanahoria|calabacín|berenjena|coliflor|judías verdes|pimientos?|tomate|lechuga|champiñones?|setas|acelgas|puerros?|alcachofas?|rúcula)(\s(al vapor|salteado|rehogado|asado|hervido|plancha))?$/i;
+    const BREAKFAST_WORDS_US=/pancake|waffle|omelet|omelette|scramble|french toast|breakfast|cereal|oatmeal|granola|smoothie|muffin|bagel|benedict|hash brown|frittata|toast|yogurt/i;
     const getWhen=dish=>{
       const rec=recipeDB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
       if(rec?.when) return rec.when;
-      // Platos con solo verdura sin proteína → nunca para cenar solos
       const n=dish.name.trim();
-      if(SOLO_VEG.test(n)&&!PROTEIN_WORDS.test(n)) return 'lunch';
-      // Pasta/arroz/legumbres → mediodía
+      if(isUS){
+        // US: detect breakfast by name
+        if(BREAKFAST_WORDS_US.test(n)) return 'breakfast';
+        // Pasta/rice → lunch
+        if(/pasta|mac.*cheese|spaghetti|noodle|rice|burrito|taco|sandwich|wrap|soup|chowder|chili/i.test(n)) return 'lunch';
+        // Grilled/baked protein → dinner
+        if(/grilled|baked|roasted|steak|salmon|pork chops|meatloaf|casserole/i.test(n)) return 'dinner';
+        return 'both';
+      }
+      // ES: no breakfast — classify lunch vs dinner
+      if(SOLO_VEG_ES.test(n)&&!PROTEIN_WORDS_ES.test(n)) return 'lunch';
       if(/pasta|arroz|macarr|espagueti|fideu|ñoqui|ravioli|lentejas|garbanzos|alubias|potaje/i.test(n)) return 'lunch';
       return 'both';
     };
+
+    // Build pools per meal slot
+    const breakfastPool = isUS ? [...shuffled]
+      .filter(({dish})=>{ const w=getWhen(dish); return w==='breakfast'; })
+      .sort((a,b)=>b.score-a.score) : [];
     const lunchPool=[...shuffled]
       .filter(({dish})=>{ const w=getWhen(dish); return w==='lunch'||w==='both'; })
       .sort((a,b)=>b.score-a.score||(b.kcal-a.kcal));
@@ -264,27 +278,25 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     const missingMap={};
     let filled=0;
 
-    // Ventana de los últimos 2 días: [[lunchId|null, dinnerId|null], ...]
+    // Ventana de los últimos 2 días: [breakfastId|null, lunchId|null, dinnerId|null]
     // Se usa para garantizar que un plato no se repite en días consecutivos
-    // (mínimo 2 días de separación → puede volver al 3er día)
-    const recentWindow: Array<[string|null, string|null]> = [];
+    const recentWindow: Array<[string|null, string|null, string|null]> = [];
 
-    // Inicializar la ventana con los días anteriores al primero seleccionado (si existen en el plan)
     if(daysArr.length>0){
       const firstDay=daysArr[0];
       for(let d=Math.max(1,firstDay-2);d<firstDay;d++){
         const k=dateKey(year,month,d);
         const dp=newPlan[k]||{};
-        recentWindow.push([dp.lunch||null, dp.dinner||null]);
+        recentWindow.push([dp.breakfast||null, dp.lunch||null, dp.dinner||null]);
       }
     }
 
     // Offsets de rotación independientes por pool
-    const lunchOff={v:0}, dinnerOff={v:0};
+    const breakfastOff={v:0}, lunchOff={v:0}, dinnerOff={v:0};
 
     // Selecciona el mejor plato del pool que no esté en recentIds
-    // Si todos son recientes, elige el primero del pool (fallback)
     function pickFrom(pool, recentIds, off){
+      if(!pool.length) return null;
       const n=pool.length;
       for(let attempt=0;attempt<n;attempt++){
         const s=pool[(off.v+attempt)%n];
@@ -293,49 +305,68 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
           return s;
         }
       }
-      // Fallback: todos recientes, devuelve el siguiente en rotación
       const s=pool[off.v%n];
       off.v=(off.v+1)%n;
       return s;
     }
 
+    function trackMissing(s){
+      s.missing.forEach(id=>{
+        if(!missingMap[id])missingMap[id]={ing:ingMap[id],dishNames:[]};
+        if(!missingMap[id].dishNames.includes(s.dish.name))missingMap[id].dishNames.push(s.dish.name);
+      });
+    }
+
     for(const day of daysArr){
       const k=dateKey(year,month,day);
       const ex=newPlan[k]||{};
+      let dayBreakfastId=ex.breakfast||null;
       let dayLunchId=ex.lunch||null;
       let dayDinnerId=ex.dinner||null;
 
       // IDs usados en los últimos 2 días (cualquier franja)
-      const recentIds=new Set(recentWindow.flatMap(([l,d])=>[l,d]).filter(Boolean));
+      const recentIds=new Set(recentWindow.flatMap(([b,l,d])=>[b,l,d]).filter(Boolean));
 
+      // ── BREAKFAST (US only) ──
+      if(isUS && breakfastPool.length>0 && (overwrite||!ex.breakfast)){
+        const s=pickFrom(breakfastPool, recentIds, breakfastOff);
+        if(s){
+          newPlan[k]={...(newPlan[k]||{}),breakfast:s.dish.id};
+          dayBreakfastId=s.dish.id;
+          trackMissing(s);
+          filled++;
+        }
+      }
+
+      // ── LUNCH ──
       if(overwrite||!ex.lunch){
-        const s=pickFrom(lunchPool, recentIds, lunchOff);
-        newPlan[k]={...(newPlan[k]||{}),lunch:s.dish.id};
-        dayLunchId=s.dish.id;
-        s.missing.forEach(id=>{
-          if(!missingMap[id])missingMap[id]={ing:ingMap[id],dishNames:[]};
-          if(!missingMap[id].dishNames.includes(s.dish.name))missingMap[id].dishNames.push(s.dish.name);
-        });
-        filled++;
+        const exclude=new Set([...recentIds, dayBreakfastId].filter(Boolean));
+        const s=pickFrom(lunchPool, exclude, lunchOff);
+        if(s){
+          newPlan[k]={...(newPlan[k]||{}),lunch:s.dish.id};
+          dayLunchId=s.dish.id;
+          trackMissing(s);
+          filled++;
+        }
       }
 
+      // ── DINNER ──
       if(overwrite||!ex.dinner){
-        // Excluir además el plato ya asignado como comida del mismo día
-        const recentWithLunch=new Set([...recentIds, dayLunchId].filter(Boolean));
-        const s=pickFrom(dinnerPool, recentWithLunch, dinnerOff);
-        newPlan[k]={...(newPlan[k]||{}),dinner:s.dish.id};
-        dayDinnerId=s.dish.id;
-        s.missing.forEach(id=>{
-          if(!missingMap[id])missingMap[id]={ing:ingMap[id],dishNames:[]};
-          if(!missingMap[id].dishNames.includes(s.dish.name))missingMap[id].dishNames.push(s.dish.name);
-        });
-        filled++;
+        const exclude=new Set([...recentIds, dayBreakfastId, dayLunchId].filter(Boolean));
+        const s=pickFrom(dinnerPool, exclude, dinnerOff);
+        if(s){
+          newPlan[k]={...(newPlan[k]||{}),dinner:s.dish.id};
+          dayDinnerId=s.dish.id;
+          trackMissing(s);
+          filled++;
+        }
       }
 
-      // Avanzar ventana (siempre registra lo que queda asignado en el día, sea nuevo o existente)
-      const actualLunch=newPlan[k]?.lunch||null;
-      const actualDinner=newPlan[k]?.dinner||null;
-      recentWindow.push([actualLunch, actualDinner]);
+      // Avanzar ventana
+      const ab=newPlan[k]?.breakfast||null;
+      const al=newPlan[k]?.lunch||null;
+      const ad=newPlan[k]?.dinner||null;
+      recentWindow.push([ab, al, ad]);
       if(recentWindow.length>2) recentWindow.shift();
     }
 

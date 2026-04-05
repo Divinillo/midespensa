@@ -229,10 +229,46 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
     });
 
     scored.sort((a,b)=>b.score-a.score||a.recipe.name.localeCompare(b.recipe.name));
-    // Free: solo ve exactamente FREE_SUGGESTION_LIMIT resultados (sin extras para elegir)
-    // Pro: ve qty*3 para poder seleccionar entre más opciones
+
+    // ── Balanced meal-type selection ──
+    // US: ~33% breakfast, ~33% lunch/both, ~33% dinner/both
+    // ES: ~50% lunch/both, ~50% dinner/both (no breakfast)
     const showCount = isPro ? Math.min(qty*3, scored.length) : Math.min(FREE_SUGGESTION_LIMIT, scored.length);
-    const top=scored.slice(0,showCount);
+    let top;
+    if(isUS){
+      const bkf=scored.filter(s=>s.recipe.when==='breakfast');
+      const lun=scored.filter(s=>s.recipe.when==='lunch'||s.recipe.when==='both');
+      const din=scored.filter(s=>s.recipe.when==='dinner'||s.recipe.when==='both');
+      const third=Math.max(1,Math.floor(showCount/3));
+      const rest=showCount-third*2;
+      const picked=new Set<string>();
+      const take=(arr,n)=>{ const out=[]; for(const s of arr){ if(out.length>=n)break; if(!picked.has(s.recipe.id)){out.push(s);picked.add(s.recipe.id);} } return out; };
+      const bPick=take(bkf,third);
+      const lPick=take(lun,third);
+      const dPick=take(din,rest);
+      // Fill remaining from any pool
+      const combined=[...bPick,...lPick,...dPick];
+      if(combined.length<showCount){
+        for(const s of scored){ if(combined.length>=showCount)break; if(!picked.has(s.recipe.id)){combined.push(s);picked.add(s.recipe.id);} }
+      }
+      top=combined;
+    } else {
+      // ES: 50/50 lunch/dinner
+      const lun=scored.filter(s=>s.recipe.when==='lunch'||s.recipe.when==='both');
+      const din=scored.filter(s=>s.recipe.when==='dinner'||s.recipe.when==='both');
+      const half=Math.max(1,Math.floor(showCount/2));
+      const rest=showCount-half;
+      const picked=new Set<string>();
+      const take=(arr,n)=>{ const out=[]; for(const s of arr){ if(out.length>=n)break; if(!picked.has(s.recipe.id)){out.push(s);picked.add(s.recipe.id);} } return out; };
+      const lPick=take(lun,half);
+      const dPick=take(din,rest);
+      const combined=[...lPick,...dPick];
+      if(combined.length<showCount){
+        for(const s of scored){ if(combined.length>=showCount)break; if(!picked.has(s.recipe.id)){combined.push(s);picked.add(s.recipe.id);} }
+      }
+      top=combined;
+    }
+
     setResults({all:top,requested:qty});
     const pre={};
     top.slice(0,qty).forEach(s=>pre[s.recipe.id]=true);

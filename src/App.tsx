@@ -424,7 +424,7 @@ export function App() {
           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-gray-700 text-sm">🌐 {isEN ? 'Go to website' : 'Ir a la web'}</h3>
-              <p className="text-xs text-gray-400 mt-0.5">{isEN ? 'midespensa.app/en' : 'midespensa.app'}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{isUS ? 'midespensa.app/en' : 'midespensa.app'}</p>
             </div>
             <a
               href={isUS ? 'https://midespensa.app/en' : 'https://midespensa.app/'}
