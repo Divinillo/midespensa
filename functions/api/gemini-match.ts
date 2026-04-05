@@ -57,7 +57,7 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     : 'The products come from a Spanish supermarket receipt (Mercadona, Consum, Lidl, etc). The catalog is in Spanish.';
 
   const prompt =
-    `You are a grocery product matcher. Given a list of product names from a store receipt, match each to the CLOSEST ingredient in the provided catalog.\n\n` +
+    `You are a grocery product matcher. Given a list of product names from a store receipt, match each to the CLOSEST **raw/base ingredient** in the provided catalog.\n\n` +
     `${langNote}\n\n` +
     `CATALOG (one per line):\n${catalog.join('\n')}\n\n` +
     `UNMATCHED PRODUCTS (one per line):\n${unmatched.join('\n')}\n\n` +
@@ -69,7 +69,17 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     `- Only match if you are ≥90% confident the product IS that ingredient\n` +
     `- If confidence is <90% or the product is NOT food (bags, cleaning supplies, tax, discounts), return null for that product\n` +
     `- The match value must be EXACTLY as it appears in the catalog (case-sensitive)\n` +
-    `- Non-food items (bags, cleaning products, paper, etc.) must always be null`;
+    `- Non-food items (bags, cleaning products, paper, etc.) must always be null\n` +
+    `- CRITICAL: Do NOT match composite/processed/prepared products to their ingredient components. A product that CONTAINS an ingredient is NOT the same as the ingredient itself. Examples:\n` +
+    `  · "BIZC.TRAD.ZANAHORIA" (bizcocho/cake with carrot) is NOT "zanahoria"/"carrot" → null\n` +
+    `  · "PAN CHOCOLATE" (chocolate bread) is NOT "chocolate" → null\n` +
+    `  · "TARTA MANZANA" (apple pie) is NOT "manzana"/"apple" → null\n` +
+    `  · "GALLETAS AVENA" (oat cookies) is NOT "avena"/"oats" → null\n` +
+    `  · "PIZZA ATÚN" (tuna pizza) is NOT "atún"/"tuna" → null\n` +
+    `  · "HELADO VAINILLA" (vanilla ice cream) is NOT "vainilla"/"vanilla" → null\n` +
+    `  · "SALSA TOMATE" (tomato sauce) is NOT "tomate"/"tomato" → null\n` +
+    `  · "CALDO POLLO" (chicken broth) is NOT "pollo"/"chicken" → null\n` +
+    `- Only match if the product IS the ingredient (possibly with brand/size info), not if it merely contains it`;
 
   for (const model of GEMINI_MODELS) {
     try {
