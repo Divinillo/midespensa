@@ -82,7 +82,7 @@
     .nav-links { display: flex; align-items: center; gap: 6px; }
     .nav-links a { color: var(--gray-500); text-decoration: none; font-size: .88rem; font-weight: 500; padding: 6px 12px; border-radius: 8px; transition: background .15s; }
     .nav-links a:hover { background: var(--teal-50); color: var(--teal-700); }
-    .lang-switch { font-size: .78rem; color: var(--gray-400); text-decoration: none; padding: 4px 10px; border: 1px solid var(--gray-200); border-radius: 20px; }
+    .lang-switch { font-size: .78rem; color: var(--gray-400); text-decoration: none; padding: 4px 10px; border: 1px solid var(--gray-200); border-radius: 20px; cursor: pointer; }
     .lang-switch:hover { border-color: var(--teal-300); color: var(--teal-700); background: var(--teal-50); }
     .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 22px; border-radius: 10px; font-weight: 600; font-size: .9rem; text-decoration: none; border: none; cursor: pointer; transition: all .15s; }
     .btn-teal { background: var(--teal-700); color: #fff; box-shadow: 0 1px 3px rgba(13,148,136,.25); }
@@ -257,7 +257,7 @@
     footer { background: var(--gray-900); color: var(--gray-400); padding: 32px 24px; font-size: .82rem; }
     .footer-inner { max-width: 1080px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
     .footer-links { display: flex; gap: 20px; }
-    .footer-links a { color: var(--gray-400); text-decoration: none; }
+    .footer-links a { color: var(--gray-400); text-decoration: none; cursor: pointer; }
     .footer-links a:hover { color: #fff; }
 
     /* ── RESPONSIVE ── */
@@ -290,7 +290,7 @@
 
 <!-- ── PROMO BANNER ── -->
 <div class="trial-banner">
-  🎁 <strong>First week completely free</strong> — Try all Pro features with no credit card. <a href="/app?lang=en">Start now →</a>
+  🎁 <strong data-t="banner-strong">First week completely free</strong><span data-t="banner-text"> — Try all Pro features with no credit card. </span><a href="/app?lang=en" data-t="banner-link">Start now →</a>
 </div>
 
 <!-- ── NAVBAR ── -->
@@ -301,36 +301,36 @@
       <span>MiDespensa</span>
     </a>
     <div class="nav-links">
-      <a href="#how-it-works">How it works</a>
-      <a href="#features">Features</a>
-      <a href="#pricing">Pricing</a>
+      <a href="#how-it-works" data-t="nav-how">How it works</a>
+      <a href="#features" data-t="nav-feat">Features</a>
+      <a href="#pricing" data-t="nav-price">Pricing</a>
       <a href="#faq">FAQ</a>
-      <a href="/?lang=es" class="lang-switch">ES 🇪🇸</a>
-      <a href="/app?lang=en" class="btn btn-teal">Try for free →</a>
+      <a href="#" class="lang-switch" data-t="lang-switch" onclick="toggleLang(event)">ES 🇪🇸</a>
+      <a href="/app?lang=en" class="btn btn-teal" data-t="nav-cta">Try for free →</a>
     </div>
   </div>
 </nav>
 
 <!-- ── HERO ── -->
 <section class="hero">
-  <div class="hero-badge">🎁 First 7 days free · No credit card needed</div>
-  <h1>Stop stressing about<br/><span>what to cook</span> every day</h1>
-  <p>Scan your grocery receipts, organize your pantry, and let MiDespensa auto-plan your meals for the whole month. Free for 7 days.</p>
+  <div class="hero-badge" data-t="hero-badge">🎁 First 7 days free · No credit card needed</div>
+  <h1 data-t="hero-h1">Stop stressing about<br/><span>what to cook</span> every day</h1>
+  <p data-t="hero-p">Scan your grocery receipts, organize your pantry, and let MiDespensa auto-plan your meals for the whole month. Free for 7 days.</p>
   <div class="hero-cta">
-    <a href="/app?lang=en" class="btn btn-teal btn-hero">Start free — 7 days Pro</a>
-    <a href="#how-it-works" class="btn btn-outline btn-hero">See how it works</a>
+    <a href="/app?lang=en" class="btn btn-teal btn-hero" data-t="hero-cta1">Start free — 7 days Pro</a>
+    <a href="#how-it-works" class="btn btn-outline btn-hero" data-t="hero-cta2">See how it works</a>
   </div>
   <div class="hero-trust">
-    <span><span class="check">✓</span> 7 days full Pro, free</span>
-    <span><span class="check">✓</span> No credit card to start</span>
-    <span><span class="check">✓</span> iOS &amp; Android</span>
-    <span><span class="check">✓</span> Zero ads</span>
+    <span data-t="hero-trust1"><span class="check">✓</span> 7 days full Pro, free</span>
+    <span data-t="hero-trust2"><span class="check">✓</span> No credit card to start</span>
+    <span data-t="hero-trust3"><span class="check">✓</span> iOS &amp; Android</span>
+    <span data-t="hero-trust4"><span class="check">✓</span> Zero ads</span>
   </div>
 </section>
 
 <!-- ── STORE STRIP ── -->
 <div class="stores-strip">
-  <div class="stores-label">Works with receipts from your favorite stores</div>
+  <div class="stores-label" data-t="stores-label">Works with receipts from your favorite stores</div>
   <div class="stores-row">
     <div class="store-chip">🔵 Walmart</div>
     <div class="store-chip">🎯 Target</div>
@@ -338,7 +338,7 @@
     <div class="store-chip">🟩 Whole Foods</div>
     <div class="store-chip">🟦 Costco</div>
     <div class="store-chip">🌸 Trader Joe's</div>
-    <div class="store-chip">+ any store</div>
+    <div class="store-chip" data-t="store-any">+ any store</div>
   </div>
 </div>
 
@@ -349,19 +349,19 @@
       <div class="phone-shell">
         <img src="/screenshots/misplatosEN.jpeg" alt="My Recipes" class="phone-img" />
       </div>
-      <div class="phone-caption"><strong>My Recipes</strong>Your go-to meals</div>
+      <div class="phone-caption"><strong data-t="phone1-title">My Recipes</strong><span data-t="phone1-sub">Your go-to meals</span></div>
     </div>
     <div class="phone-frame main">
       <div class="phone-shell lg">
         <img src="/screenshots/calendarioEN.jpeg" alt="Monthly Planner" class="phone-img" />
       </div>
-      <div class="phone-caption"><strong>Monthly Planner</strong>Breakfast, lunch &amp; dinner</div>
+      <div class="phone-caption"><strong data-t="phone2-title">Monthly Planner</strong><span data-t="phone2-sub">Breakfast, lunch &amp; dinner</span></div>
     </div>
     <div class="phone-frame">
       <div class="phone-shell">
         <img src="/screenshots/despensaEN.jpeg" alt="My Pantry" class="phone-img" />
       </div>
-      <div class="phone-caption"><strong>My Pantry</strong>Everything you have at home</div>
+      <div class="phone-caption"><strong data-t="phone3-title">My Pantry</strong><span data-t="phone3-sub">Everything you have at home</span></div>
     </div>
   </div>
 </div>
@@ -370,36 +370,36 @@
 <section class="flow" id="how-it-works">
   <div class="section-inner">
     <div class="center">
-      <div class="section-label">How it works</div>
-      <h2 class="section-title">Four simple steps</h2>
+      <div class="section-label" data-t="flow-label">How it works</div>
+      <h2 class="section-title" data-t="flow-title">Four simple steps</h2>
     </div>
     <div class="flow-steps">
       <div class="flow-step">
         <div class="flow-step-line"><div class="flow-num">1</div><div class="flow-connector"></div></div>
         <div class="flow-body">
-          <h3>🧾 Scan your grocery receipt</h3>
-          <p>Upload the PDF receipt from Walmart, Target, Kroger or any other store. MiDespensa automatically identifies the products and updates your pantry in seconds.</p>
+          <h3 data-t="flow-h1">🧾 Scan your grocery receipt</h3>
+          <p data-t="flow-p1">Upload the PDF receipt from Walmart, Target, Kroger or any other store. MiDespensa automatically identifies the products and updates your pantry in seconds.</p>
         </div>
       </div>
       <div class="flow-step">
         <div class="flow-step-line"><div class="flow-num">2</div><div class="flow-connector"></div></div>
         <div class="flow-body">
-          <h3>🥕 Build your pantry</h3>
-          <p>Mark what you have available at home. The more ingredients you track, the better meal suggestions you'll get. Over 780 real US grocery items included.</p>
+          <h3 data-t="flow-h2">🥕 Build your pantry</h3>
+          <p data-t="flow-p2">Mark what you have available at home. The more ingredients you track, the better meal suggestions you'll get. Over 780 real US grocery items included.</p>
         </div>
       </div>
       <div class="flow-step">
         <div class="flow-step-line"><div class="flow-num">3</div><div class="flow-connector"></div></div>
         <div class="flow-body">
-          <h3>🍽️ Save your favorite recipes</h3>
-          <p>Add your usual meals or let AI suggest new ones based on what's in your pantry. Includes breakfast, lunch and dinner planning.</p>
+          <h3 data-t="flow-h3">🍽️ Save your favorite recipes</h3>
+          <p data-t="flow-p3">Add your usual meals or let AI suggest new ones based on what's in your pantry. Includes breakfast, lunch and dinner planning.</p>
         </div>
       </div>
       <div class="flow-step">
         <div class="flow-step-line"><div class="flow-num">4</div><div class="flow-connector"></div></div>
         <div class="flow-body">
-          <h3>📅 Your monthly calendar fills itself</h3>
-          <p>Tap "Auto-fill" and MiDespensa plans every breakfast, lunch and dinner for the whole month around your favorite recipes.</p>
+          <h3 data-t="flow-h4">📅 Your monthly calendar fills itself</h3>
+          <p data-t="flow-p4">Tap "Auto-fill" and MiDespensa plans every breakfast, lunch and dinner for the whole month around your favorite recipes.</p>
         </div>
       </div>
     </div>
@@ -410,10 +410,10 @@
 <section class="ticket-spot">
   <div class="spot-layout">
     <div class="spot-text">
-      <div class="section-label">AI-powered suggestions</div>
-      <h2>The app suggests recipes based on what you already have</h2>
-      <p>Turn on "From my pantry" and MiDespensa uses AI to recommend meals with ingredients you already own. Less food waste, less thinking, less money spent.</p>
-      <div class="spot-stat">✨ 100+ recipes · AI picks the most compatible ones</div>
+      <div class="section-label" data-t="spot-label">AI-powered suggestions</div>
+      <h2 data-t="spot-h2">The app suggests recipes based on what you already have</h2>
+      <p data-t="spot-p">Turn on "From my pantry" and MiDespensa uses AI to recommend meals with ingredients you already own. Less food waste, less thinking, less money spent.</p>
+      <div class="spot-stat" data-t="spot-stat">✨ 100+ recipes · AI picks the most compatible ones</div>
     </div>
     <div class="spot-phones">
       <div class="float-shot" style="max-width:340px;">
@@ -432,10 +432,10 @@
       </div>
     </div>
     <div class="recipe-text">
-      <div class="section-label">Nutrition Scanner</div>
-      <h2>Instantly know what's in the food you buy</h2>
-      <p>Point your camera at any barcode. Get <strong>FDA-style nutrition facts</strong> instantly — Calories, Total Fat, Saturated Fat, Carbohydrates, Protein, Dietary Fiber, and Sodium.</p>
-      <p>Also shows additives count so you know how processed a product is. Available to all users — full scan history with Pro.</p>
+      <div class="section-label" data-t="scan-label">Nutrition Scanner</div>
+      <h2 data-t="scan-h2">Instantly know what's in the food you buy</h2>
+      <p data-t="scan-p1">Point your camera at any barcode. Get <strong>FDA-style nutrition facts</strong> instantly — Calories, Total Fat, Saturated Fat, Carbohydrates, Protein, Dietary Fiber, and Sodium.</p>
+      <p data-t="scan-p2">Also shows additives count so you know how processed a product is. Available to all users — full scan history with Pro.</p>
     </div>
   </div>
 </section>
@@ -444,23 +444,23 @@
 <section class="ticket-spot" style="background:#fff;">
   <div class="spot-layout">
     <div class="spot-text">
-      <div class="section-label">Spending Tracker</div>
-      <h2>Know exactly where your grocery budget goes</h2>
-      <p>MiDespensa tracks every receipt and breaks down your spending by store, category and ingredient. See monthly trends, compare to last month, and export full PDF reports.</p>
-      <div class="spot-stat">💵 Spending in USD · Tracks Walmart, Target, Kroger &amp; more</div>
+      <div class="section-label" data-t="spend-label">Spending Tracker</div>
+      <h2 data-t="spend-h2">Know exactly where your grocery budget goes</h2>
+      <p data-t="spend-p">MiDespensa tracks every receipt and breaks down your spending by store, category and ingredient. See monthly trends, compare to last month, and export full PDF reports.</p>
+      <div class="spot-stat" data-t="spend-stat">💵 Spending in USD · Tracks Walmart, Target, Kroger &amp; more</div>
     </div>
     <div class="spot-phones">
       <div class="float-shot" style="max-width:340px; background:var(--gray-50); padding:20px; border-radius:18px;">
         <div style="text-align:center; padding:20px;">
           <div style="font-size:3rem; margin-bottom:12px;">💰</div>
           <div style="font-size:1.4rem; font-weight:800; color:#111;">$342.80</div>
-          <div style="font-size:.85rem; color:#9ca3af; margin-top:4px;">This month · 8 receipts</div>
+          <div style="font-size:.85rem; color:#9ca3af; margin-top:4px;" data-t="spend-month">This month · 8 receipts</div>
           <div style="display:flex; gap:8px; margin-top:16px; justify-content:center; flex-wrap:wrap;">
             <div style="background:#e8f5e9; color:#1b5e20; border-radius:8px; padding:6px 12px; font-size:.78rem; font-weight:600;">🥦 Produce $82</div>
             <div style="background:#e3f2fd; color:#0d47a1; border-radius:8px; padding:6px 12px; font-size:.78rem; font-weight:600;">🥩 Meat $124</div>
             <div style="background:#fff3e0; color:#e65100; border-radius:8px; padding:6px 12px; font-size:.78rem; font-weight:600;">🧀 Dairy $56</div>
           </div>
-          <div style="margin-top:12px; font-size:.75rem; color:#10b981; font-weight:600;">📉 $28 less than last month</div>
+          <div style="margin-top:12px; font-size:.75rem; color:#10b981; font-weight:600;" data-t="spend-less">📉 $28 less than last month</div>
         </div>
       </div>
     </div>
@@ -471,66 +471,66 @@
 <section class="features" id="features">
   <div class="section-inner">
     <div class="center">
-      <div class="section-label">Features</div>
-      <h2 class="section-title">Everything included</h2>
-      <p class="section-sub">Core features are free forever. Pro unlocks everything with no limits or ads.</p>
+      <div class="section-label" data-t="feat-label">Features</div>
+      <h2 class="section-title" data-t="feat-title">Everything included</h2>
+      <p class="section-sub" data-t="feat-sub">Core features are free forever. Pro unlocks everything with no limits or ads.</p>
     </div>
     <div class="features-grid">
 
       <div class="feat-card">
         <div class="feat-icon">📅</div>
-        <div class="plan-tag free">Free</div>
-        <h3>Monthly Meal Planner</h3>
-        <p>Plan breakfast, lunch and dinner for every day of the month. Smart auto-fill based on your favorite recipes and pantry stock.</p>
+        <div class="plan-tag free" data-t="feat1-tag">Free</div>
+        <h3 data-t="feat1-h3">Monthly Meal Planner</h3>
+        <p data-t="feat1-p">Plan breakfast, lunch and dinner for every day of the month. Smart auto-fill based on your favorite recipes and pantry stock.</p>
       </div>
 
       <div class="feat-card">
         <div class="feat-icon">🍽️</div>
-        <div class="plan-tag free">Free · up to 5 recipes</div>
-        <h3>My Recipes</h3>
-        <p>Save your go-to meals with ingredients, prep instructions and a YouTube link. Pro: unlimited recipes.</p>
+        <div class="plan-tag free" data-t="feat2-tag">Free · up to 5 recipes</div>
+        <h3 data-t="feat2-h3">My Recipes</h3>
+        <p data-t="feat2-p">Save your go-to meals with ingredients, prep instructions and a YouTube link. Pro: unlimited recipes.</p>
       </div>
 
       <div class="feat-card">
         <div class="feat-icon">✨</div>
-        <div class="plan-tag free">Free · 5 suggestions</div>
-        <h3>AI Recipe Suggestions</h3>
-        <p>AI selects the best recipes compatible with your current pantry. Pro: unlimited suggestions and diet filters.</p>
+        <div class="plan-tag free" data-t="feat3-tag">Free · 5 suggestions</div>
+        <h3 data-t="feat3-h3">AI Recipe Suggestions</h3>
+        <p data-t="feat3-p">AI selects the best recipes compatible with your current pantry. Pro: unlimited suggestions and diet filters.</p>
       </div>
 
       <div class="feat-card">
         <div class="feat-icon">🧾</div>
-        <div class="plan-tag free">Free · up to 3 receipts</div>
-        <h3>Receipt Scanning</h3>
-        <p>Upload your store receipt PDF and your pantry updates automatically. Works with Walmart, Target, Kroger and more. Pro: unlimited receipts.</p>
+        <div class="plan-tag free" data-t="feat4-tag">Free · up to 3 receipts</div>
+        <h3 data-t="feat4-h3">Receipt Scanning</h3>
+        <p data-t="feat4-p">Upload your store receipt PDF and your pantry updates automatically. Works with Walmart, Target, Kroger and more. Pro: unlimited receipts.</p>
       </div>
 
       <div class="feat-card">
         <div class="feat-icon">🔬</div>
-        <div class="plan-tag free">Free · 5 in history</div>
-        <h3>Nutrition Scanner</h3>
-        <p>FDA-style nutrition facts for any product — scan the barcode and get Calories, Protein, Carbs, Fiber, Sodium and more.</p>
+        <div class="plan-tag free" data-t="feat5-tag">Free · 5 in history</div>
+        <h3 data-t="feat5-h3">Nutrition Scanner</h3>
+        <p data-t="feat5-p">FDA-style nutrition facts for any product — scan the barcode and get Calories, Protein, Carbs, Fiber, Sodium and more.</p>
       </div>
 
       <div class="feat-card pro-card">
         <div class="feat-icon">💰</div>
         <div class="plan-tag pro">Pro</div>
-        <h3>Spending Reports</h3>
-        <p>Monthly trends, breakdown by category and store, top ingredients. Export your spending report as PDF.</p>
+        <h3 data-t="feat6-h3">Spending Reports</h3>
+        <p data-t="feat6-p">Monthly trends, breakdown by category and store, top ingredients. Export your spending report as PDF.</p>
       </div>
 
       <div class="feat-card pro-card">
         <div class="feat-icon">📊</div>
         <div class="plan-tag pro">Pro</div>
-        <h3>Nutrition &amp; Macros</h3>
-        <p>Calories and macros per meal, monthly nutrition report in PDF with energy distribution charts.</p>
+        <h3 data-t="feat7-h3">Nutrition &amp; Macros</h3>
+        <p data-t="feat7-p">Calories and macros per meal, monthly nutrition report in PDF with energy distribution charts.</p>
       </div>
 
       <div class="feat-card pro-card">
         <div class="feat-icon">🥗</div>
         <div class="plan-tag pro">Pro</div>
-        <h3>Diet Filters</h3>
-        <p>AI suggestions filtered by diet: healthy, vegan, vegetarian, paleo, high-protein and more.</p>
+        <h3 data-t="feat8-h3">Diet Filters</h3>
+        <p data-t="feat8-p">AI suggestions filtered by diet: healthy, vegan, vegetarian, paleo, high-protein and more.</p>
       </div>
 
     </div>
@@ -541,60 +541,60 @@
 <section class="compare">
   <div class="section-inner">
     <div class="center">
-      <div class="section-label">Why MiDespensa</div>
-      <h2 class="section-title">More features. Smarter price.</h2>
-      <p class="section-sub">Other apps do one thing. MiDespensa does it all — pantry, planning, receipts, nutrition, and spending.</p>
+      <div class="section-label" data-t="compare-label">Why MiDespensa</div>
+      <h2 class="section-title" data-t="compare-title">More features. Smarter price.</h2>
+      <p class="section-sub" data-t="compare-sub">Other apps do one thing. MiDespensa does it all — pantry, planning, receipts, nutrition, and spending.</p>
     </div>
     <div class="compare-table">
       <div class="compare-head">
-        <div>Feature</div>
+        <div data-t="cmp-head-feature">Feature</div>
         <div class="ours">MiDespensa</div>
-        <div>Competitors</div>
+        <div data-t="cmp-head-comp">Competitors</div>
       </div>
       <div class="compare-row">
-        <div>Monthly Meal Planner</div>
+        <div data-t="cmp-row-1">Monthly Meal Planner</div>
         <div class="ours"><span class="check-yes">✓</span></div>
-        <div>Some</div>
+        <div data-t="cmp-comp-1">Some</div>
       </div>
       <div class="compare-row">
-        <div>Breakfast + Lunch + Dinner</div>
+        <div data-t="cmp-row-2">Breakfast + Lunch + Dinner</div>
         <div class="ours"><span class="check-yes">✓</span></div>
-        <div>Rarely</div>
+        <div data-t="cmp-comp-2">Rarely</div>
       </div>
       <div class="compare-row">
-        <div>Pantry inventory (780+ US items)</div>
+        <div data-t="cmp-row-3">Pantry inventory (780+ US items)</div>
         <div class="ours"><span class="check-yes">✓</span></div>
-        <div>Some</div>
+        <div data-t="cmp-comp-3">Some</div>
       </div>
       <div class="compare-row">
-        <div>Receipt scanning (Walmart, Target…)</div>
-        <div class="ours"><span class="check-yes">✓</span></div>
-        <div><span class="check-no">✗</span></div>
-      </div>
-      <div class="compare-row">
-        <div>Barcode nutrition scanner</div>
-        <div class="ours"><span class="check-yes">✓</span></div>
-        <div>Some</div>
-      </div>
-      <div class="compare-row">
-        <div>Grocery spending tracker</div>
+        <div data-t="cmp-row-4">Receipt scanning (Walmart, Target…)</div>
         <div class="ours"><span class="check-yes">✓</span></div>
         <div><span class="check-no">✗</span></div>
       </div>
       <div class="compare-row">
-        <div>AI recipe suggestions from pantry</div>
+        <div data-t="cmp-row-5">Barcode nutrition scanner</div>
         <div class="ours"><span class="check-yes">✓</span></div>
-        <div>Rarely</div>
+        <div data-t="cmp-comp-5">Some</div>
       </div>
       <div class="compare-row">
-        <div>Zero ads</div>
+        <div data-t="cmp-row-6">Grocery spending tracker</div>
         <div class="ours"><span class="check-yes">✓</span></div>
-        <div>Rarely</div>
+        <div><span class="check-no">✗</span></div>
       </div>
       <div class="compare-row">
-        <div>Price</div>
+        <div data-t="cmp-row-7">AI recipe suggestions from pantry</div>
+        <div class="ours"><span class="check-yes">✓</span></div>
+        <div data-t="cmp-comp-7">Rarely</div>
+      </div>
+      <div class="compare-row">
+        <div data-t="cmp-row-8">Zero ads</div>
+        <div class="ours"><span class="check-yes">✓</span></div>
+        <div data-t="cmp-comp-8">Rarely</div>
+      </div>
+      <div class="compare-row">
+        <div data-t="cmp-row-9">Price</div>
         <div class="ours">$4.99/mo</div>
-        <div>$3.99–$5.99/mo</div>
+        <div data-t="cmp-comp-9">$3.99–$5.99/mo</div>
       </div>
     </div>
   </div>
@@ -602,71 +602,71 @@
 
 <!-- ── TRIAL CTA ── -->
 <section class="trial-section">
-  <div class="trial-badge">🎁 Welcome offer</div>
-  <h2>7 days with <em>everything Pro, free</em></h2>
-  <p>When you sign up for the first time, you get a full week to try every Pro feature — no payment, no credit card, no commitment.</p>
+  <div class="trial-badge" data-t="trial-badge">🎁 Welcome offer</div>
+  <h2 data-t="trial-h2">7 days with <em>everything Pro, free</em></h2>
+  <p data-t="trial-p">When you sign up for the first time, you get a full week to try every Pro feature — no payment, no credit card, no commitment.</p>
   <div class="trial-perks">
-    <div class="trial-perk">✓ Unlimited recipes</div>
-    <div class="trial-perk">✓ Unlimited receipts</div>
-    <div class="trial-perk">✓ Full nutrition scanner</div>
-    <div class="trial-perk">✓ PDF spending &amp; nutrition reports</div>
-    <div class="trial-perk">✓ Diet filters with AI</div>
-    <div class="trial-perk">✓ Zero ads</div>
+    <div class="trial-perk" data-t="trial-perk1">✓ Unlimited recipes</div>
+    <div class="trial-perk" data-t="trial-perk2">✓ Unlimited receipts</div>
+    <div class="trial-perk" data-t="trial-perk3">✓ Full nutrition scanner</div>
+    <div class="trial-perk" data-t="trial-perk4">✓ PDF spending &amp; nutrition reports</div>
+    <div class="trial-perk" data-t="trial-perk5">✓ Diet filters with AI</div>
+    <div class="trial-perk" data-t="trial-perk6">✓ Zero ads</div>
   </div>
-  <a href="/app?lang=en" class="btn btn-white">Start your free week →</a>
-  <p class="trial-note">After 7 days, stay on the free plan or subscribe for $4.99/month</p>
+  <a href="/app?lang=en" class="btn btn-white" data-t="trial-cta">Start your free week →</a>
+  <p class="trial-note" data-t="trial-note">After 7 days, stay on the free plan or subscribe for $4.99/month</p>
 </section>
 
 <!-- ── PRICING ── -->
 <section class="pricing" id="pricing">
   <div class="section-inner">
     <div class="center">
-      <div class="section-label">Pricing</div>
-      <h2 class="section-title">You pay for the app.<br/>You're not the product.</h2>
-      <p class="section-sub" style="max-width:620px;">Most free recipe apps make money by selling your data and showing you ads. MiDespensa is funded by a direct subscription — no ads, no tracking, no selling your data.</p>
+      <div class="section-label" data-t="price-label">Pricing</div>
+      <h2 class="section-title" data-t="price-title">You pay for the app.<br/>You're not the product.</h2>
+      <p class="section-sub" data-t="price-sub" style="max-width:620px;">Most free recipe apps make money by selling your data and showing you ads. MiDespensa is funded by a direct subscription — no ads, no tracking, no selling your data.</p>
     </div>
     <div class="pricing-grid">
 
       <!-- FREE -->
       <div class="pricing-card">
-        <div class="pricing-plan">Free</div>
-        <div class="pricing-price">$0 <span>/ forever</span></div>
-        <div class="pricing-desc">A great way to get started and see how it works.</div>
+        <div class="pricing-plan" data-t="price-free-plan">Free</div>
+        <div class="pricing-price" data-t="price-free-price">$0 <span>/ forever</span></div>
+        <div class="pricing-desc" data-t="price-free-desc">A great way to get started and see how it works.</div>
         <ul class="pricing-features">
-          <li><span class="icon">✓</span> Up to 5 saved recipes</li>
-          <li><span class="icon">✓</span> Up to 3 grocery receipts</li>
-          <li><span class="icon">✓</span> Full monthly meal planner</li>
-          <li><span class="icon">✓</span> 5 AI recipe suggestions</li>
-          <li><span class="icon">✓</span> Nutrition scanner (5 in history)</li>
-          <li><span class="icon">✓</span> Shopping list generator</li>
+          <li data-t="price-free-f1"><span class="icon">✓</span> Up to 5 saved recipes</li>
+          <li data-t="price-free-f2"><span class="icon">✓</span> Up to 3 grocery receipts</li>
+          <li data-t="price-free-f3"><span class="icon">✓</span> Full monthly meal planner</li>
+          <li data-t="price-free-f4"><span class="icon">✓</span> 5 AI recipe suggestions</li>
+          <li data-t="price-free-f5"><span class="icon">✓</span> Nutrition scanner (5 in history)</li>
+          <li data-t="price-free-f6"><span class="icon">✓</span> Shopping list generator</li>
         </ul>
-        <a href="/app?lang=en" class="btn btn-outline pricing-cta">Start for free</a>
+        <a href="/app?lang=en" class="btn btn-outline pricing-cta" data-t="price-free-cta">Start for free</a>
       </div>
 
       <!-- PRO -->
       <div class="pricing-card highlighted">
-        <div class="popular-badge">⭐ Most popular · 7 days free</div>
-        <div class="pricing-plan teal">Pro</div>
-        <div class="pricing-price" style="color:var(--teal-700);">$4.99 <span>/ month</span></div>
-        <div class="pricing-yearly">or $39.99/year <span class="save-badge">save 33%</span></div>
-        <div class="pricing-desc">Everything unlocked. No limits. No ads.</div>
+        <div class="popular-badge" data-t="price-pro-badge">⭐ Most popular · 7 days free</div>
+        <div class="pricing-plan teal" data-t="price-pro-plan">Pro</div>
+        <div class="pricing-price" style="color:var(--teal-700);" data-t="price-pro-price">$4.99 <span>/ month</span></div>
+        <div class="pricing-yearly" data-t="price-pro-yearly">or $39.99/year <span class="save-badge">save 33%</span></div>
+        <div class="pricing-desc" data-t="price-pro-desc">Everything unlocked. No limits. No ads.</div>
         <ul class="pricing-features teal">
-          <li><span class="icon">✓</span> <strong>Unlimited recipes</strong></li>
-          <li><span class="icon">✓</span> <strong>Unlimited receipts</strong></li>
-          <li><span class="icon">✓</span> Unlimited AI suggestions</li>
-          <li><span class="icon">✓</span> Diet filters (vegan, paleo, healthy…)</li>
-          <li><span class="icon">✓</span> Macros &amp; calories per meal</li>
-          <li><span class="icon">✓</span> Full nutrition scanner &amp; history</li>
-          <li><span class="icon">✓</span> Spending report with charts (PDF)</li>
-          <li><span class="icon">✓</span> Monthly nutrition report (PDF)</li>
-          <li><span class="icon">✓</span> Unlimited price history</li>
+          <li data-t="price-pro-f1"><span class="icon">✓</span> <strong>Unlimited recipes</strong></li>
+          <li data-t="price-pro-f2"><span class="icon">✓</span> <strong>Unlimited receipts</strong></li>
+          <li data-t="price-pro-f3"><span class="icon">✓</span> Unlimited AI suggestions</li>
+          <li data-t="price-pro-f4"><span class="icon">✓</span> Diet filters (vegan, paleo, healthy…)</li>
+          <li data-t="price-pro-f5"><span class="icon">✓</span> Macros &amp; calories per meal</li>
+          <li data-t="price-pro-f6"><span class="icon">✓</span> Full nutrition scanner &amp; history</li>
+          <li data-t="price-pro-f7"><span class="icon">✓</span> Spending report with charts (PDF)</li>
+          <li data-t="price-pro-f8"><span class="icon">✓</span> Monthly nutrition report (PDF)</li>
+          <li data-t="price-pro-f9"><span class="icon">✓</span> Unlimited price history</li>
         </ul>
-        <a href="/app?lang=en" class="btn btn-teal pricing-cta">Start 7 days free →</a>
+        <a href="/app?lang=en" class="btn btn-teal pricing-cta" data-t="price-pro-cta">Start 7 days free →</a>
       </div>
 
     </div>
-    <p class="pricing-trial-note">🎁 The first 7 days are completely free with full Pro access. No credit card required to start.</p>
-    <p class="pricing-note">Cancel any time from the app settings.</p>
+    <p class="pricing-trial-note" data-t="price-trial-note">🎁 The first 7 days are completely free with full Pro access. No credit card required to start.</p>
+    <p class="pricing-note" data-t="price-note">Cancel any time from the app settings.</p>
   </div>
 </section>
 
@@ -674,41 +674,41 @@
 <section class="faq" id="faq">
   <div class="section-inner">
     <div class="center">
-      <div class="section-label">FAQ</div>
-      <h2 class="section-title">Got questions?</h2>
+      <div class="section-label" data-t="faq-label">FAQ</div>
+      <h2 class="section-title" data-t="faq-title">Got questions?</h2>
     </div>
     <div class="faq-list">
       <details open>
-        <summary>How does the 7-day free trial work?</summary>
-        <div class="faq-body">When you create your account for the first time, you automatically get 7 days of full Pro access — unlimited recipes, unlimited receipts, full nutrition scanner, PDF reports and everything else. No credit card needed. After 7 days, you can keep using the app for free (with some limits) or subscribe to Pro for $4.99/month.</div>
+        <summary data-t="faq-q1">How does the 7-day free trial work?</summary>
+        <div class="faq-body" data-t="faq-a1">When you create your account for the first time, you automatically get 7 days of full Pro access — unlimited recipes, unlimited receipts, full nutrition scanner, PDF reports and everything else. No credit card needed. After 7 days, you can keep using the app for free (with some limits) or subscribe to Pro for $4.99/month.</div>
       </details>
       <details>
-        <summary>What happens when the free trial ends?</summary>
-        <div class="faq-body">You're automatically moved to the free plan: up to 5 recipes, 3 receipts, 5 AI suggestions and 5 scans in history. All your data is kept. If you want everything unlimited again, you can subscribe to Pro from the app settings.</div>
+        <summary data-t="faq-q2">What happens when the free trial ends?</summary>
+        <div class="faq-body" data-t="faq-a2">You're automatically moved to the free plan: up to 5 recipes, 3 receipts, 5 AI suggestions and 5 scans in history. All your data is kept. If you want everything unlimited again, you can subscribe to Pro from the app settings.</div>
       </details>
       <details>
-        <summary>Do I need to install anything?</summary>
-        <div class="faq-body">No. MiDespensa works directly in your browser on any device. You can also install it as an app on your phone (PWA) without going through any app store: open midespensa.app in Chrome or Safari and tap "Add to Home Screen." It works just like a native app.</div>
+        <summary data-t="faq-q3">Do I need to install anything?</summary>
+        <div class="faq-body" data-t="faq-a3">No. MiDespensa works directly in your browser on any device. You can also install it as an app on your phone (PWA) without going through any app store: open midespensa.app in Chrome or Safari and tap "Add to Home Screen." It works just like a native app.</div>
       </details>
       <details>
-        <summary>Does it work offline?</summary>
-        <div class="faq-body">Yes. MiDespensa works offline — you can check your meal plan, shopping list and pantry even without a connection. You only need internet to sync data between devices or the first time you log in.</div>
+        <summary data-t="faq-q4">Does it work offline?</summary>
+        <div class="faq-body" data-t="faq-a4">Yes. MiDespensa works offline — you can check your meal plan, shopping list and pantry even without a connection. You only need internet to sync data between devices or the first time you log in.</div>
       </details>
       <details>
-        <summary>Which stores' receipts does it support?</summary>
-        <div class="faq-body">MiDespensa can parse receipts from Walmart, Target, Kroger, Whole Foods, Costco, Trader Joe's and virtually any other US grocery store. Upload the PDF receipt you receive by email and it automatically detects products and prices.</div>
+        <summary data-t="faq-q5">Which stores' receipts does it support?</summary>
+        <div class="faq-body" data-t="faq-a5">MiDespensa can parse receipts from Walmart, Target, Kroger, Whole Foods, Costco, Trader Joe's and virtually any other US grocery store. Upload the PDF receipt you receive by email and it automatically detects products and prices.</div>
       </details>
       <details>
-        <summary>Can I use the same account on multiple devices?</summary>
-        <div class="faq-body">Yes. All your data syncs to the cloud. Access from your phone, tablet, and computer with the same account — changes appear on every device instantly.</div>
+        <summary data-t="faq-q6">Can I use the same account on multiple devices?</summary>
+        <div class="faq-body" data-t="faq-a6">Yes. All your data syncs to the cloud. Access from your phone, tablet, and computer with the same account — changes appear on every device instantly.</div>
       </details>
       <details>
-        <summary>What happens to my data if I cancel?</summary>
-        <div class="faq-body">Your data stays in your account. If you cancel, you're moved back to the free plan — your meal plan, pantry and recipes are never deleted. You can reactivate your subscription at any time.</div>
+        <summary data-t="faq-q7">What happens to my data if I cancel?</summary>
+        <div class="faq-body" data-t="faq-a7">Your data stays in your account. If you cancel, you're moved back to the free plan — your meal plan, pantry and recipes are never deleted. You can reactivate your subscription at any time.</div>
       </details>
       <details>
-        <summary>Is MiDespensa available on Android?</summary>
-        <div class="faq-body">Yes! MiDespensa is available on Google Play and also as a PWA you can install directly from Chrome. Just visit midespensa.app in Chrome and tap the install icon in the address bar. It works exactly like a native app.</div>
+        <summary data-t="faq-q8">Is MiDespensa available on Android?</summary>
+        <div class="faq-body" data-t="faq-a8">Yes! MiDespensa is available on Google Play and also as a PWA you can install directly from Chrome. Just visit midespensa.app in Chrome and tap the install icon in the address bar. It works exactly like a native app.</div>
       </details>
     </div>
   </div>
@@ -716,10 +716,10 @@
 
 <!-- ── CTA FINAL ── -->
 <div class="trial-section" style="padding:72px 24px;">
-  <h2>Ready to organize your kitchen?</h2>
-  <p>Set up your pantry and meal plan in minutes. First week completely free, no credit card needed.</p>
-  <a href="/app?lang=en" class="btn btn-white" style="margin-top:8px;">Start your free week →</a>
-  <p class="trial-note">After that, free plan forever or Pro from $4.99/month</p>
+  <h2 data-t="final-h2">Ready to organize your kitchen?</h2>
+  <p data-t="final-p">Set up your pantry and meal plan in minutes. First week completely free, no credit card needed.</p>
+  <a href="/app?lang=en" class="btn btn-white" style="margin-top:8px;" data-t="final-cta">Start your free week →</a>
+  <p class="trial-note" data-t="final-note">After that, free plan forever or Pro from $4.99/month</p>
 </div>
 
 <!-- ── FOOTER ── -->
@@ -727,13 +727,230 @@
   <div class="footer-inner">
     <span>© 2026 MiDespensa · <a href="mailto:contact@midespensa.app" style="color:var(--gray-400); text-decoration:none;">contact@midespensa.app</a></span>
     <div class="footer-links">
-      <a href="/privacidad.html">Privacy</a>
-      <a href="/terminos.html">Terms</a>
-      <a href="/?lang=es">Español 🇪🇸</a>
-      <a href="/app?lang=en" style="color:#fff;font-weight:600;">Open app →</a>
+      <a href="/privacidad.html" data-t="footer-priv">Privacy</a>
+      <a href="/terminos.html" data-t="footer-terms">Terms</a>
+      <a href="#" data-t="footer-lang" onclick="toggleLang(event)">Español 🇪🇸</a>
+      <a href="/app?lang=en" style="color:#fff;font-weight:600;" data-t="footer-app">Open app →</a>
     </div>
   </div>
 </footer>
+
+<script>
+var currentLang = 'en';
+var originalTexts = {};
+
+var translations = {
+  'banner-strong': 'Primera semana completamente gratis',
+  'banner-text': ' — Prueba todas las funciones Pro sin tarjeta. ',
+  'banner-link': 'Empezar ahora →',
+  'nav-how': 'Cómo funciona',
+  'nav-feat': 'Funciones',
+  'nav-price': 'Precios',
+  'nav-cta': 'Probar gratis →',
+  'hero-badge': '🎁 Primera semana gratis · Sin tarjeta necesaria',
+  'hero-h1': 'Olvídate de pensar<br/><span>qué cocinar</span> cada día',
+  'hero-p': 'Escanea tus tickets, organiza tu despensa y deja que MiDespensa planifique el mes por ti. Completamente gratis durante 7 días.',
+  'hero-cta1': 'Empezar gratis — 7 días Pro',
+  'hero-cta2': 'Ver cómo funciona',
+  'hero-trust1': '<span class="check">✓</span> 7 días con todo Pro gratis',
+  'hero-trust2': '<span class="check">✓</span> Sin tarjeta para empezar',
+  'hero-trust3': '<span class="check">✓</span> iOS y Android',
+  'hero-trust4': '<span class="check">✓</span> Sin anuncios',
+  'stores-label': 'Compatible con tickets de tus tiendas favoritas',
+  'store-any': '+ cualquier tienda',
+  'phone1-title': 'Mis platos',
+  'phone1-sub': 'Tus recetas habituales',
+  'phone2-title': 'Plan mensual',
+  'phone2-sub': 'Desayuno, comida y cena',
+  'phone3-title': 'Mi despensa',
+  'phone3-sub': 'Todo lo que tienes en casa',
+  'flow-label': 'Cómo funciona',
+  'flow-title': 'Cuatro pasos',
+  'flow-h1': '🧾 Escanea tu ticket del supermercado',
+  'flow-p1': 'Sube el PDF del ticket de Walmart, Target, Kroger o cualquier otra tienda. MiDespensa identifica los productos automáticamente y actualiza tu despensa en segundos.',
+  'flow-h2': '🥕 Completa tu despensa',
+  'flow-p2': 'Marca qué tienes disponible en casa. Cuantos más ingredientes tengas registrados, mejores sugerencias recibirás. Más de 780 productos de supermercados americanos incluidos.',
+  'flow-h3': '🍽️ Guarda tus platos favoritos',
+  'flow-p3': 'Añade tus recetas habituales o deja que la IA te sugiera nuevas según lo que tienes. Incluye desayuno, comida y cena.',
+  'flow-h4': '📅 El calendario del mes se rellena solo',
+  'flow-p4': 'Pulsa "Autocompletar" y MiDespensa planifica desayuno, comida y cena para todo el mes respetando tus platos favoritos.',
+  'spot-label': 'Sugerencias con IA',
+  'spot-h2': 'La app te sugiere recetas según lo que tienes en casa',
+  'spot-p': 'Activa "Con lo que tengo en despensa" y MiDespensa usa IA para proponer recetas con los ingredientes que ya tienes. Sin desperdicio, sin complicaciones.',
+  'spot-stat': '✨ +100 recetas · IA selecciona las más compatibles',
+  'scan-label': 'Escáner nutricional',
+  'scan-h2': 'Descubre qué tan sano es lo que compras',
+  'scan-p1': 'Apunta la cámara al código de barras de cualquier alimento. Obtén al instante los <strong>datos nutricionales</strong> — Calorías, Grasa Total, Grasa Saturada, Carbohidratos, Proteínas, Fibra y Sodio.',
+  'scan-p2': 'También muestra el número de aditivos para saber cómo de procesado es un producto. Disponible para todos los usuarios — historial completo con Pro.',
+  'spend-label': 'Control de gastos',
+  'spend-h2': 'Sabe exactamente adónde va tu presupuesto',
+  'spend-p': 'MiDespensa registra cada ticket y desglosa el gasto por tienda, categoría e ingrediente. Consulta tendencias mensuales, compara con el mes anterior y exporta informes PDF.',
+  'spend-stat': '💵 Gastos en USD · Compatible con Walmart, Target, Kroger y más',
+  'spend-month': 'Este mes · 8 tickets',
+  'spend-less': '📉 $28 menos que el mes pasado',
+  'feat-label': 'Funcionalidades',
+  'feat-title': 'Todo lo que incluye',
+  'feat-sub': 'Las funciones básicas son gratuitas para siempre. Pro desbloquea todo sin límites.',
+  'feat1-tag': 'Gratis',
+  'feat1-h3': 'Plan mensual',
+  'feat1-p': 'Planifica desayuno, comida y cena para cada día del mes. Autocompletado inteligente basado en tus platos favoritos.',
+  'feat2-tag': 'Gratis · hasta 5 platos',
+  'feat2-h3': 'Mis platos',
+  'feat2-p': 'Guarda tus recetas con ingredientes, instrucciones y enlace a YouTube. Pro: platos ilimitados.',
+  'feat3-tag': 'Gratis · 5 sugerencias',
+  'feat3-h3': 'Sugerencias con IA',
+  'feat3-p': 'La IA selecciona las mejores recetas compatibles con tu despensa. Pro: sugerencias y filtros ilimitados.',
+  'feat4-tag': 'Gratis · hasta 3 tickets',
+  'feat4-h3': 'Escaneo de tickets',
+  'feat4-p': 'Sube el PDF del supermercado y tu despensa se actualiza sola. Compatible con Walmart, Target, Kroger y más. Pro: tickets ilimitados.',
+  'feat5-tag': 'Gratis · 5 en historial',
+  'feat5-h3': 'Escáner nutricional',
+  'feat5-p': 'Datos nutricionales de cualquier producto — escanea el código de barras y obtén Calorías, Proteínas, Carbohidratos, Fibra, Sodio y más.',
+  'feat6-h3': 'Informe de gastos',
+  'feat6-p': 'Evolución mensual, desglose por categoría y tienda, top ingredientes. Exporta el informe en PDF.',
+  'feat7-h3': 'Nutrición y macros',
+  'feat7-p': 'Calorías y macros por plato, informe nutricional mensual en PDF con gráficos de distribución energética.',
+  'feat8-h3': 'Filtros de dieta',
+  'feat8-p': 'Sugerencias filtradas por tipo de dieta: saludable, vegano, vegetariano, paleo, alta proteína y más.',
+  'compare-label': 'Por qué MiDespensa',
+  'compare-title': 'Más funciones. Mejor precio.',
+  'compare-sub': 'Otras apps hacen una cosa. MiDespensa lo hace todo — despensa, planificación, tickets, nutrición y gastos.',
+  'cmp-head-feature': 'Función',
+  'cmp-head-comp': 'Competidores',
+  'cmp-row-1': 'Plan mensual',
+  'cmp-comp-1': 'Algunos',
+  'cmp-row-2': 'Desayuno + Comida + Cena',
+  'cmp-comp-2': 'Raramente',
+  'cmp-row-3': 'Inventario de despensa (780+ productos USA)',
+  'cmp-comp-3': 'Algunos',
+  'cmp-row-4': 'Escaneo de tickets (Walmart, Target…)',
+  'cmp-row-5': 'Escáner nutricional',
+  'cmp-comp-5': 'Algunos',
+  'cmp-row-6': 'Control de gastos',
+  'cmp-row-7': 'Sugerencias IA desde despensa',
+  'cmp-comp-7': 'Raramente',
+  'cmp-row-8': 'Sin anuncios',
+  'cmp-comp-8': 'Raramente',
+  'cmp-row-9': 'Precio',
+  'cmp-comp-9': '$3.99–$5.99/mes',
+  'trial-badge': '🎁 Oferta de bienvenida',
+  'trial-h2': '7 días con <em>todo Pro gratis</em>',
+  'trial-p': 'Al registrarte por primera vez tienes una semana entera para probar todas las funciones sin pagar nada. Sin introducir tarjeta. Sin compromisos.',
+  'trial-perk1': '✓ Platos ilimitados',
+  'trial-perk2': '✓ Tickets ilimitados',
+  'trial-perk3': '✓ Escáner nutricional completo',
+  'trial-perk4': '✓ Informes PDF de gastos y nutrición',
+  'trial-perk5': '✓ Filtros de dieta con IA',
+  'trial-perk6': '✓ Sin anuncios',
+  'trial-cta': 'Empezar la semana gratis →',
+  'trial-note': 'Al terminar los 7 días continúas con el plan gratuito o te suscribes por $4.99/mes',
+  'price-label': 'Precios',
+  'price-title': 'Pagas por la app.<br/>No eres el producto.',
+  'price-sub': 'Otras apps de recetas son gratuitas porque monetizan tus datos y te meten publicidad. MiDespensa se financia con una suscripción directa: sin anuncios, sin rastreo.',
+  'price-free-plan': 'Gratuito',
+  'price-free-price': '$0 <span>/ siempre</span>',
+  'price-free-desc': 'Para empezar y ver cómo funciona.',
+  'price-free-f1': '<span class="icon">✓</span> Hasta 5 platos guardados',
+  'price-free-f2': '<span class="icon">✓</span> Hasta 3 tickets del super',
+  'price-free-f3': '<span class="icon">✓</span> Plan mensual completo',
+  'price-free-f4': '<span class="icon">✓</span> 5 sugerencias de recetas con IA',
+  'price-free-f5': '<span class="icon">✓</span> Escáner nutricional (5 en historial)',
+  'price-free-f6': '<span class="icon">✓</span> Lista de la compra',
+  'price-free-cta': 'Empezar gratis',
+  'price-pro-badge': '⭐ Más popular · 7 días gratis',
+  'price-pro-plan': 'Pro',
+  'price-pro-price': '$4.99 <span>/ mes</span>',
+  'price-pro-yearly': 'o $39.99/año <span class="save-badge">ahorra 33%</span>',
+  'price-pro-desc': 'Todo desbloqueado. Sin límites. Sin anuncios.',
+  'price-pro-f1': '<span class="icon">✓</span> <strong>Platos ilimitados</strong>',
+  'price-pro-f2': '<span class="icon">✓</span> <strong>Tickets ilimitados</strong>',
+  'price-pro-f3': '<span class="icon">✓</span> Sugerencias ilimitadas con IA',
+  'price-pro-f4': '<span class="icon">✓</span> Filtros de dieta (vegano, paleo, sano…)',
+  'price-pro-f5': '<span class="icon">✓</span> Macros y calorías por plato',
+  'price-pro-f6': '<span class="icon">✓</span> Escáner nutricional completo e historial',
+  'price-pro-f7': '<span class="icon">✓</span> Informe de gastos con gráficos (PDF)',
+  'price-pro-f8': '<span class="icon">✓</span> Informe nutricional mensual (PDF)',
+  'price-pro-f9': '<span class="icon">✓</span> Historial de precios ilimitado',
+  'price-pro-cta': 'Empezar 7 días gratis →',
+  'price-trial-note': '🎁 Los 7 primeros días son gratis con acceso Pro completo. No se requiere tarjeta.',
+  'price-note': 'Cancela cuando quieras desde los ajustes de la app.',
+  'faq-label': 'Preguntas frecuentes',
+  'faq-title': '¿Tienes dudas?',
+  'faq-q1': '¿Cómo funciona la primera semana gratis?',
+  'faq-a1': 'Al crear tu cuenta por primera vez, tienes automáticamente 7 días con acceso completo Pro: platos ilimitados, tickets ilimitados, escáner nutricional, informes PDF y todo lo demás. Sin tarjeta. Al terminar los 7 días, puedes seguir con el plan gratuito (con límites) o suscribirte a Pro por $4.99/mes.',
+  'faq-q2': '¿Qué pasa cuando se acaba la semana gratis?',
+  'faq-a2': 'Pasas automáticamente al plan gratuito: hasta 5 platos, 3 tickets, 5 sugerencias IA y 5 escáneres en historial. Todos tus datos se conservan. Suscríbete a Pro desde los ajustes para acceso ilimitado.',
+  'faq-q3': '¿Necesito instalar algo?',
+  'faq-a3': 'No. MiDespensa funciona directamente desde el navegador en cualquier dispositivo. También puedes instalarla como app (PWA) sin pasar por ninguna tienda: abre midespensa.app en Chrome o Safari y pulsa "Añadir a la pantalla de inicio".',
+  'faq-q4': '¿Funciona sin conexión?',
+  'faq-a4': 'Sí. MiDespensa funciona sin conexión: consulta tu plan, lista de la compra y despensa aunque no tengas red. Solo necesitas internet para sincronizar datos o la primera vez que inicias sesión.',
+  'faq-q5': '¿De qué tiendas acepta tickets?',
+  'faq-a5': 'MiDespensa puede procesar tickets de Walmart, Target, Kroger, Whole Foods, Costco, Trader Joe\'s y prácticamente cualquier supermercado de EE.UU. Sube el PDF del ticket que recibes por email y detecta productos y precios automáticamente.',
+  'faq-q6': '¿Puedo usar la misma cuenta en varios dispositivos?',
+  'faq-a6': 'Sí. Todos los datos se sincronizan en la nube. Accede desde el móvil, tablet y ordenador con la misma cuenta — los cambios aparecen en todos los dispositivos.',
+  'faq-q7': '¿Qué pasa con mis datos si cancelo?',
+  'faq-a7': 'Tus datos permanecen en tu cuenta. Si cancelas, vuelves al plan gratuito — tu plan, despensa y platos no se borran. Reactiva la suscripción cuando quieras.',
+  'faq-q8': '¿MiDespensa está disponible en Android?',
+  'faq-a8': '¡Sí! MiDespensa está disponible en Google Play y también como PWA que puedes instalar desde Chrome. Visita midespensa.app y pulsa el icono de instalación. Funciona como una app nativa.',
+  'final-h2': '¿Lista la nevera para este mes?',
+  'final-p': 'Organiza tu cocina familiar en minutos. Primera semana completamente gratis, sin tarjeta.',
+  'final-cta': 'Empezar la semana gratis →',
+  'final-note': 'Después, plan gratuito para siempre o Pro desde $4.99/mes',
+  'footer-priv': 'Privacidad',
+  'footer-terms': 'Términos',
+  'footer-lang': 'English 🇺🇸',
+  'footer-app': 'Abrir la app →',
+  'lang-switch': 'EN 🇺🇸'
+};
+
+function toggleLang(e) {
+  if (e) e.preventDefault();
+
+  if (currentLang === 'en') {
+    switchToSpanish();
+    currentLang = 'es';
+  } else {
+    switchToEnglish();
+    currentLang = 'en';
+  }
+}
+
+function switchToSpanish() {
+  var elements = document.querySelectorAll('[data-t]');
+  elements.forEach(function(el) {
+    var key = el.getAttribute('data-t');
+    if (!originalTexts[key]) {
+      originalTexts[key] = el.innerHTML;
+    }
+    if (translations[key]) {
+      el.innerHTML = translations[key];
+    }
+  });
+  updateLangSwitches('es');
+}
+
+function switchToEnglish() {
+  var elements = document.querySelectorAll('[data-t]');
+  elements.forEach(function(el) {
+    var key = el.getAttribute('data-t');
+    if (originalTexts[key]) {
+      el.innerHTML = originalTexts[key];
+    }
+  });
+  updateLangSwitches('en');
+}
+
+function updateLangSwitches(lang) {
+  var switches = document.querySelectorAll('.lang-switch, [data-t="footer-lang"]');
+  switches.forEach(function(el) {
+    if (lang === 'es') {
+      el.textContent = 'EN 🇺🇸';
+    } else {
+      el.textContent = 'ES 🇪🇸';
+    }
+  });
+}
+</script>
 
 </body>
 </html>
