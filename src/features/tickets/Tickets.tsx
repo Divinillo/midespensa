@@ -4,7 +4,7 @@ import { Modal } from '../../components/ui/Modal';
 import { Confirm } from '../../components/ui/Confirm';
 import { uid, fmt2 } from '../../utils/helpers';
 import { FREE_TICKET_LIMIT, FREE_TICKET_PHOTO_LIMIT, CAT_BG, CAT_TEXT, CAT_EMOJI, CATEGORIES } from '../../data/categories';
-import { processImageTicket, processPdf, applyTicket } from '../../utils/ticketProcess';
+import { processImageTicket, processPdf, applyTicket, aiMatchIngredients, applyAIMatches } from '../../utils/ticketProcess';
 import { normalizeName } from '../../utils/helpers';
 import type { Ingredient, Ticket, PriceHistory } from '../../data/types';
 import { Receipt, Trash, X, PencilSimple, Check } from '@phosphor-icons/react';
@@ -79,6 +79,25 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       setIngredients(currentIngs);
       setPriceHistory(currentHistory);
       setTickets(ts=>[...ts,...newTickets]);
+
+      // ── AI matching for unmatched products (async, non-blocking) ──
+      const market = isUS ? 'us' : 'es';
+      for(let i=0;i<newTickets.length;i++){
+        const tk=newTickets[i];
+        if(!tk.unmatched?.length) continue;
+        aiMatchIngredients(tk.unmatched, currentIngs, market).then(aiMatches=>{
+          if(!Object.keys(aiMatches).length) return;
+          const {updatedIngs:ai_ings, newHistory:ai_hist, newMatched, stillUnmatched, newLearned} =
+            applyAIMatches(aiMatches, tk, currentIngs, currentHistory, learnedMappings);
+          // Update state with AI matches
+          setIngredients(ai_ings);
+          setPriceHistory(ai_hist);
+          if(setLearnedMappings) setLearnedMappings(prev=>({...prev,...newLearned}));
+          setTickets(prev=>prev.map(t=>t.id===tk.id
+            ? {...t, matched:[...(t.matched||[]),...newMatched], unmatched:stillUnmatched}
+            : t));
+        }).catch(()=>{/* AI match failed silently — user can still manually match */});
+      }
     }
     setLoading(false);
   };
@@ -102,7 +121,6 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       try{
         const ticket=await processImageTicket(file, pct=>setOcrProgress(pct));
         if(tickets.some(t=>t.filename===ticket.filename)){
-          // Si el nombre coincide (misma foto), generar uno distinto
           ticket.filename='foto-ticket-'+Date.now()+'.jpg';
         }
         const {updatedIngs,newHistory,matched,unmatched}=applyTicket(ticket,currentIngs,currentHistory,learnedMappings);
@@ -121,6 +139,24 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
       setIngredients(currentIngs);
       setPriceHistory(currentHistory);
       setTickets(ts=>[...ts,...newTickets]);
+
+      // ── AI matching for unmatched products (async, non-blocking) ──
+      const market = isUS ? 'us' : 'es';
+      for(let i=0;i<newTickets.length;i++){
+        const tk=newTickets[i];
+        if(!tk.unmatched?.length) continue;
+        aiMatchIngredients(tk.unmatched, currentIngs, market).then(aiMatches=>{
+          if(!Object.keys(aiMatches).length) return;
+          const {updatedIngs:ai_ings, newHistory:ai_hist, newMatched, stillUnmatched, newLearned} =
+            applyAIMatches(aiMatches, tk, currentIngs, currentHistory, learnedMappings);
+          setIngredients(ai_ings);
+          setPriceHistory(ai_hist);
+          if(setLearnedMappings) setLearnedMappings(prev=>({...prev,...newLearned}));
+          setTickets(prev=>prev.map(t=>t.id===tk.id
+            ? {...t, matched:[...(t.matched||[]),...newMatched], unmatched:stillUnmatched}
+            : t));
+        }).catch(()=>{});
+      }
     }
     setLoading(false);
     setOcrProgress(null);

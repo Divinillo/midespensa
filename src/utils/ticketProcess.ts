@@ -596,7 +596,7 @@ function parseUSReceipt(rows: string[]) {
       if (price > 0 && price < 500) {
         const name = row.slice(0, row.length - pm[0].length).trim().replace(/^\d+\s+/,'').trim();
         if (name.length > 1) {
-          products.push({ rawName: name, normalizedName: name.toLowerCase(), price });
+          products.push({ rawName: name, normalizedName: normalizeName(name, true) || name.toLowerCase(), price });
         }
       }
     }
@@ -693,4 +693,77 @@ export function applyTicket(ticket, ingredients, priceHistory, learnedMappings =
   return {updatedIngs, newHistory, matched, unmatched};
 }
 
-// build Tue Mar 31 13:28:51 CEST 2026
+// ── AI-powered ingredient matching for unmatched ticket products ──
+// Sends unmatched product names + catalog to Gemini for fuzzy matching.
+// Returns only high-confidence (≥90%) matches; the rest stay unmatched.
+export async function aiMatchIngredients(
+  unmatchedProducts: Array<{rawName: string; price: number}>,
+  ingredients: Array<{id: string; name: string; category: string; available: boolean}>,
+  market: 'us' | 'es',
+): Promise<Record<string, string>> {
+  if (!unmatchedProducts.length) return {};
+  const token = await _getToken();
+  if (!token) return {};
+  try {
+    const catalogNames = [...new Set(ingredients.map(i => i.name))];
+    const unmatchedNames = unmatchedProducts.map(p => p.rawName);
+    const res = await fetch('/api/gemini-match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ unmatched: unmatchedNames, catalog: catalogNames, market }),
+    });
+    if (!res.ok) return {};
+    const data = await res.json();
+    // data.matches: { "RAW NAME": "catalog name" | null }
+    const result: Record<string, string> = {};
+    for (const [raw, catalogName] of Object.entries(data.matches || {})) {
+      if (catalogName && typeof catalogName === 'string') {
+        result[raw.toLowerCase()] = catalogName;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+// Applies AI matches to update ingredients, history, and move items from unmatched to matched
+export function applyAIMatches(
+  aiMatches: Record<string, string>,
+  ticket: any,
+  ingredients: any[],
+  priceHistory: any,
+  learnedMappings: any,
+) {
+  const ingsByName = Object.fromEntries(ingredients.map(i => [i.name.toLowerCase(), i]));
+  let updatedIngs = ingredients.map(i => ({...i}));
+  const newHistory = JSON.parse(JSON.stringify(priceHistory));
+  const newLearned = {...learnedMappings};
+  const newMatched: any[] = [];
+  const stillUnmatched: any[] = [];
+
+  for (const prod of (ticket.unmatched || [])) {
+    const rawKey = (prod.rawName || '').trim().toLowerCase();
+    const catalogName = aiMatches[rawKey];
+    const ing = catalogName ? ingsByName[catalogName.toLowerCase()] : null;
+
+    if (ing) {
+      // Auto-match: update pantry, history, and save learned mapping
+      if (!newHistory[ing.id]) newHistory[ing.id] = [];
+      const alreadyIn = newHistory[ing.id].some(r => r.ticketId === ticket.id && r.rawName === prod.rawName);
+      if (!alreadyIn) {
+        newHistory[ing.id].push({date: ticket.date, price: prod.price, rawName: prod.rawName, ticketId: ticket.id});
+      }
+      updatedIngs = updatedIngs.map(i => i.id === ing.id ? {...i, available: true} : i);
+      newMatched.push({rawName: prod.rawName, ingredientName: ing.name, price: prod.price, category: ing.category});
+      // Save learned mapping for future tickets
+      newLearned[rawKey] = ing.name;
+    } else {
+      stillUnmatched.push(prod);
+    }
+  }
+
+  return {updatedIngs, newHistory, newMatched, stillUnmatched, newLearned};
+}
+
+// build Sat Apr 05 2026
