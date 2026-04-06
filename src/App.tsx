@@ -128,8 +128,21 @@ export function App() {
     setUserEmail(email);
     if (cloudLoadedRef.current) return;
     cloudLoadedRef.current = true;
-    loadFromCloud(email).then(cloud => {
+    loadFromCloud(email).then(async cloud => {
       if (!cloud || cloud.error === 'No data found') {
+        // New user: trigger first sync so the server creates trial_end, then reload tier
+        try {
+          const token = (await supabase.auth.getSession()).data.session?.access_token;
+          if (token) {
+            await fetch('/api/sync-data', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ email, updated_at: Date.now() }),
+            });
+            const reloaded = await loadFromCloud(email);
+            if (reloaded && !reloaded.error) applyTier(reloaded);
+          }
+        } catch {}
         if (hasLocalDataToMigrate()) setShowMigration(true);
         markMigrationOffered();
         return;
