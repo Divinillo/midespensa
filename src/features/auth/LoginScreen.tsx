@@ -80,6 +80,11 @@ export default function LoginScreen() {
     setMessage(null);
 
     try {
+      if (mode !== 'forgot' && password.length < 6) {
+        msg(isEN ? 'Password must be at least 6 characters.' : 'La contraseña debe tener al menos 6 caracteres.');
+        setLoading(false);
+        return;
+      }
       if (mode === 'login') {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) {
@@ -96,15 +101,25 @@ export default function LoginScreen() {
         }
       } else if (mode === 'register') {
         const { data, error } = await supabase.auth.signUp({ email, password });
+        console.log('[Register] data:', JSON.stringify(data), 'error:', error);
         if (error) {
           msg(error.message);
+        } else if (data?.user && !data.session && data.user.identities?.length === 0) {
+          // Supabase returns a fake user with no identities when the email is already taken
+          msg(isEN
+            ? 'An account with this email already exists. Try signing in instead.'
+            : 'Ya existe una cuenta con este correo. Prueba a iniciar sesión.');
         } else if (data.session) {
           // Auto-confirm is enabled in Supabase — user is immediately logged in
           // The onAuthStateChange in App.tsx will pick up the session automatically
-        } else {
+        } else if (data?.user) {
           // Email confirmation required
           msg(T.msgAccountCreated, true);
           setMode('login');
+        } else {
+          msg(isEN
+            ? 'Something went wrong. Please try again.'
+            : 'Algo salió mal. Por favor inténtalo de nuevo.');
         }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
