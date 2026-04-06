@@ -10,6 +10,8 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<Mode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ text: string; ok: boolean; showResend?: boolean } | null>(null);
 
@@ -26,6 +28,8 @@ export default function LoginScreen() {
     emailLabel:    isEN ? 'Email'               : 'Correo electrónico',
     emailPlaceholder: isEN ? 'you@email.com'    : 'tu@correo.com',
     passwordLabel: isEN ? 'Password'            : 'Contraseña',
+    password2Label:isEN ? 'Confirm password'    : 'Confirmar contraseña',
+    passwordMismatch: isEN ? 'Passwords do not match.' : 'Las contraseñas no coinciden.',
     submitLogin:   isEN ? 'Sign in'             : 'Iniciar sesión',
     submitRegister:isEN ? 'Create account'      : 'Crear cuenta',
     submitForgot:  isEN ? 'Send reset link'     : 'Enviar enlace de recuperación',
@@ -82,6 +86,11 @@ export default function LoginScreen() {
     try {
       if (mode !== 'forgot' && password.length < 6) {
         msg(isEN ? 'Password must be at least 6 characters.' : 'La contraseña debe tener al menos 6 caracteres.');
+        setLoading(false);
+        return;
+      }
+      if (mode === 'register' && password !== password2) {
+        msg(T.passwordMismatch);
         setLoading(false);
         return;
       }
@@ -230,9 +239,66 @@ export default function LoginScreen() {
           {mode !== 'forgot' && (
             <label style={labelStyle}>
               {T.passwordLabel}
-              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                required autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
-                placeholder="••••••••" minLength={6} style={inputStyle} />
+              <div style={{ position: 'relative' }}>
+                <input type={showPw ? 'text' : 'password'} value={password} onChange={e => setPassword(e.target.value)}
+                  required autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                  placeholder="••••••••" minLength={6} style={{ ...inputStyle, paddingRight: '42px' }} />
+                <button type="button" onClick={() => setShowPw(v => !v)} tabIndex={-1}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                    color: '#9ca3af', display: 'flex', alignItems: 'center',
+                  }}>
+                  {showPw ? (
+                    /* Eye-off icon */
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                      <path d="M14.12 14.12a3 3 0 11-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    /* Eye icon */
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </label>
+          )}
+
+          {mode === 'register' && (
+            <label style={labelStyle}>
+              {T.password2Label}
+              <div style={{ position: 'relative' }}>
+                <input type={showPw ? 'text' : 'password'} value={password2} onChange={e => setPassword2(e.target.value)}
+                  required autoComplete="new-password"
+                  placeholder="••••••••" minLength={6} style={{ ...inputStyle, paddingRight: '42px' }} />
+                <button type="button" onClick={() => setShowPw(v => !v)} tabIndex={-1}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                  style={{
+                    position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+                    background: 'none', border: 'none', cursor: 'pointer', padding: '4px',
+                    color: '#9ca3af', display: 'flex', alignItems: 'center',
+                  }}>
+                  {showPw ? (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
+                      <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
+                      <path d="M14.12 14.12a3 3 0 11-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </label>
           )}
 
@@ -282,7 +348,7 @@ export default function LoginScreen() {
                 {T.forgotLink}
               </button>
               <span style={{ margin: '0 8px' }}>·</span>
-              <button style={linkBtn} onClick={() => { setMode('register'); setMessage(null); }}>
+              <button style={linkBtn} onClick={() => { setMode('register'); setMessage(null); setPassword2(''); }}>
                 {T.createLink}
               </button>
             </>
