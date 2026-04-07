@@ -5,6 +5,8 @@ import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from '../../data/categories';
 import { Modal } from '../../components/ui/Modal';
 import { supabase } from '../../utils/supabase';
 import { useMarket } from '../../i18n/useMarket';
+import { isAndroidTwa } from '../../utils/isAndroidTwa';
+import { buyWithPlayBilling, PLAY_SKU_PRO_MONTHLY } from '../../utils/playBilling';
 
 
 export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, onDismiss}) {
@@ -132,6 +134,13 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
   const [period, setPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [loading, setLoading] = useState(false);
   const { isUS, isEN, stripeConfig, formatPrice } = useMarket();
+  // When the app is running inside the Android TWA installed from Google
+  // Play we MUST use Google Play Billing instead of Stripe checkout, or
+  // Google will reject/remove the listing for violating their payments
+  // policy. Play Billing only supports a single SKU per call so we also
+  // force the period to "monthly" in that branch (the SKU configured in
+  // Play Console is the monthly subscription).
+  const inTwa = isAndroidTwa();
 
   const monthlyPrice = stripeConfig.monthly;
   const yearlyPrice = stripeConfig.yearly;
@@ -161,6 +170,30 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
 
   const handleCheckout = async () => {
     setLoading(true);
+
+    // ── Android TWA branch: Google Play Billing via Digital Goods API ──
+    // We never call Stripe from inside the Android app to comply with the
+    // Google Play payments policy. The backend validates the purchase and
+    // flips the user's tier to Pro on success.
+    if (inTwa) {
+      const outcome = await buyWithPlayBilling(PLAY_SKU_PRO_MONTHLY);
+      setLoading(false);
+      if (outcome.ok) {
+        // Backend has marked the user as Pro; refresh local state by
+        // closing the modal and letting the parent re-pull the tier.
+        if (typeof onUnlockPro === 'function') onUnlockPro();
+        onClose();
+        return;
+      }
+      if (outcome.reason === 'cancelled') return; // user closed the sheet
+      alert(
+        (isEN ? 'Could not complete the purchase: ' : 'No se pudo completar la compra: ') +
+          (outcome.message || outcome.reason),
+      );
+      return;
+    }
+
+    // ── Web / iOS / desktop PWA branch: Stripe checkout ──
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       const token = s?.access_token;
@@ -211,7 +244,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
           ))}
         </div>
 
-        <div className="grid grid-cols-2 gap-2">
+        {!inTwa && <div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setPeriod('monthly')}
             className={`rounded-xl p-3 border-2 text-center transition-all ${period === 'monthly' ? 'border-teal-500 bg-teal-50' : 'border-gray-200 bg-white'}`}
@@ -227,7 +260,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
             <div className="text-xs text-gray-400 mt-0.5">{isEN?'Billed annually':'Facturación anual'}</div>
             <span className="absolute -top-2 -right-1 text-white text-xs font-bold px-1.5 py-0.5 rounded-full" style={{ background: '#7c3aed', fontSize: '0.6rem' }}>{isEN?'BEST':'MEJOR'}</span>
           </button>
-        </div>
+        </div>}
 
         <p className="text-center text-xs text-gray-400">{isEN ? 'Cancel anytime' : 'Cancela cuando quieras'}</p>
 
@@ -237,7 +270,11 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
           className="flex items-center justify-center gap-2 w-full text-white rounded-xl py-3.5 text-sm font-bold hover:opacity-90 shadow-md disabled:opacity-60"
           style={{ background: 'linear-gradient(to right, #0d9488, #7c3aed)' }}
         >
-          {loading ? (isEN ? 'Loading...' : 'Cargando...') : `💳 ${isEN ? 'Subscribe' : 'Suscribirse'} · ${period === 'yearly' ? `${fmtYearly}/${isEN?'yr':'año'}` : `${fmtMonthly}/${isEN?'mo':'mes'}`}`}
+          {loading
+            ? (isEN ? 'Loading...' : 'Cargando...')
+            : inTwa
+              ? `${isEN ? 'Subscribe with Google Play' : 'Suscribirse con Google Play'}`
+              : `💳 ${isEN ? 'Subscribe' : 'Suscribirse'} · ${period === 'yearly' ? `${fmtYearly}/${isEN?'yr':'año'}` : `${fmtMonthly}/${isEN?'mo':'mes'}`}`}
         </button>
       </div>
     </Modal>
