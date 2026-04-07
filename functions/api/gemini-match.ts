@@ -2,11 +2,17 @@
 // Receives unmatched product names + catalog names, returns best matches.
 // Only matches with ≥90% confidence are returned; the rest stay undefined.
 
+import { checkDailyRateLimit, rateLimitBlockedBody } from './_rateLimit';
+
 interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
   GEMINI_KEY: string;
 }
+
+// Match calls are cheap and run alongside ticket parsing; give it a
+// more generous daily budget but still per-user so abuse is capped.
+const MATCH_DAILY_LIMIT = 20;
 
 const GEMINI_BASE   = 'https://generativelanguage.googleapis.com/v1beta/models';
 const GEMINI_MODELS = [
@@ -33,6 +39,12 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     headers: { 'apikey': env.SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${token}` },
   });
   if (!authRes.ok) return json({ error: 'Unauthorized' }, 401);
+  const authUser = await authRes.json() as { email?: string };
+  if (!authUser.email) return json({ error: 'Unauthorized' }, 401);
+
+  // ── Per-user daily rate limit ────────────────────────────────
+  const rl = await checkDailyRateLimit(env, authUser.email, 'gemini-match', MATCH_DAILY_LIMIT);
+  if (!rl.allowed) return json(rateLimitBlockedBody(rl, 'match'), 429);
 
   // ── Parse body ───────────────────────────────────────────────
   let unmatched: string[], catalog: string[], market: string;

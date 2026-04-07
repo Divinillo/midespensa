@@ -1,8 +1,13 @@
+import { checkDailyRateLimit, rateLimitBlockedBody } from './_rateLimit';
+
 interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
   GEMINI_KEY: string;
 }
+
+// Recipe suggestion calls — one per meal plan generation. Cap per user/day.
+const RECIPES_DAILY_LIMIT = 10;
 
 function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -26,6 +31,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!authRes.ok) return json({ error: 'Unauthorized' }, 401);
   const authUser = await authRes.json() as { email?: string };
   if (!authUser.email) return json({ error: 'Unauthorized' }, 401);
+
+  // ── Per-user daily rate limit ────────────────────────────────
+  const rl = await checkDailyRateLimit(env, authUser.email, 'gemini-recipes', RECIPES_DAILY_LIMIT);
+  if (!rl.allowed) return json(rateLimitBlockedBody(rl, 'recipes'), 429);
 
   // ── Parse body ───────────────────────────────────────────────
   let availIngs: string[], recipeNames: string[], qty: number, diet: string;

@@ -1,11 +1,17 @@
 // Server-side Gemini endpoint for ticket parsing (PDF text and image OCR).
 // The GEMINI_KEY never reaches the client bundle.
 
+import { checkDailyRateLimit, rateLimitBlockedBody } from './_rateLimit';
+
 interface Env {
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
   GEMINI_KEY: string;
 }
+
+// Max Gemini ticket parses per user per 24h. Protects the free-tier Gemini
+// quota from single-user abuse. Adjust here if needed.
+const TICKET_DAILY_LIMIT = 5;
 
 interface TicketProduct {
   name: string;
@@ -97,6 +103,10 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
   if (!authRes.ok) return json({ error: 'Unauthorized' }, 401);
   const authUser = await authRes.json() as { email?: string };
   if (!authUser.email) return json({ error: 'Unauthorized' }, 401);
+
+  // ── Per-user daily rate limit (protects Gemini free-tier quota) ──
+  const rl = await checkDailyRateLimit(env, authUser.email, 'gemini-ticket', TICKET_DAILY_LIMIT);
+  if (!rl.allowed) return json(rateLimitBlockedBody(rl, 'ticket'), 429);
 
   // ── Parse body ───────────────────────────────────────────────
   let mode: string, rows: string[], base64: string, mimeType: string;
