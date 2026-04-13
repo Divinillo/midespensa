@@ -30,6 +30,7 @@ export interface Dish {
   photo?: string;       // base64 data URL
   youtubeUrl?: string;
   steps?: string[];     // pasos de preparación escritos por el usuario
+  mealType?: 'lunch' | 'dinner' | 'both';  // comida, cena, o ambos — for meal planner
 }
 
 export interface Recipe {

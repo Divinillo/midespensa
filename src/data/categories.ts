@@ -22,7 +22,7 @@ const FREE_PRICE_HISTORY_DAYS  = 30;  // days of price history in free
 
 // ── Emoji lookup: Spanish ─────────────────────────────────────────
 const ING_EMOJI={
-  'pollo':'🍗','pechuga de pollo':'🍗','muslos de pollo':'🍗','pollo entero':'🍗',
+  'pollo':'🍗','pechuga de pollo':'🍗','muslos de pollo':'🍗','pollo entero':'🍗','alitas de pollo':'🍗',
   'ternera':'🥩','carne picada':'🥩','solomillo':'🥩','chuleta de ternera':'🥩',
   'cerdo':'🐷','lomo de cerdo':'🐷','costillas de cerdo':'🍖','chuleta de cerdo':'🍖','codillo de cerdo':'🍖',
   'jamón serrano':'🍖','jamón york':'🍖','chorizo':'🥩','salchichón':'🥩','mortadela':'🥩','fuet':'🥩','chistorra':'🥩','salami':'🥩','sobrasada':'🥩',

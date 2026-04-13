@@ -555,6 +555,7 @@ function AutoDishModal({open,onClose,ingredients,dishes,setDishes,isPro,onUpgrad
 function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
   const { isUS, isEN } = useMarket();
   const [openCats,setOpenCats]=useState({});
+  const [ingSearch,setIngSearch]=useState('');
   const toggleCat=cat=>setOpenCats(o=>({...o,[cat]:!o[cat]}));
   const photoRef=useRef(null);
   const cameraRef=useRef(null);
@@ -621,6 +622,27 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
         )}
       </div>
 
+      {/* ── Tipo de comida (comida / cena / ambos) ── */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">🍽️ {isEN ? 'Meal type' : 'Tipo de comida'}</label>
+        <div style={{display:'flex',gap:8}}>
+          {([['both', isEN?'Both':'Ambos'],['lunch', isEN?'Lunch':'Comida'],['dinner', isEN?'Dinner':'Cena']] as const).map(([val,label])=>(
+            <button key={val} type="button"
+              onClick={()=>setForm(f=>({...f,mealType:val}))}
+              style={{
+                flex:1, padding:'8px 0', borderRadius:12, fontWeight:700, fontSize:'0.78rem',
+                border: (form.mealType||'both')===val ? '2px solid #0d9488' : '1.5px solid #e2e8f0',
+                background: (form.mealType||'both')===val ? '#f0fdfa' : '#fff',
+                color: (form.mealType||'both')===val ? '#0d9488' : '#64748b',
+                cursor:'pointer',
+              }}>
+              {val==='lunch'?'☀️':val==='dinner'?'🌙':'☀️🌙'} {label}
+            </button>
+          ))}
+        </div>
+        <p style={{fontSize:'0.7rem',color:'#9ca3af',marginTop:4}}>{isEN ? 'The automatic planner will assign this dish only to the selected slot' : 'El planificador automático asignará este plato solo a la franja seleccionada'}</p>
+      </div>
+
       {/* ── Preparación ── */}
       <div>
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:6}}>
@@ -658,12 +680,16 @@ function DishForm({form,setForm,ingredients,toggleIng,onSave}) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">{isEN ? 'Ingredients' : 'Ingredientes'} ({form.ingredients.length} {isEN ? 'sel.' : 'sel.'})</label>
+        <input value={ingSearch} onChange={e=>setIngSearch(e.target.value)}
+          placeholder={isEN ? '🔍 Search ingredients...' : '🔍 Buscar alimentos...'}
+          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-teal-200"/>
         <div className="max-h-72 overflow-y-auto space-y-1 pr-1">
           {CATEGORIES.map(cat=>{
-            const ci=ingredients.filter(i=>i.category===cat);
+            const q=ingSearch.trim().toLowerCase();
+            const ci=ingredients.filter(i=>i.category===cat&&(!q||i.name.toLowerCase().includes(q)||(i.nameEn||'').toLowerCase().includes(q)||(i.nameEs||'').toLowerCase().includes(q)));
             if(!ci.length) return null;
             const selCount=ci.filter(i=>form.ingredients.includes(i.id)).length;
-            const isOpen=!!openCats[cat];
+            const isOpen=!!openCats[cat]||!!ingSearch.trim();
             return(
               <div key={cat} className="rounded-xl overflow-hidden border border-gray-100">
                 <button type="button" onClick={()=>toggleCat(cat)}
@@ -713,16 +739,17 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
 
   const openAdd=()=>{
     if(!isPro && dishes.length >= FREE_DISH_LIMIT){ onUpgrade('dishes'); return; }
-    setForm({name:'',ingredients:[],photo:'',youtubeUrl:'',steps:[]});setModal('add');
+    setForm({name:'',ingredients:[],photo:'',youtubeUrl:'',steps:[],mealType:'both'});setModal('add');
   };
-  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients],photo:d.photo||'',youtubeUrl:d.youtubeUrl||'',steps:d.steps||[]});setModal(d.id);};
+  const openEdit=d=>{setForm({...d,ingredients:[...d.ingredients],photo:d.photo||'',youtubeUrl:d.youtubeUrl||'',steps:d.steps||[],mealType:d.mealType||'both'});setModal(d.id);};
   const toggleIng=id=>setForm(f=>({...f,ingredients:f.ingredients.includes(id)?f.ingredients.filter(x=>x!==id):[...f.ingredients,id]}));
   const save=()=>{
     if(!form.name.trim()) return;
     const yt=form.youtubeUrl?.trim()||undefined;
     const st=(form.steps||[]).map(s=>s.trim()).filter(Boolean);
-    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients,photo:form.photo||undefined,youtubeUrl:yt,steps:st.length?st:undefined}]);
-    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim(),photo:form.photo||undefined,youtubeUrl:yt,steps:st.length?st:undefined}:d));
+    const mt=form.mealType&&form.mealType!=='both'?form.mealType:undefined;
+    if(modal==='add') setDishes(ds=>[...ds,{id:'d'+uid(),name:form.name.trim(),ingredients:form.ingredients,photo:form.photo||undefined,youtubeUrl:yt,steps:st.length?st:undefined,mealType:mt}]);
+    else setDishes(ds=>ds.map(d=>d.id===modal?{...d,...form,name:form.name.trim(),photo:form.photo||undefined,youtubeUrl:yt,steps:st.length?st:undefined,mealType:mt}:d));
     setModal(null);
   };
   const atLimit = !isPro && dishes.length >= FREE_DISH_LIMIT;

@@ -244,6 +244,8 @@ function AutoMenuModal({open,onClose,year,month,plan,setPlan,dishes,ingredients,
     const SOLO_VEG_ES=/^(brócoli|espinacas|zanahoria|calabacín|berenjena|coliflor|judías verdes|pimientos?|tomate|lechuga|champiñones?|setas|acelgas|puerros?|alcachofas?|rúcula)(\s(al vapor|salteado|rehogado|asado|hervido|plancha))?$/i;
     const BREAKFAST_WORDS_US=/pancake|waffle|omelet|omelette|scramble|french toast|breakfast|cereal|oatmeal|granola|smoothie|muffin|bagel|benedict|hash brown|frittata|toast|yogurt/i;
     const getWhen=dish=>{
+      // User-defined mealType takes highest priority
+      if(dish.mealType) return dish.mealType;
       const rec=recipeDB.find(r=>r.name.toLowerCase()===dish.name.toLowerCase());
       if(rec?.when) return rec.when;
       const n=dish.name.trim();
