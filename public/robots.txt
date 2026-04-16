@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /en
+Allow: /app
+Allow: /links
+Disallow: /api/
+
+Sitemap: https://midespensa.app/sitemap.xml

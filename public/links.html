@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MiDespensa - Stop Stressing About What to Cook</title>
+    <meta name="description" content="MiDespensa helps you plan meals, manage your pantry, and stop wasting food. Try it free today.">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="MiDespensa - Stop Stressing About What to Cook">
+    <meta property="og:description" content="Smart meal planning and pantry management. No ads, no tracking. Try it free.">
+    <meta property="og:image" content="/icon-512-v3.png">
+    <meta property="og:url" content="https://midespensa.app/links.html">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="MiDespensa">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="MiDespensa - Stop Stressing About What to Cook">
+    <meta name="twitter:description" content="Smart meal planning and pantry management. No ads, no tracking. Try it free.">
+    <meta name="twitter:image" content="/icon-512-v3.png">
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/apple-touch-icon-v3.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --teal: #0d9488;
+            --teal-dark: #0b7e73;
+            --teal-light: #14b8a6;
+            --teal-50: #f0fdfa;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            background: linear-gradient(135deg, #0d9488, #065f56, #134e4a, #0d9488);
+            background-size: 400% 400%;
+            animation: gradientShift 12s ease infinite;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .container {
+            width: 100%;
+            max-width: 440px;
+            padding: 40px 20px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100dvh;
+        }
+
+        /* Logo */
+        .logo {
+            width: 96px;
+            height: 96px;
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            animation: fadeSlideIn 0.6s ease-out;
+        }
+
+        /* App name & tagline */
+        .app-name {
+            font-size: 28px;
+            font-weight: 800;
+            color: #fff;
+            margin-top: 20px;
+            letter-spacing: -0.02em;
+            animation: fadeSlideIn 0.6s ease-out 0.1s both;
+        }
+
+        .tagline {
+            font-size: 16px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+            margin-top: 6px;
+            text-align: center;
+            animation: fadeSlideIn 0.6s ease-out 0.2s both;
+        }
+
+        /* Links section */
+        .links {
+            width: 100%;
+            margin-top: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            flex: 1;
+        }
+
+        .link-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-family: inherit;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .link-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .link-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* Primary CTA */
+        .link-btn--primary {
+            background: #fff;
+            color: var(--teal);
+            padding: 20px 24px;
+            font-size: 18px;
+            font-weight: 700;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            animation: fadeSlideIn 0.5s ease-out 0.3s both;
+        }
+
+        .link-btn--primary:hover {
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .link-btn--primary .btn-emoji {
+            font-size: 22px;
+        }
+
+        /* Pulse ring on primary CTA */
+        .link-btn--primary::after {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 19px;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            animation: pulse-ring 2.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% { opacity: 0; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        /* Standard buttons */
+        .link-btn--standard {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+            border: 1.5px solid rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
+        .link-btn--standard:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Disabled / coming soon */
+        .link-btn--disabled {
+            background: rgba(255, 255, 255, 0.07);
+            color: rgba(255, 255, 255, 0.55);
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            cursor: default;
+            pointer-events: none;
+        }
+
+        .coming-soon-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 6px;
+            margin-left: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        /* Staggered animations */
+        .link-btn:nth-child(1) { animation: fadeSlideIn 0.5s ease-out 0.3s both; }
+        .link-btn:nth-child(2) { animation: fadeSlideIn 0.5s ease-out 0.4s both; }
+        .link-btn:nth-child(3) { animation: fadeSlideIn 0.5s ease-out 0.5s both; }
+        .link-btn:nth-child(4) { animation: fadeSlideIn 0.5s ease-out 0.6s both; }
+        .link-btn:nth-child(5) { animation: fadeSlideIn 0.5s ease-out 0.7s both; }
+        .link-btn:nth-child(6) { animation: fadeSlideIn 0.5s ease-out 0.8s both; }
+
+        @keyframes fadeSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .btn-emoji {
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-bottom: 8px;
+            text-align: center;
+            animation: fadeSlideIn 0.5s ease-out 0.9s both;
+        }
+
+        .footer p {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            line-height: 1.5;
+        }
+
+        /* Safe area for notched phones */
+        @supports (padding-bottom: env(safe-area-inset-bottom)) {
+            .container {
+                padding-bottom: calc(32px + env(safe-area-inset-bottom));
+            }
+        }
+
+        /* Slightly larger on bigger screens */
+        @media (min-width: 480px) {
+            .container {
+                padding: 56px 24px 40px;
+            }
+            .logo {
+                width: 112px;
+                height: 112px;
+                border-radius: 28px;
+            }
+            .app-name {
+                font-size: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="/icon-512-v3.png" alt="MiDespensa logo" class="logo" width="96" height="96">
+        <h1 class="app-name">MiDespensa</h1>
+        <p class="tagline">Stop stressing about what to cook</p>
+
+        <nav class="links" aria-label="Links">
+            <a href="/en" class="link-btn link-btn--primary">
+                <span class="btn-emoji" aria-hidden="true">&#x1F680;</span>
+                Try MiDespensa Free
+            </a>
+
+            <a href="#" class="link-btn link-btn--disabled" aria-disabled="true" tabindex="-1">
+                <span class="btn-emoji" aria-hidden="true">&#x1F4F1;</span>
+                Download Android App
+                <span class="coming-soon-badge">Coming Soon</span>
+            </a>
+
+            <a href="/promo.mp4" class="link-btn link-btn--standard">
+                <span class="btn-emoji" aria-hidden="true">&#x1F3AC;</span>
+                Watch Demo
+            </a>
+
+            <a href="https://instagram.com/midespensa" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--standard">
+                <span class="btn-emoji" aria-hidden="true">&#x1F4F8;</span>
+                Follow on Instagram
+            </a>
+
+            <a href="https://tiktok.com/@midespensa" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--standard">
+                <span class="btn-emoji" aria-hidden="true">&#x1F3B5;</span>
+                Follow on TikTok
+            </a>
+
+            <a href="https://x.com/midespensa" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--standard">
+                <span class="btn-emoji" aria-hidden="true">&#x1F426;</span>
+                Follow on X/Twitter
+            </a>
+        </nav>
+
+        <footer class="footer">
+            <p>Made with &#10084;&#65039; in Spain &middot; No ads, no tracking</p>
+        </footer>
+    </div>
+</body>
+</html>
