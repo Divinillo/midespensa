@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MiDespensa X Banner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 1500px;
+    height: 500px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+  }
+  .banner {
+    width: 1500px;
+    height: 500px;
+    background: #0d9488;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Subtle pattern - dots */
+  .banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  /* Accent glow left */
+  .glow-left {
+    position: absolute;
+    left: -80px;
+    top: -80px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(20,184,166,0.5) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  /* Accent glow right */
+  .glow-right {
+    position: absolute;
+    right: -40px;
+    bottom: -100px;
+    width: 350px;
+    height: 350px;
+    background: radial-gradient(circle, rgba(245,158,11,0.2) 0%, transparent 70%);
+    border-radius: 50%;
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    padding: 0 80px;
+    width: 100%;
+  }
+
+  .left {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 52px;
+  }
+
+  .logo-text {
+    font-size: 22px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.02em;
+  }
+
+  .center {
+    flex: 1;
+  }
+
+  h1 {
+    font-size: 48px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+  }
+
+  .subtitle {
+    font-size: 20px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    margin-top: 12px;
+    line-height: 1.4;
+  }
+
+  .features {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+  }
+
+  .feature {
+    font-size: 14px;
+    font-weight: 700;
+    color: #0d9488;
+    background: #fff;
+    padding: 8px 16px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .right {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .cta {
+    background: #fff;
+    color: #0d9488;
+    font-size: 18px;
+    font-weight: 800;
+    padding: 16px 32px;
+    border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+
+  .url {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.7);
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="glow-left"></div>
+  <div class="glow-right"></div>
+  <div class="content">
+    <div class="left">
+      <div class="logo">🍽️</div>
+      <div class="logo-text">MiDespensa</div>
+    </div>
+    <div class="center">
+      <h1>Your kitchen<br>just got smarter</h1>
+      <div class="subtitle">AI-powered meal planning & pantry manager</div>
+      <div class="features">
+        <div class="feature">📷 Receipt Scanner</div>
+        <div class="feature">🤖 AI Meal Plans</div>
+        <div class="feature">🛒 Smart Lists</div>
+        <div class="feature">🚫 No Ads</div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="cta">7 days of Pro free</div>
+      <div class="url">midespensa.app</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
