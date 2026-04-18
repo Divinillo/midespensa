@@ -156,7 +156,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
     automenu: { icon: '✨', title: 'Auto menu — Pro feature',       desc: 'Fill your monthly planner automatically based on your pantry.' },
     autodish: { icon: '✨', title: 'Suggest recipes — Pro feature', desc: 'Get recipe suggestions based on your pantry and add them directly.' },
     upgrade:  { icon: '🎁', title: 'Subscribe to MiDespensa Pro',   desc: 'Access all features with no limits.' },
-    trial:    { icon: '⏳', title: 'Your free trial is ending soon', desc: 'Subscribe now to keep access to unlimited recipes, nutrition scanner, reports and everything Pro without interruption.' },
+    trial:    { icon: '⏳', title: 'Your Pro trial is ending soon', desc: 'Subscribe now to keep access to unlimited recipes, nutrition scanner, reports and everything Pro without interruption.' },
   } : {
     dishes:   { icon: '🍽️', title: 'Límite de platos alcanzado',  desc: `Con el plan gratuito puedes guardar hasta ${FREE_DISH_LIMIT} platos. Actualiza a Pro para platos ilimitados.` },
     tickets:  { icon: '🧾', title: 'Límite de tickets alcanzado',  desc: `Con el plan gratuito puedes subir ${FREE_TICKET_LIMIT} tickets. Actualiza a Pro para tickets ilimitados.` },
@@ -164,7 +164,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
     automenu: { icon: '✨', title: 'Menú automático — función Pro', desc: 'Rellena tu plan mensual automáticamente según tu despensa.' },
     autodish: { icon: '✨', title: 'Sugerir platos — función Pro',  desc: 'Sugiere recetas compatibles con tu despensa y añádelas directamente.' },
     upgrade:  { icon: '🎁', title: 'Suscríbete a MiDespensa Pro',  desc: 'Accede a todas las funciones sin límites.' },
-    trial:    { icon: '⏳', title: 'Tu prueba gratuita está a punto de acabar', desc: 'Suscríbete ahora para mantener acceso a platos ilimitados, escáner nutricional, informes y todo lo Pro sin interrupciones.' },
+    trial:    { icon: '⏳', title: 'Tu prueba Pro está a punto de acabar', desc: 'Suscríbete ahora para mantener acceso a platos ilimitados, escáner nutricional, informes y todo lo Pro sin interrupciones.' },
   };
   const r = REASONS[reason] || REASONS.reports;
 
@@ -194,6 +194,8 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
     }
 
     // ── Web / iOS / desktop PWA branch: Stripe checkout ──
+    // Double-check: never redirect to Stripe inside Android TWA (Play policy)
+    if (isAndroidTwa()) { setLoading(false); return; }
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       const token = s?.access_token;

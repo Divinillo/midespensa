@@ -246,7 +246,7 @@ export const en = {
     subtitle:       'Unlock everything in MiDespensa',
     perMonth:       '/mo',
     perYear:        '/yr',
-    tryFree:        'Try free for 7 days',
+    tryFree:        '7 days of Pro for free',
     features: {
       unlimitedDishes:  'Unlimited recipes',
       unlimitedTickets: 'Unlimited receipts',

@@ -246,7 +246,7 @@ export const es = {
     subtitle:       'Desbloquea todo MiDespensa',
     perMonth:       '/mes',
     perYear:        '/año',
-    tryFree:        'Probar gratis 7 días',
+    tryFree:        '7 días de Pro gratis',
     features: {
       unlimitedDishes:  'Platos ilimitados',
       unlimitedTickets: 'Tickets ilimitados',

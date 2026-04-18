@@ -282,8 +282,8 @@ export function App() {
   // ── Plan status for Settings modal ────────────────────────────
   const planLabel = isTrial
     ? isEN
-      ? `🎁 Free trial · ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left`
-      : `🎁 Prueba gratuita · ${trialDaysLeft} día${trialDaysLeft !== 1 ? 's' : ''} restante${trialDaysLeft !== 1 ? 's' : ''}`
+      ? `🎁 Pro trial · ${trialDaysLeft} day${trialDaysLeft !== 1 ? 's' : ''} left`
+      : `🎁 Prueba Pro · ${trialDaysLeft} día${trialDaysLeft !== 1 ? 's' : ''} restante${trialDaysLeft !== 1 ? 's' : ''}`
     : isPro
       ? (isEN ? '✨ Pro version active' : '✨ Versión Pro activa')
       : (isEN ? '🔒 Free plan' : '🔒 Plan gratuito');
@@ -312,12 +312,12 @@ export function App() {
         }}>
           <span style={{ fontWeight: 500 }}>
             {trialDaysLeft <= 0
-              ? (isEN ? '⏰ Your free trial has ended' : '⏰ Tu periodo de prueba ha terminado')
+              ? (isEN ? '⏰ Your Pro trial has ended' : '⏰ Tu periodo de prueba Pro ha terminado')
               : trialDaysLeft === 1
-              ? (isEN ? '⏳ Last day of your free trial' : '⏳ Último día de prueba gratuita')
+              ? (isEN ? '⏳ Last day of your Pro trial' : '⏳ Último día de prueba Pro')
               : isEN
-              ? `🎁 ${trialDaysLeft} days of free trial left`
-              : `🎁 ${trialDaysLeft} días de prueba gratuita restantes`}
+              ? `🎁 ${trialDaysLeft} days of Pro trial left`
+              : `🎁 ${trialDaysLeft} días de prueba Pro restantes`}
           </span>
           <button
             onClick={() => setUpgradeModal('trial')}
@@ -456,8 +456,8 @@ export function App() {
               <div>
                 <p className="text-xs text-green-700 mb-2">
                   {isEN
-                    ? <>You're enjoying all Pro features. Your free trial ends in <strong>{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>
-                    : <>Estás disfrutando de todas las funciones Pro. Tu prueba gratuita termina en <strong>{trialDaysLeft} día{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>}
+                    ? <>You're enjoying all Pro features. Your Pro trial ends in <strong>{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>
+                    : <>Estás disfrutando de todas las funciones Pro. Tu prueba Pro termina en <strong>{trialDaysLeft} día{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>}
                 </p>
                 <button onClick={() => { setShowSettings(false); setUpgradeModal('trial'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>
                   {isEN ? `Continue with Pro · ${formatPrice(stripeConfig.monthly)}/mo →` : `Continuar con Pro · ${formatPrice(stripeConfig.monthly)}/mes →`}
