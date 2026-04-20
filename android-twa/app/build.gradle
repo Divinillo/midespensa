@@ -4,14 +4,14 @@ plugins {
 
 android {
     namespace 'app.midespensa.twa'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "app.midespensa.twa"
         minSdk 21
-        targetSdk 34
-        versionCode 2
-        versionName "1.1.0"
+        targetSdk 35
+        versionCode 3
+        versionName "1.2.0"
     }
 
     signingConfigs {
@@ -44,10 +44,4 @@ android {
 
 dependencies {
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
-    // Enables Google Play Billing inside the TWA via the Digital Goods API.
-    // The "billing" artifact ships a DelegationService extension that wires
-    // a PaymentService into the Trusted Web Activity, which is what makes
-    // window.getDigitalGoodsService('https://play.google.com/billing')
-    // resolve inside the embedded Chrome process.
-    implementation 'com.google.androidbrowserhelper:billing:1.0.0-alpha10'
 }
