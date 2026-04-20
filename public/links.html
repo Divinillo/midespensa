@@ -175,6 +175,36 @@
             letter-spacing: 0.05em;
         }
 
+        /* Demo row */
+        .demo-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .demo-row .link-btn {
+            flex: 1;
+            font-size: 16px;
+            font-weight: 700;
+            padding: 16px 12px;
+            background: #134e4a;
+            color: #fff;
+            border: none;
+        }
+
+        .demo-row .link-btn:hover {
+            background: #0f3d3a;
+            color: #fff;
+        }
+
+        .demo-lang {
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.2);
+            padding: 2px 8px;
+            border-radius: 5px;
+        }
+
         /* Features strip */
         .features {
             display: flex;
@@ -233,10 +263,18 @@
                 <span class="coming-soon">Coming Soon</span>
             </a>
 
-            <a href="/promo.mp4" class="link-btn link-btn--standard">
-                <span class="emoji" aria-hidden="true">&#x1F3AC;</span>
-                Watch Demo
-            </a>
+            <div class="demo-row">
+                <a href="/promo.html" class="link-btn">
+                    <span class="emoji" aria-hidden="true">&#x1F3AC;</span>
+                    Ver Demo
+                    <span class="demo-lang">ES</span>
+                </a>
+                <a href="/promo-en.html" class="link-btn">
+                    <span class="emoji" aria-hidden="true">&#x1F3AC;</span>
+                    Watch Demo
+                    <span class="demo-lang">EN</span>
+                </a>
+            </div>
 
             <div class="separator"><span>Follow us</span></div>
 
@@ -245,12 +283,12 @@
                 Instagram
             </a>
 
-            <a href="https://tiktok.com/@midespensaapp" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--standard">
+            <a href="https://www.tiktok.com/@midespensaapp" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--standard">
                 <span class="emoji" aria-hidden="true">&#x1F3B5;</span>
                 TikTok
             </a>
 
-            <a href="https://x.com/MiDespensaApp" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--standard">
+            <a href="https://x.com/MiDespensAp" target="_blank" rel="noopener noreferrer" class="link-btn link-btn--standard">
                 <span class="emoji" aria-hidden="true">&#x1F426;</span>
                 X / Twitter
             </a>

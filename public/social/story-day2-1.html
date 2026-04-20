@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Story Day 2 - Poll</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+.story {
+  width: 1080px;
+  height: 1920px;
+  background: linear-gradient(160deg, #0f2b29 0%, #134e4a 40%, #0c3a36 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 70px;
+}
+.story::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255,255,255,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.glow {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(45,212,191,0.12) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 60px;
+}
+.emoji-big {
+  font-size: 120px;
+}
+h1 {
+  font-size: 72px;
+  font-weight: 900;
+  color: #fff;
+  text-align: center;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+h1 em {
+  color: #2dd4bf;
+  font-style: normal;
+}
+.poll-hint {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  max-width: 700px;
+}
+.poll-option {
+  background: rgba(255,255,255,0.1);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  padding: 32px 40px;
+  text-align: center;
+  font-size: 36px;
+  font-weight: 700;
+  color: #fff;
+}
+.branding {
+  position: absolute;
+  bottom: 80px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1;
+}
+.branding-text {
+  font-size: 28px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.5);
+}
+</style>
+</head>
+<body>
+<div class="story">
+  <div class="glow"></div>
+  <div class="content">
+    <div class="emoji-big">🤔</div>
+    <h1>Do you <em>plan</em><br>your meals<br>for the week?</h1>
+    <div class="poll-hint">
+      <div class="poll-option">Yes, always ✅</div>
+      <div class="poll-option">Nope, I wing it 🤷</div>
+    </div>
+  </div>
+  <div class="branding">
+    <div class="branding-text">@midespensaapp</div>
+  </div>
+</div>
+</body>
+</html>

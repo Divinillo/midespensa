@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Story Day 2 - Stat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 1080px;
+  height: 1920px;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+.story {
+  width: 1080px;
+  height: 1920px;
+  background: linear-gradient(160deg, #1a0a00 0%, #7c2d12 40%, #1a0a00 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 70px;
+}
+.glow {
+  position: absolute;
+  width: 700px;
+  height: 700px;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(245,158,11,0.15) 0%, transparent 70%);
+  border-radius: 50%;
+}
+.content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 50px;
+}
+.emoji-big {
+  font-size: 120px;
+}
+.stat {
+  font-size: 140px;
+  font-weight: 900;
+  color: #fbbf24;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+h1 {
+  font-size: 58px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  max-width: 800px;
+}
+h1 em {
+  color: #fbbf24;
+  font-style: normal;
+}
+.subtitle {
+  font-size: 32px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  max-width: 700px;
+  line-height: 1.4;
+}
+.branding {
+  position: absolute;
+  bottom: 80px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 1;
+}
+.branding-text {
+  font-size: 28px;
+  font-weight: 800;
+  color: rgba(255,255,255,0.4);
+}
+</style>
+</head>
+<body>
+<div class="story">
+  <div class="glow"></div>
+  <div class="content">
+    <div class="emoji-big">😱</div>
+    <div class="stat">$1,500</div>
+    <h1>That's how much food the average family <em>throws away</em> every year</h1>
+    <div class="subtitle">Most of it? Stuff that expired because nobody planned meals around it.</div>
+  </div>
+  <div class="branding">
+    <div class="branding-text">@midespensaapp</div>
+  </div>
+</div>
+</body>
+</html>
