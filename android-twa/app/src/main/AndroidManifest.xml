@@ -78,32 +78,5 @@
             </intent-filter>
         </service>
 
-        <!-- ── Google Play Billing bridge ──────────────────────────
-             These two components come from the
-             `com.google.androidbrowserhelper:billing` library and
-             expose the Digital Goods API + PaymentRequest API to the
-             web content running inside the TWA. Without them
-             window.getDigitalGoodsService('https://play.google.com/billing')
-             returns undefined and the in-app subscription flow fails. -->
-        <activity
-            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentActivity"
-            android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen">
-            <intent-filter>
-                <action android:name="org.chromium.intent.action.PAY" />
-            </intent-filter>
-            <meta-data
-                android:name="org.chromium.default_payment_method_name"
-                android:value="https://play.google.com/billing" />
-        </activity>
-
-        <service
-            android:name="com.google.androidbrowserhelper.playbilling.provider.PaymentService"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="org.chromium.intent.action.IS_READY_TO_PAY" />
-            </intent-filter>
-        </service>
-
     </application>
 </manifest>
