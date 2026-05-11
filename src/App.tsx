@@ -78,15 +78,28 @@ export function App() {
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setAuthLoading(false);
-    });
+    // Safety timeout: if auth doesn't resolve in 5s, stop waiting and show login
+    const timeout = setTimeout(() => setAuthLoading(false), 5000);
+
+    supabase.auth.getSession()
+      .then(({ data: { session } }) => {
+        setSession(session);
+        setAuthLoading(false);
+      })
+      .catch(() => {
+        // Network error or Supabase unreachable — show login screen
+        setAuthLoading(false);
+      })
+      .finally(() => clearTimeout(timeout));
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setAuthLoading(false);
     });
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timeout);
+    };
   }, []);
 
   const [section, setSection] = useLS<Section>('despensa_section_v1', 'plan');

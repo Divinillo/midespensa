@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:label="@string/app_name"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:allowBackup="false"
-        android:supportsRtl="false"
-        android:theme="@android:style/Theme.NoTitleBar">
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
 
         <!-- ── Actividad principal TWA ── -->
         <activity
             android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
             android:exported="true">
 
-            <!-- URL de inicio de la PWA. El parámetro ?source=twa lo lee
-                 utils/isAndroidTwa.ts en el cliente para activar la rama
-                 de Google Play Billing en el modal de upgrade. -->
+            <!-- URL de inicio de la PWA -->
             <meta-data
                 android:name="android.support.customtabs.trusted.DEFAULT_URL"
                 android:value="https://midespensa.app/app?source=twa" />
@@ -24,32 +24,32 @@
             <!-- Color de la barra de estado durante carga -->
             <meta-data
                 android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR"
-                android:value="#134e4a" />
+                android:resource="@color/statusBarColor" />
 
             <!-- Color de la barra de navegación -->
             <meta-data
                 android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR"
-                android:value="#134e4a" />
+                android:resource="@color/navigationBarColor" />
 
             <!-- Color de fondo de la splash screen -->
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_SCREEN_BACKGROUND_COLOR"
-                android:value="#0f766e" />
+                android:resource="@color/splashBackgroundColor" />
 
             <!-- Pantalla inicial mientras carga -->
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_IMAGE_DRAWABLE"
                 android:resource="@drawable/splash_icon" />
 
-            <!-- Versión del splash: mantener en 1 -->
+            <!-- Versión del splash: 1 = activar splash nativo -->
             <meta-data
                 android:name="android.support.customtabs.trusted.SPLASH_SCREEN_VERSION"
-                android:value="1" />
+                android:resource="@integer/splash_screen_version" />
 
-            <!-- Fallback: abrir en Chrome si no hay Custom Tab -->
+            <!-- Fallback: 0 = Custom Tabs, 1 = WebView -->
             <meta-data
                 android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY"
-                android:value="customtabs" />
+                android:resource="@integer/fallback_strategy" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
