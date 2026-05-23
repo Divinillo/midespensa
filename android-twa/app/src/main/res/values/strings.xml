@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MiDespensa</string>
+
+    <!-- Delegation types for DelegationService: enable Play Billing in TWA -->
+    <string-array name="delegation_service_supported_types">
+        <item>payment</item>
+    </string-array>
 </resources>

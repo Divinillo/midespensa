@@ -81,6 +81,11 @@
             <meta-data
                 android:name="android.support.customtabs.trusted.MANAGED_ORIGIN"
                 android:value="https://midespensa.app" />
+
+            <!-- Declare payment delegation so Play Billing works in TWA -->
+            <meta-data
+                android:name="android.support.customtabs.trusted.SUPPORTED_DELEGATION_TYPES"
+                android:resource="@array/delegation_service_supported_types" />
         </service>
 
         <!-- Play Billing: expone la PaymentActivity para que Chrome conecte
