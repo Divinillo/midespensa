@@ -58,18 +58,24 @@ export async function buyWithPlayBilling(
     return { ok: false, reason: 'unsupported', message: 'Play Billing not available in this context' };
   }
 
+  // ── Step-by-step with diagnostics ──────────────────────────────
+  let step = 'init';
   try {
+    // Step 1: get Digital Goods Service
+    step = '1-getService';
     const service = await (window as any).getDigitalGoodsService(
       'https://play.google.com/billing',
     );
 
-    // Pre-fetch SKU details so we can fail fast with a clearer error if the
-    // SKU isn't published in Play Console yet (a very common config bug).
+    // Step 2: query SKU details
+    step = '2-getDetails';
     const details = await service.getDetails([sku]);
     if (!details || details.length === 0) {
       return { ok: false, reason: 'unsupported', message: `SKU "${sku}" not found in Play Console` };
     }
 
+    // Step 3: check canMakePayment
+    step = '3-createRequest';
     const request = new (window as any).PaymentRequest(
       [
         {
@@ -78,9 +84,6 @@ export async function buyWithPlayBilling(
         },
       ],
       {
-        // PaymentRequest demands a `total` even though Play Billing ignores
-        // it (the real price comes from the Play Console SKU). We pass a
-        // placeholder so the call validates.
         total: {
           label: 'MiDespensa Pro',
           amount: { currency: details[0].price?.currency ?? 'EUR', value: details[0].price?.value ?? '0' },
@@ -88,11 +91,21 @@ export async function buyWithPlayBilling(
       },
     );
 
+    step = '4-canMakePayment';
+    const canPay = await request.canMakePayment();
+
+    if (!canPay) {
+      return { ok: false, reason: 'unsupported', message: `[step ${step}] canMakePayment=false. SKU=${sku}, price=${details[0].price?.value} ${details[0].price?.currency}` };
+    }
+
+    // Step 5: show payment sheet
+    step = '5-show';
     const response = await request.show();
     const purchaseToken: string = response.details.purchaseToken;
     const productId: string = response.details.productId ?? sku;
 
-    // ── Verify with our backend before acknowledging ──────────────
+    // Step 6: verify with backend
+    step = '6-verify';
     const { data: { session: s } } = await supabase.auth.getSession();
     const token = s?.access_token;
     if (!token) {
@@ -121,16 +134,12 @@ export async function buyWithPlayBilling(
 
     await response.complete('success');
 
-    // Acknowledge the purchase so Play stops marking it as pending. For
-    // subscriptions you must call this within 3 days or Google refunds
-    // automatically. The DigitalGoodsService API exposes it directly.
     try {
       if (typeof service.acknowledge === 'function') {
         await service.acknowledge(purchaseToken, 'repeatable');
       }
     } catch {
-      // Non-fatal — the backend will also acknowledge from the RTDN webhook
-      // as a belt-and-braces second attempt.
+      // Non-fatal
     }
 
     return { ok: true, purchaseToken, productId };
@@ -138,6 +147,10 @@ export async function buyWithPlayBilling(
     if (err && (err.name === 'AbortError' || /cancel/i.test(err.message ?? ''))) {
       return { ok: false, reason: 'cancelled' };
     }
-    return { ok: false, reason: 'unknown', message: err?.message ?? 'Unknown Play Billing error' };
+    return {
+      ok: false,
+      reason: 'unknown',
+      message: `[step ${step}] ${err?.name ?? 'Error'}: ${err?.message ?? 'unknown'} | code=${err?.code ?? 'none'}`,
+    };
   }
 }
