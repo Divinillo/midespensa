@@ -63,13 +63,30 @@ export async function buyWithPlayBilling(
   try {
     // Step 1: get Digital Goods Service
     step = '1-getService';
+    console.log('[PlayBilling] Step 1: getting Digital Goods Service...');
     const service = await (window as any).getDigitalGoodsService(
       'https://play.google.com/billing',
     );
+    console.log('[PlayBilling] Step 1 OK. Service methods:', Object.keys(service ?? {}));
 
     // Step 2: query SKU details
     step = '2-getDetails';
-    const details = await service.getDetails([sku]);
+    console.log('[PlayBilling] Step 2: getDetails for SKU:', sku);
+    let details: any;
+    try {
+      details = await service.getDetails([sku]);
+      console.log('[PlayBilling] Step 2 OK. Details:', JSON.stringify(details));
+    } catch (detailsErr: any) {
+      console.error('[PlayBilling] Step 2 FAILED:', {
+        name: detailsErr?.name,
+        message: detailsErr?.message,
+        code: detailsErr?.code,
+        constructor: detailsErr?.constructor?.name,
+        keys: Object.keys(detailsErr ?? {}),
+        raw: String(detailsErr),
+      });
+      throw detailsErr;
+    }
     if (!details || details.length === 0) {
       return { ok: false, reason: 'unsupported', message: `SKU "${sku}" not found in Play Console` };
     }
@@ -147,10 +164,12 @@ export async function buyWithPlayBilling(
     if (err && (err.name === 'AbortError' || /cancel/i.test(err.message ?? ''))) {
       return { ok: false, reason: 'cancelled' };
     }
+    const errInfo = `[step ${step}] ${err?.name ?? 'Error'}: ${err?.message ?? 'unknown'} | code=${err?.code ?? 'none'} | type=${err?.constructor?.name ?? '?'}`;
+    console.error('[PlayBilling] CAUGHT:', errInfo, err);
     return {
       ok: false,
       reason: 'unknown',
-      message: `[step ${step}] ${err?.name ?? 'Error'}: ${err?.message ?? 'unknown'} | code=${err?.code ?? 'none'}`,
+      message: errInfo,
     };
   }
 }
