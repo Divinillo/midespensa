@@ -10,8 +10,8 @@ android {
         applicationId "app.midespensa.twa"
         minSdk 21
         targetSdk 35
-        versionCode 12
-        versionName "1.3.5"
+        versionCode 13
+        versionName "1.3.6"
     }
 
     signingConfigs {
@@ -45,8 +45,6 @@ android {
 dependencies {
     implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
     // Play Billing delegation for Digital Goods API in TWA
-    // Let billing module pull its own compatible billingclient version
     implementation 'com.google.androidbrowserhelper:billing:1.1.0'
-    // Removed explicit billingclient:7.1.1 — was potentially causing
-    // version conflict with androidbrowserhelper:billing:1.1.0
+    implementation 'com.android.billingclient:billing:7.1.1'
 }
