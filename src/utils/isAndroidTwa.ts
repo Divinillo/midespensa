@@ -18,10 +18,14 @@
 //      to TWAs that declare Play Billing support in the manifest.
 //
 // Any single signal is enough to flip into TWA mode. We cache the result
-// because the document.referrer can be lost on subsequent client-side
-// navigations.
+// in sessionStorage (NOT localStorage) so it survives SPA navigations
+// within the same tab but does NOT persist across browser sessions.
+// This prevents a sticky false-positive where a desktop browser that once
+// accessed from the TWA would permanently show Google Play billing instead
+// of Stripe.
 
-const STORAGE_KEY = 'midespensa.isAndroidTwa';
+const SESSION_KEY = 'midespensa.isAndroidTwa';
+const OLD_STORAGE_KEY = 'midespensa.isAndroidTwa'; // legacy localStorage key to clean up
 
 let cached: boolean | null = null;
 
@@ -33,15 +37,24 @@ export function isAndroidTwa(): boolean {
     return cached;
   }
 
-  // Persisted detection from a previous page-load (referrer is gone after
-  // client-side navigation, so we have to remember it once it fires).
+  // Clean up legacy localStorage flag that caused sticky false-positives
+  // on desktop browsers. Safe to run every cold start — it's a no-op once
+  // the key is gone.
   try {
-    if (window.localStorage?.getItem(STORAGE_KEY) === '1') {
+    window.localStorage?.removeItem(OLD_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+
+  // Check sessionStorage cache — survives SPA navigations within the same
+  // tab but resets on new tabs / browser restart.
+  try {
+    if (window.sessionStorage?.getItem(SESSION_KEY) === '1') {
       cached = true;
       return cached;
     }
   } catch {
-    /* localStorage might be blocked — ignore */
+    /* sessionStorage might be blocked — ignore */
   }
 
   // 1) document.referrer set by Chrome when launched from a TWA
@@ -65,7 +78,7 @@ export function isAndroidTwa(): boolean {
 
   if (cached) {
     try {
-      window.localStorage?.setItem(STORAGE_KEY, '1');
+      window.sessionStorage?.setItem(SESSION_KEY, '1');
     } catch {
       /* ignore */
     }
