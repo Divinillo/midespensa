@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from './data/categories';
 import { Header } from './components/layout/Header';
 import { Nav } from './components/layout/Nav';
+import { SubNav } from './components/ui/SubNav';
 import { Modal } from './components/ui/Modal';
 import { PlanMensual } from './features/plan/PlanMensual';
 import { Platos } from './features/platos/Platos';
@@ -57,12 +58,12 @@ const INIT_DISHES_US: Dish[] = [
 ];
 
 const TITLES_ES: Record<Section, string> = {
-  plan: 'Plan mensual', platos: 'Platos habituales', cat: 'Catálogo de ingredientes',
+  plan: 'Plan semanal', platos: 'Platos habituales', cat: 'Catálogo de ingredientes',
   ticket: 'Tickets del supermercado', lista: 'Lista de la compra',
   nutri: 'Valor nutricional', gastos: 'Resumen de gasto',
 };
 const TITLES_EN: Record<Section, string> = {
-  plan: 'Monthly Plan', platos: 'Your Recipes', cat: 'Ingredient Catalog',
+  plan: 'Weekly Plan', platos: 'Your Recipes', cat: 'Ingredient Catalog',
   ticket: 'Receipts', lista: 'Shopping List',
   nutri: 'Nutrition', gastos: 'Spending Summary',
 };
@@ -261,9 +262,12 @@ export function App() {
     return (
       <div style={{
         minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: 'linear-gradient(135deg, #f0fdf4 0%, #f0fdfa 100%)',
+        background: '#f8faf9',
       }}>
-        <div style={{ fontSize: '2rem' }}>🥦</div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', border: '3px solid #e2e8f0', borderTopColor: '#0d9488', animation: 'spin 0.8s linear infinite' }} />
+          <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>Cargando...</span>
+        </div>
       </div>
     );
   }
@@ -302,7 +306,8 @@ export function App() {
       : (isEN ? '🔒 Free plan' : '🔒 Plan gratuito');
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: 'var(--color-bg)' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: '#f8faf9' }}>
+        <a href="#main-content" className="skip-nav">Skip to content</a>
       <Header
         section={section} isPro={isPro} neededCount={neededCount}
         pendingCount={pendingCount} syncStatus={syncStatus}
@@ -525,14 +530,48 @@ export function App() {
       <PWAInstallWizard />
       {showPWAWizard && <PWAInstallWizard forceOpen onClose={() => setShowPWAWizard(false)} />}
 
-      <main className="flex-1 max-w-lg mx-auto w-full px-4 pb-28" style={{ paddingTop: 20 }}>
-        {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'platos' && <Platos dishes={dishes} setDishes={setDishes} ingredients={ingredients} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'cat' && <Catalogo ingredients={ingredients} setIngredients={setIngredients} isPro={isPro} />}
-        {section === 'ticket' && <Tickets tickets={tickets} setTickets={setTickets} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} setPriceHistory={setPriceHistory} learnedMappings={learnedMappings} setLearnedMappings={setLearnedMappings} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'lista' && <ListaCompra plan={plan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} isPro={isPro} />}
-        {section === 'nutri' && <Nutricion isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
-        {section === 'gastos' && <ResumenGasto tickets={tickets} ingredients={ingredients} priceHistory={priceHistory} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+      <main id="main-content" className="flex-1 max-w-lg mx-auto w-full px-4 pb-28" style={{ paddingTop: 20 }}>
+        {/* Sub-navigation toggles for grouped sections */}
+        {(section === 'plan' || section === 'lista') && (
+          <SubNav
+            items={[
+              { id: 'plan', label: isEN ? '🗓 Plan' : '🗓 Plan' },
+              { id: 'lista', label: isEN ? '🛒 Shopping list' : '🛒 Lista de compra' },
+            ]}
+            active={section}
+            onChange={(id) => setSection(id as Section)}
+          />
+        )}
+        {(section === 'cat' || section === 'nutri') && (
+          <SubNav
+            items={[
+              { id: 'cat', label: isEN ? '🏪 Pantry' : '🏪 Despensa' },
+              { id: 'nutri', label: isEN ? '📊 Nutrition' : '📊 Nutrición' },
+            ]}
+            active={section}
+            onChange={(id) => setSection(id as Section)}
+          />
+        )}
+        {(section === 'ticket' || section === 'gastos') && (
+          <SubNav
+            items={[
+              { id: 'ticket', label: isEN ? '🧾 Receipts' : '🧾 Tickets' },
+              { id: 'gastos', label: isEN ? '💰 Spending' : '💰 Gastos' },
+            ]}
+            active={section}
+            onChange={(id) => setSection(id as Section)}
+          />
+        )}
+
+        <div className="section-fade-enter" key={section}>
+          {section === 'plan' && <PlanMensual plan={plan} setPlan={setPlan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} tickets={tickets} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+          {section === 'platos' && <Platos dishes={dishes} setDishes={setDishes} ingredients={ingredients} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+          {section === 'cat' && <Catalogo ingredients={ingredients} setIngredients={setIngredients} isPro={isPro} />}
+          {section === 'ticket' && <Tickets tickets={tickets} setTickets={setTickets} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} setPriceHistory={setPriceHistory} learnedMappings={learnedMappings} setLearnedMappings={setLearnedMappings} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+          {section === 'lista' && <ListaCompra plan={plan} dishes={dishes} ingredients={ingredients} setIngredients={setIngredients} priceHistory={priceHistory} isPro={isPro} />}
+          {section === 'nutri' && <Nutricion isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+          {section === 'gastos' && <ResumenGasto tickets={tickets} ingredients={ingredients} priceHistory={priceHistory} isPro={isPro} onUpgrade={r => setUpgradeModal(r)} />}
+        </div>
       </main>
 
       <Nav section={section} neededCount={neededCount} pendingCount={pendingCount} isPro={isPro} onNavigate={setSection} />

@@ -283,9 +283,9 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
 
   return (
     <div className="fade">
-      {!isPro&&<div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 mb-4 flex items-center justify-between">
-        <span className="text-xs text-amber-700 font-medium">🔒 Plan gratuito · {tickets.length}/{FREE_TICKET_LIMIT} tickets · {photoCount}/{FREE_TICKET_PHOTO_LIMIT} foto</span>
-        <button onClick={()=>onUpgrade('tickets')} className="text-xs font-bold text-teal-600 hover:underline">Pro →</button>
+      {!isPro&&<div className="flex items-center justify-between mb-3 px-1">
+        <span className="text-[11px] text-gray-400">{tickets.length}/{FREE_TICKET_LIMIT} tickets · {photoCount}/{FREE_TICKET_PHOTO_LIMIT} {isEN ? 'photo' : 'foto'}</span>
+        <button onClick={()=>onUpgrade('tickets')} className="text-[11px] text-gray-400 hover:text-teal-600 transition-colors">{isEN ? 'Unlock more' : 'Desbloquear más'} &rarr;</button>
       </div>}
       {/* Zona de arrastrar/subir PDF */}
       <div onDrop={ticketAtLimit?undefined:onDrop} onDragOver={ticketAtLimit?undefined:e=>e.preventDefault()}
@@ -352,7 +352,15 @@ export function Tickets({tickets,setTickets,ingredients,setIngredients,priceHist
         </div>
       )}
       {!tickets.length
-        ? <div className="text-center py-10 text-gray-300"><div className="text-5xl mb-3"><Receipt size={56}/></div><p className="text-sm">{isEN ? 'No receipts uploaded' : 'Sin tickets subidos'}</p></div>
+        ? <div style={{ textAlign: 'center', padding: '32px 16px', color: '#94a3b8' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🧾</div>
+            <p style={{ fontSize: '0.88rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+              {isEN ? 'No receipts yet' : 'Aún no hay tickets'}
+            </p>
+            <p style={{ fontSize: '0.78rem', lineHeight: 1.5 }}>
+              {isEN ? 'Upload a receipt PDF or take a photo to automatically update your pantry and track prices.' : 'Sube un ticket en PDF o haz una foto para actualizar tu despensa y registrar precios automáticamente.'}
+            </p>
+          </div>
         : <div className="space-y-3">
             {[...tickets].reverse().map(tk=>{
               const matchedCount=(tk.matched||[]).length;

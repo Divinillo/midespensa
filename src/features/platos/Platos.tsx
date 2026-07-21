@@ -757,12 +757,11 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
   return (
     <div className="fade-in">
 
-      {/* ── Free plan banner ── */}
+      {/* ── Free plan usage hint ── */}
       {!isPro&&(
-        <div className="rounded-2xl px-4 py-3 mb-4 flex items-center justify-between"
-          style={{background:'#fffbeb',border:'1px solid #fde68a'}}>
-          <span className="text-xs text-amber-700 font-semibold">{isEN ? 'Free plan' : 'Plan gratuito'} · {dishes.length}/{FREE_DISH_LIMIT} {isEN ? 'recipes' : 'platos'}</span>
-          <button onClick={()=>onUpgrade('dishes')} className="text-xs font-bold text-teal-600">{isEN ? 'Unlock Pro →' : 'Desbloquear Pro →'}</button>
+        <div className="flex items-center justify-between mb-3 px-1">
+          <span className="text-[11px] text-gray-400">{dishes.length}/{FREE_DISH_LIMIT} {isEN ? 'recipes' : 'platos'}</span>
+          <button onClick={()=>onUpgrade('dishes')} className="text-[11px] text-gray-400 hover:text-teal-600 transition-colors">{isEN ? 'Unlock more' : 'Desbloquear más'} &rarr;</button>
         </div>
       )}
 
@@ -855,10 +854,14 @@ export function Platos({dishes,setDishes,ingredients,isPro,onUpgrade}) {
           </div>
         ))}
         {!dishes.length&&(
-          <div className="text-center py-12">
-            <div className="text-5xl mb-3" style={{display:'flex',alignItems:'center',justifyContent:'center'}}></div>
-            <p className="font-semibold text-gray-400 text-sm">{isEN ? 'You have no recipes yet' : 'Aún no tienes platos'}</p>
-            <p className="text-xs text-gray-300 mt-1">{isEN ? 'Add your favorite recipes' : 'Añade tus recetas habituales'}</p>
+          <div style={{ textAlign: 'center', padding: '40px 16px', color: '#94a3b8' }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🍽️</div>
+            <p style={{ fontSize: '0.88rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+              {isEN ? 'No recipes yet' : 'Aún no tienes platos'}
+            </p>
+            <p style={{ fontSize: '0.78rem', lineHeight: 1.5, marginBottom: 16 }}>
+              {isEN ? 'Add your favorite recipes so the AI can plan your meals.' : 'Añade tus recetas favoritas para que la IA pueda planificar tus comidas.'}
+            </p>
           </div>
         )}
       </div>

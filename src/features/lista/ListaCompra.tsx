@@ -79,6 +79,21 @@ export function ListaCompra({plan,dishes,ingredients,setIngredients,priceHistory
         </button>
       </div>
 
+      {/* ── Empty state hint — shown before generating ── */}
+      {!list && (
+        <div style={{ textAlign: 'center', padding: '32px 16px', color: '#94a3b8' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🛒</div>
+          <p style={{ fontSize: '0.88rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+            {isEN ? 'No list generated yet' : 'Aún no hay lista generada'}
+          </p>
+          <p style={{ fontSize: '0.78rem', lineHeight: 1.5 }}>
+            {isEN
+              ? 'Select a month above and tap Generate to see which ingredients you need to buy.'
+              : 'Selecciona un mes arriba y pulsa Generar para ver qué ingredientes te faltan.'}
+          </p>
+        </div>
+      )}
+
       {/* ── Resultado ── */}
       {list&&(list.items.length===0
         ?(

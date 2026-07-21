@@ -8,10 +8,11 @@ export const es = {
     lista:  'Compra',
     nutri:  'Nutrición',
     gastos: 'Gastos',
+    main: 'Navegación principal',
   },
   // ── Header titles / subtitles ─────────────────────────────────
   header: {
-    plan:   { title: 'Plan mensual',            sub: 'Organiza tu semana' },
+    plan:   { title: 'Plan semanal',            sub: 'Organiza tu semana' },
     platos: { title: 'Mis platos',              sub: 'Tus recetas habituales' },
     cat:    { title: 'Mi despensa',             sub: 'Gestiona tus ingredientes' },
     ticket: { title: 'Tickets',                 sub: 'Escanea y guarda' },

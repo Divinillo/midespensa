@@ -194,3 +194,45 @@ input, textarea, select {
   body { background: white !important; }
   main { padding-bottom: 0 !important; }
 }
+
+/* Skeleton pulse animation */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.animate-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade transition for section changes */
+.section-fade-enter {
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* Focus ring for accessibility */
+*:focus-visible {
+  outline: 2px solid #0d9488;
+  outline-offset: 2px;
+}
+
+/* Skip navigation link */
+.skip-nav {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #0d9488;
+  color: #fff;
+  padding: 8px 16px;
+  z-index: 100;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 0 0 8px 0;
+  transition: top 0.2s;
+}
+.skip-nav:focus {
+  top: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

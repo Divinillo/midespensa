@@ -97,6 +97,7 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
             {neededCount > 0 && (
               <button
                 onClick={() => onNavigate('lista')}
+                aria-label={`${neededCount} items needed`}
                 style={{ fontSize: '0.7rem', fontWeight: 600, padding: '3px 9px', borderRadius: 9999, background: 'rgba(255,255,255,.18)', color: '#fff', border: '1px solid rgba(255,255,255,.22)', display: 'flex', alignItems: 'center', gap: 4 }}
               >
                 <ShoppingCartSimple size={12} color="#fff" weight="fill" />
@@ -110,6 +111,7 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
                 <button
                   ref={btnRef}
                   onClick={() => setShowWarning(v => !v)}
+                  aria-label={t('tickets.unmatched')}
                   style={{ fontSize: '0.7rem', fontWeight: 600, padding: '3px 9px', borderRadius: 9999, background: 'rgba(251,191,36,.28)', color: '#fef08a', border: '1px solid rgba(251,191,36,.4)', display: 'flex', alignItems: 'center', gap: 3, cursor: 'pointer' }}
                 >
                   <Warning size={12} color="#fef08a" weight="fill" />
@@ -157,6 +159,7 @@ export function Header({ section, isPro, neededCount, pendingCount, syncStatus, 
               onClick={onSettings}
               style={{ width: 36, height: 36, borderRadius: 12, background: 'rgba(255,255,255,.18)', border: '1px solid rgba(255,255,255,.22)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
               title={t('settings.title')}
+              aria-label={t('settings.title')}
             >
               <GearSix size={18} color="#ffffff" weight="regular" />
             </button>

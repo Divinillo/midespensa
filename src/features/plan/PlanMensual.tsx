@@ -932,15 +932,12 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         </button>
       </div>
 
-      {/* ── Upgrade banner (free) ── */}
+      {/* ── Upgrade hint (free) ── */}
       {!isPro && (
-        <div className="mb-3 flex items-center gap-3 bg-teal-50 border border-teal-100 rounded-xl px-3 py-2.5 cursor-pointer" onClick={()=>onUpgrade('automenu')}>
-          <span className="text-lg">📅</span>
-          <div className="flex-1">
-            <p className="text-xs font-bold text-teal-700">{isEN?'Monthly view — Pro':'Vista mensual — Pro'}</p>
-            <p className="text-[10px] text-teal-600">{isEN?'Plan the full month and generate automatic menus':'Planifica el mes completo y genera menús automáticos'}</p>
-          </div>
-          <span className="text-xs font-bold text-teal-600 shrink-0">Ver →</span>
+        <div className="mb-3 flex items-center justify-between rounded-xl px-3 py-1.5 cursor-pointer" onClick={()=>onUpgrade('automenu')}
+          style={{background:'#f8fafc',border:'1px solid #e2e8f0'}}>
+          <span className="text-[11px] text-gray-400">{isEN?'Monthly view available with Pro':'Vista mensual disponible con Pro'}</span>
+          <span className="text-[11px] text-gray-400 shrink-0">{isEN?'Learn more':'Saber más'} &rarr;</span>
         </div>
       )}
 
@@ -1056,6 +1053,19 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
           )}
         </div>
       </div>
+
+      {/* Empty state hint — shown when no meals are planned */}
+      {((isPro && planned === 0) || (!isPro && weekPlanned === 0)) && (
+        <div style={{ textAlign: 'center', padding: '32px 16px', color: '#94a3b8' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>📅</div>
+          <p style={{ fontSize: '0.88rem', fontWeight: 600, color: '#64748b', marginBottom: 4 }}>
+            {isEN ? 'Your week is empty' : 'Tu semana está vacía'}
+          </p>
+          <p style={{ fontSize: '0.78rem', lineHeight: 1.5 }}>
+            {isEN ? 'Tap a day to assign a meal, or use Auto menu to fill it automatically.' : 'Toca un día para asignar un plato, o usa Menú Auto para rellenarlo automáticamente.'}
+          </p>
+        </div>
+      )}
 
       {/* ── Action buttons ── */}
       <div className="mt-4 flex gap-2">
