@@ -5,8 +5,13 @@ import { FREE_DISH_LIMIT, FREE_TICKET_LIMIT } from '../../data/categories';
 import { Modal } from '../../components/ui/Modal';
 import { supabase } from '../../utils/supabase';
 import { useMarket } from '../../i18n/useMarket';
-import { isAndroidTwa } from '../../utils/isAndroidTwa';
-import { buyWithPlayBilling, PLAY_SKU_PRO_MONTHLY } from '../../utils/playBilling';
+// NOTE: Alternative Billing registered with Google Play (Jul 2026).
+// We now use Stripe for ALL platforms including the Android TWA.
+// The old Google Play Billing (Digital Goods API) path has been removed
+// because it was permanently broken (clientAppError | code=0) and Google
+// now allows alternative billing providers with a 10% service fee.
+// import { isAndroidTwa } from '../../utils/isAndroidTwa';
+// import { buyWithPlayBilling, PLAY_SKU_PRO_MONTHLY } from '../../utils/playBilling';
 
 
 export function OnboardingCard({tickets, ingredients, dishes, plan, onNavigate, onDismiss}) {
@@ -134,13 +139,10 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
   const [period, setPeriod] = useState<'monthly' | 'yearly'>('yearly');
   const [loading, setLoading] = useState(false);
   const { isUS, isEN, stripeConfig, formatPrice } = useMarket();
-  // When the app is running inside the Android TWA installed from Google
-  // Play we MUST use Google Play Billing instead of Stripe checkout, or
-  // Google will reject/remove the listing for violating their payments
-  // policy. Play Billing only supports a single SKU per call so we also
-  // force the period to "monthly" in that branch (the SKU configured in
-  // Play Console is the monthly subscription).
-  const inTwa = isAndroidTwa();
+  // Since Jul 2026 we are registered in Google's Alternative Billing
+  // program, so Stripe checkout is used on ALL platforms — including
+  // the Android TWA. Google charges a reduced 10% service fee instead
+  // of the normal 15%. The old Digital Goods API path was removed.
 
   const monthlyPrice = stripeConfig.monthly;
   const yearlyPrice = stripeConfig.yearly;
@@ -171,31 +173,9 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
   const handleCheckout = async () => {
     setLoading(true);
 
-    // ── Android TWA branch: Google Play Billing via Digital Goods API ──
-    // We never call Stripe from inside the Android app to comply with the
-    // Google Play payments policy. The backend validates the purchase and
-    // flips the user's tier to Pro on success.
-    if (inTwa) {
-      const outcome = await buyWithPlayBilling(PLAY_SKU_PRO_MONTHLY);
-      setLoading(false);
-      if (outcome.ok) {
-        // Backend has marked the user as Pro; refresh local state by
-        // closing the modal and letting the parent re-pull the tier.
-        if (typeof onUnlockPro === 'function') onUnlockPro();
-        onClose();
-        return;
-      }
-      if (outcome.reason === 'cancelled') return; // user closed the sheet
-      alert(
-        (isEN ? 'Could not complete the purchase: ' : 'No se pudo completar la compra: ') +
-          (outcome.message || outcome.reason),
-      );
-      return;
-    }
-
-    // ── Web / iOS / desktop PWA branch: Stripe checkout ──
-    // Double-check: never redirect to Stripe inside Android TWA (Play policy)
-    if (isAndroidTwa()) { setLoading(false); return; }
+    // ── Stripe checkout for ALL platforms (including Android TWA) ──
+    // Alternative Billing program registered Jul 2026 — Stripe is now
+    // the only payment provider across web, iOS PWA, and Android TWA.
     try {
       const { data: { session: s } } = await supabase.auth.getSession();
       const token = s?.access_token;
@@ -246,7 +226,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
           ))}
         </div>
 
-        {!inTwa && <div className="grid grid-cols-2 gap-2">
+        {<div className="grid grid-cols-2 gap-2">
           <button
             onClick={() => setPeriod('monthly')}
             className={`rounded-xl p-3 border-2 text-center transition-all ${period === 'monthly' ? 'border-teal-500 bg-teal-50' : 'border-gray-200 bg-white'}`}
@@ -274,9 +254,7 @@ export function UpgradeModal({ open, onClose, reason, onUnlockPro, userEmail = '
         >
           {loading
             ? (isEN ? 'Loading...' : 'Cargando...')
-            : inTwa
-              ? `${isEN ? 'Subscribe with Google Play' : 'Suscribirse con Google Play'}`
-              : `💳 ${isEN ? 'Subscribe' : 'Suscribirse'} · ${period === 'yearly' ? `${fmtYearly}/${isEN?'yr':'año'}` : `${fmtMonthly}/${isEN?'mo':'mes'}`}`}
+            : `💳 ${isEN ? 'Subscribe' : 'Suscribirse'} · ${period === 'yearly' ? `${fmtYearly}/${isEN?'yr':'año'}` : `${fmtMonthly}/${isEN?'mo':'mes'}`}`}
         </button>
       </div>
     </Modal>
