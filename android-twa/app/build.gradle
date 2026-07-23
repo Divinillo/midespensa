@@ -8,10 +8,10 @@ android {
 
     defaultConfig {
         applicationId "app.midespensa.twa"
-        minSdk 21
+        minSdk 23
         targetSdk 35
-        versionCode 14
-        versionName "1.3.7"
+        versionCode 15
+        versionName "1.3.8"
     }
 
     signingConfigs {
