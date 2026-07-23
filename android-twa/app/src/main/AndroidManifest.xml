@@ -67,7 +67,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Servicio de delegación: Custom Tabs + Play Billing -->
+        <!-- Servicio de delegación: Custom Tabs -->
         <service
             android:name="com.google.androidbrowserhelper.trusted.DelegationService"
             android:enabled="true"
@@ -77,30 +77,12 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- Habilitar delegación de pagos (Google Play Billing en TWA) -->
             <meta-data
                 android:name="android.support.customtabs.trusted.MANAGED_ORIGIN"
                 android:value="https://midespensa.app" />
-
-            <!-- Declare payment delegation so Play Billing works in TWA -->
-            <meta-data
-                android:name="android.support.customtabs.trusted.SUPPORTED_DELEGATION_TYPES"
-                android:resource="@array/delegation_service_supported_types" />
         </service>
 
-        <!-- Play Billing: expone la PaymentActivity para que Chrome conecte
-             el Digital Goods API con Google Play Billing dentro de la TWA -->
-        <activity
-            android:name="com.google.androidbrowserhelper.playbilling.PaymentActivity"
-            android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <intent-filter>
-                <action android:name="org.chromium.intent.action.PAY" />
-            </intent-filter>
-            <meta-data
-                android:name="org.chromium.default_payment_method_name"
-                android:value="https://play.google.com/billing" />
-        </activity>
+        <!-- Play Billing removed — all payments via Stripe (Alternative Billing) -->
 
     </application>
 </manifest>

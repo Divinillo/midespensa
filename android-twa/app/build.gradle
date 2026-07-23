@@ -10,8 +10,8 @@ android {
         applicationId "app.midespensa.twa"
         minSdk 21
         targetSdk 35
-        versionCode 13
-        versionName "1.3.6"
+        versionCode 14
+        versionName "1.3.7"
     }
 
     signingConfigs {
@@ -43,8 +43,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
-    // Play Billing delegation for Digital Goods API in TWA
-    implementation 'com.google.androidbrowserhelper:billing:1.1.0'
-    implementation 'com.android.billingclient:billing:7.1.1'
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.2'
+    // Billing removed — all payments via Stripe (Alternative Billing approved Jul 2026)
 }
