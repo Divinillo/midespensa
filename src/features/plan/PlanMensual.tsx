@@ -800,7 +800,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
   const [clearModal,setClearModal]=useState(false);
   const [nutriModal,setNutriModal]=useState(false);
   const [recipeModal,setRecipeModal]=useState(null); // {name,ings}
-  const [confirmDayClear,setConfirmDayClear]=useState(false);
+  const [confirmDayClear,setConfirmDayClear]=useState<number|false>(false);
   const days=getDays(year,month); const firstWD=getFirstWD(year,month);
   const dishMap=useMemo(()=>Object.fromEntries(dishes.map(d=>[d.id,d])),[dishes]);
   const ingMap=useMemo(()=>Object.fromEntries(ingredients.map(i=>[i.id,i])),[ingredients]);
@@ -1102,9 +1102,9 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
         dishes={dishes} ingredients={ingredients} setIngredients={setIngredients}/>
       <NutriReportModal open={nutriModal} onClose={()=>setNutriModal(false)}
         year={year} month={month} plan={plan} dishes={dishes} tickets={tickets}/>
-      <Confirm open={confirmDayClear}
-        msg={isEN?`Delete meals for ${monthNames[month]} ${selDay}? This cannot be undone.`:`¿Borrar los platos del día ${selDay} de ${monthNames[month]}? Esta acción no se puede deshacer.`}
-        onOk={()=>{if(selDay){clearDay(selDay);setSelDay(null);}setConfirmDayClear(false);}}
+      <Confirm open={!!confirmDayClear}
+        msg={isEN?`Delete meals for ${monthNames[month]} ${confirmDayClear}? This cannot be undone.`:`¿Borrar los platos del día ${confirmDayClear} de ${monthNames[month]}? Esta acción no se puede deshacer.`}
+        onOk={()=>{if(confirmDayClear){clearDay(confirmDayClear);setSelDay(null);}setConfirmDayClear(false);}}
         onCancel={()=>setConfirmDayClear(false)}/>
       <ClearDaysModal open={clearModal} onClose={()=>setClearModal(false)}
         year={year} month={month} plan={plan} setPlan={setPlan}/>
@@ -1305,7 +1305,7 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                   style={{flex:1,borderRadius:14,padding:'14px',fontSize:'0.9rem',fontWeight:800,color:'#fff',background:sameDayDup?'#d1d5db':'#0d9488',boxShadow:sameDayDup?'none':'0 4px 14px rgba(13,148,136,.35)',border:'none',cursor:sameDayDup?'not-allowed':'pointer',transition:'all .15s'}}>
                   {isEN ? '💾 Save' : '💾 Guardar'}
                 </button>
-                <button onClick={()=>setConfirmDayClear(true)}
+                <button onClick={()=>setConfirmDayClear(selDay)}
                   style={{padding:'14px 18px',borderRadius:14,fontSize:'0.85rem',fontWeight:700,color:'#ef4444',background:'#fef2f2',border:'1.5px solid #fecaca',cursor:'pointer'}}>
                   <span style={{display:'flex',alignItems:'center',gap:6}}><Trash size={14}/> {isEN ? 'Clear' : 'Limpiar'}</span>
                 </button>
