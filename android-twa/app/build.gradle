@@ -43,6 +43,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.2'
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.5.0'
     // Billing removed — all payments via Stripe (Alternative Billing approved Jul 2026)
 }
