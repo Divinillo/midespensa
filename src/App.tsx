@@ -433,16 +433,6 @@ export function App() {
             onChange={(id) => setSection(id as Section)}
           />
         )}
-        {(section === 'cat' || section === 'nutri') && (
-          <SubNav
-            items={[
-              { id: 'cat', label: isEN ? '🏪 Pantry' : '🏪 Despensa' },
-              { id: 'nutri', label: isEN ? '📊 Nutrition' : '📊 Nutrición' },
-            ]}
-            active={section}
-            onChange={(id) => setSection(id as Section)}
-          />
-        )}
         {(section === 'ticket' || section === 'gastos') && (
           <SubNav
             items={[

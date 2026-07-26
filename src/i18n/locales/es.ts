@@ -6,7 +6,7 @@ export const es = {
     cat:    'Despensa',
     ticket: 'Tickets',
     lista:  'Compra',
-    nutri:  'Nutrición',
+    nutri:  'Escáner',
     gastos: 'Gastos',
     main: 'Navegación principal',
   },
@@ -17,7 +17,7 @@ export const es = {
     cat:    { title: 'Mi despensa',             sub: 'Gestiona tus ingredientes' },
     ticket: { title: 'Tickets',                 sub: 'Escanea y guarda' },
     lista:  { title: 'Lista de compra',         sub: 'Lo que necesitas comprar' },
-    nutri:  { title: 'Valor nutricional',       sub: 'Macros por ingrediente' },
+    nutri:  { title: 'Escáner de alimentos',    sub: 'Nutri-Score, aditivos y más' },
     gastos: { title: 'Gastos',                  sub: 'Controla tu presupuesto' },
   },
   // ── Settings ─────────────────────────────────────────────────

@@ -4,17 +4,19 @@ import {
   CookingPot,
   Basket,
   Receipt,
+  Barcode,
 } from '@phosphor-icons/react';
 import { useTranslation } from 'react-i18next';
 import type { Section } from '../../data/types';
 
-/** The four main navigation tabs. Sub-sections (lista, nutri, gastos) are
+/** The five main navigation tabs. Sub-sections (lista, gastos) are
  *  accessible via SubNav toggles inside their parent section. */
 const NAV_ITEMS: { id: Section; parentOf: Section[]; key: string; Icon: React.ElementType }[] = [
   { id: 'plan',   parentOf: ['lista'],          key: 'plan',   Icon: CalendarBlank },
   { id: 'platos', parentOf: [],                 key: 'platos', Icon: CookingPot    },
-  { id: 'cat',    parentOf: ['nutri'],          key: 'cat',    Icon: Basket        },
+  { id: 'cat',    parentOf: [],                 key: 'cat',    Icon: Basket        },
   { id: 'ticket', parentOf: ['gastos'],         key: 'ticket', Icon: Receipt       },
+  { id: 'nutri',  parentOf: [],                 key: 'nutri',  Icon: Barcode       },
 ];
 
 interface NavProps {

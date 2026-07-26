@@ -6,7 +6,7 @@ export const en = {
     cat:    'Pantry',
     ticket: 'Receipts',
     lista:  'Shopping',
-    nutri:  'Nutrition',
+    nutri:  'Scanner',
     gastos: 'Spending',
     main: 'Main navigation',
   },
@@ -17,7 +17,7 @@ export const en = {
     cat:    { title: 'My Pantry',             sub: 'Manage your ingredients' },
     ticket: { title: 'Receipts',              sub: 'Scan and save' },
     lista:  { title: 'Shopping List',         sub: 'What you need to buy' },
-    nutri:  { title: 'Nutritional Info',      sub: 'Macros per ingredient' },
+    nutri:  { title: 'Food Scanner',           sub: 'Nutri-Score, additives & more' },
     gastos: { title: 'Spending',              sub: 'Track your budget' },
   },
   // ── Settings ─────────────────────────────────────────────────
