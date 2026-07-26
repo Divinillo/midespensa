@@ -23,6 +23,7 @@ import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
 import { supabase } from './utils/supabase';
 import { useMarket } from './i18n/useMarket';
+import { SettingsPanel } from './features/settings/SettingsPanel';
 import type { Ingredient, Dish, Plan, Ticket, PriceHistory, Section } from './data/types';
 
 /** Marca como disponibles los ingredientes que aparecen como matched en los tickets. */
@@ -359,140 +360,30 @@ export function App() {
       )}
 
       {/* Settings Modal */}
-      <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title={isEN ? '⚙️ Settings and data' : '⚙️ Ajustes y datos'}>
-        <div className="space-y-4">
-          {/* Idioma / Language */}
-          <div className="rounded-xl p-4 border border-teal-100 bg-teal-50">
-            <h3 className="font-bold text-teal-800 text-sm mb-3">🌐 {t('settings.language')}</h3>
-            <div className="flex gap-2">
-              <button
-                onClick={() => i18n.changeLanguage('es')}
-                style={{
-                  flex: 1, borderRadius: 10, padding: '9px 0', fontSize: '0.82rem', fontWeight: 700,
-                  border: `2px solid ${i18n.language?.startsWith('es') ? '#0d9488' : '#cbd5e1'}`,
-                  background: i18n.language?.startsWith('es') ? '#0d9488' : '#fff',
-                  color: i18n.language?.startsWith('es') ? '#fff' : '#64748b',
-                  cursor: 'pointer', transition: 'all .15s',
-                }}
-              >
-                🇪🇸 {t('settings.langEs')}
-              </button>
-              <button
-                onClick={() => i18n.changeLanguage('en')}
-                style={{
-                  flex: 1, borderRadius: 10, padding: '9px 0', fontSize: '0.82rem', fontWeight: 700,
-                  border: `2px solid ${i18n.language?.startsWith('en') ? '#0d9488' : '#cbd5e1'}`,
-                  background: i18n.language?.startsWith('en') ? '#0d9488' : '#fff',
-                  color: i18n.language?.startsWith('en') ? '#fff' : '#64748b',
-                  cursor: 'pointer', transition: 'all .15s',
-                }}
-              >
-                🇺🇸 {t('settings.langEn')}
-              </button>
-            </div>
-          </div>
-
-          {/* Cuenta */}
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
-            <h3 className="font-bold text-blue-800 text-sm mb-1">☁️ {isEN ? 'Account' : 'Cuenta'}</h3>
-            <p className="text-xs text-blue-600 mb-1">{isEN ? 'Signed in as' : 'Sesión iniciada como'} <strong>{session?.user?.email}</strong></p>
-            {syncStatus && <p className="text-xs text-teal-600 mb-2">{syncStatus}</p>}
-            <button
-              onClick={async () => {
-                if (window.confirm(isEN ? 'Sign out?' : '¿Cerrar sesión?')) {
-                  await supabase.auth.signOut();
-                  window.location.reload();
-                }
-              }}
-              style={{marginTop:8,borderRadius:10,padding:'8px 14px',fontSize:'0.82rem',fontWeight:700,border:'none',background:'#ef4444',color:'#fff',cursor:'pointer'}}
-            >
-              {isEN ? 'Sign out' : 'Cerrar sesión'}
-            </button>
-          </div>
-          {/* Storage warning */}
-          <div style={{borderRadius:12,padding:'12px 14px',background:'#fffbeb',border:'1px solid #fde68a',display:'flex',gap:10,alignItems:'flex-start'}}>
-            <span style={{fontSize:'1.1rem',flexShrink:0}}>⚠️</span>
-            <div>
-              <div style={{fontWeight:700,fontSize:'0.78rem',color:'#92400e',marginBottom:2}}>{isEN ? 'Data saved on this device only' : 'Datos guardados solo en este dispositivo'}</div>
-              <div style={{fontSize:'0.7rem',color:'#b45309',lineHeight:1.5}}>{isEN ? 'If you clear your browser cache or switch devices you will lose your data. Make periodic backups with the button below.' : 'Si limpias el caché del navegador o cambias de dispositivo perderás tus datos. Haz un backup periódico con el botón de abajo.'}</div>
-            </div>
-          </div>
-          <div className="bg-teal-50 rounded-xl p-4 border border-teal-100">
-            <h3 className="font-bold text-green-800 text-sm mb-1">📤 {isEN ? 'Export data' : 'Exportar datos'}</h3>
-            <p className="text-xs text-teal-600 mb-3">{isEN ? 'Download all your data as a backup.' : 'Descarga todos tus datos como copia de seguridad.'}</p>
-            <button onClick={exportData} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#0d9488',color:'#fff'}}>{isEN ? 'Download backup .json' : 'Descargar backup .json'}</button>
-          </div>
-          <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-            <h3 className="font-bold text-emerald-800 text-sm mb-1">📥 {isEN ? 'Import data' : 'Importar datos'}</h3>
-            <p className="text-xs text-emerald-600 mb-3">{isEN ? <>Load a backup. <strong>This will replace all current data.</strong></> : <>Carga un backup. <strong>Reemplazará todos los datos actuales.</strong></>}</p>
-            <button onClick={() => importRef.current?.click()} className="w-full rounded-xl py-2.5 text-sm font-semibold" style={{background:'#059669',color:'#fff'}}>{isEN ? 'Load .json file' : 'Cargar fichero .json'}</button>
-            <input ref={importRef} type="file" accept=".json" onChange={importData} className="hidden" />
-            {importError && <p className="text-xs text-red-500 mt-2">{importError}</p>}
-          </div>
-          <div className="bg-sky-50 rounded-xl p-4 border border-sky-100 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-sky-800 text-sm">🚀 {isEN ? 'Repeat initial setup' : 'Repetir configuración inicial'}</h3>
-              <p className="text-xs text-sky-600 mt-0.5">{isEN ? 'See the welcome wizard again' : 'Vuelve a ver el wizard de bienvenida'}</p>
-            </div>
-            <button onClick={resetWizard} className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0" style={{background:'#0284c7',color:'#fff'}}>{isEN ? 'Restart' : 'Reiniciar'}</button>
-          </div>
-          {!isStandaloneApp() && (
-            <div className="bg-teal-50 rounded-xl p-4 border border-teal-100 flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-teal-800 text-sm">📲 {isEN ? 'Add to home screen' : 'Añadir a pantalla de inicio'}</h3>
-                <p className="text-xs text-teal-600 mt-0.5">{isEN ? 'See how to install the app on your device' : 'Ver cómo instalar la app en tu dispositivo'}</p>
-              </div>
-              <button
-                onClick={() => { setShowSettings(false); setShowPWAWizard(true); }}
-                className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0"
-                style={{ background: '#0d9488', color: '#fff' }}
-              >
-                {isEN ? 'View guide' : 'Ver guía'}
-              </button>
-            </div>
-          )}
-          {/* Website link */}
-          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex items-center justify-between">
-            <div>
-              <h3 className="font-semibold text-gray-700 text-sm">🌐 {isEN ? 'Go to website' : 'Ir a la web'}</h3>
-              <p className="text-xs text-gray-400 mt-0.5">{isUS ? 'midespensa.app/en' : 'midespensa.app'}</p>
-            </div>
-            <a
-              href={isUS ? 'https://midespensa.app/en' : 'https://midespensa.app/'}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs px-3 py-2 rounded-xl font-semibold shrink-0"
-              style={{ background: '#0d9488', color: '#fff', textDecoration: 'none' }}
-            >
-              {isEN ? 'Open' : 'Abrir'}
-            </a>
-          </div>
-          {/* Plan status */}
-          <div className={`rounded-xl p-4 border ${isTrial ? 'bg-green-50 border-green-200' : isPro ? 'bg-amber-50 border-amber-100' : 'bg-teal-50 border-teal-100'}`}>
-            <h3 className={`font-bold text-sm mb-1 ${isTrial ? 'text-green-800' : isPro ? 'text-amber-800' : 'text-teal-800'}`}>{planLabel}</h3>
-            {isTrial ? (
-              <div>
-                <p className="text-xs text-green-700 mb-2">
-                  {isEN
-                    ? <>You're enjoying all Pro features. Your Pro trial ends in <strong>{trialDaysLeft} day{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>
-                    : <>Estás disfrutando de todas las funciones Pro. Tu prueba Pro termina en <strong>{trialDaysLeft} día{trialDaysLeft !== 1 ? 's' : ''}</strong>.</>}
-                </p>
-                <button onClick={() => { setShowSettings(false); setUpgradeModal('trial'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>
-                  {isEN ? `Continue with Pro · ${formatPrice(stripeConfig.monthly)}/mo →` : `Continuar con Pro · ${formatPrice(stripeConfig.monthly)}/mes →`}
-                </button>
-              </div>
-            ) : isPro ? (
-              <p className="text-xs text-amber-600">{isEN ? 'All features unlocked. Thank you for supporting MiDespensa.' : 'Todas las funciones desbloqueadas. Gracias por apoyar MiDespensa.'}</p>
-            ) : (
-              <div>
-                <p className="text-xs text-teal-600 mb-2">{isEN ? 'Recipes' : 'Platos'}: {dishes.length}/{FREE_DISH_LIMIT} · {isEN ? 'Receipts' : 'Tickets'}: {tickets.length}/{FREE_TICKET_LIMIT}</p>
-                <button onClick={() => { setShowSettings(false); setUpgradeModal('reports'); }} className="w-full rounded-xl py-2 text-xs font-bold" style={{background:'#0d9488',color:'#fff'}}>
-                  {isEN ? 'Unlock Pro version →' : 'Desbloquear versión Pro →'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+      <Modal open={showSettings} onClose={() => { setShowSettings(false); setImportError(''); setRecoverEmail(''); setRecoverMsg(''); }} title={isEN ? '⚙️ Settings' : '⚙️ Ajustes'}>
+        <SettingsPanel
+          session={session}
+          syncStatus={syncStatus}
+          isPro={isPro}
+          isTrial={isTrial}
+          trialDaysLeft={trialDaysLeft}
+          dishes={dishes}
+          tickets={tickets}
+          freeDishLimit={FREE_DISH_LIMIT}
+          freeTicketLimit={FREE_TICKET_LIMIT}
+          isEN={isEN}
+          isUS={isUS}
+          formatPrice={formatPrice}
+          stripeConfig={stripeConfig}
+          exportData={exportData}
+          importData={importData}
+          importError={importError}
+          resetWizard={resetWizard}
+          onInstallPWA={() => { setShowSettings(false); setShowPWAWizard(true); }}
+          isStandalone={isStandaloneApp()}
+          onUpgrade={(reason) => { setShowSettings(false); setUpgradeModal(reason); }}
+          onClose={() => setShowSettings(false)}
+        />
       </Modal>
 
       <UpgradeModal
