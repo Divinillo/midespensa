@@ -20,7 +20,6 @@ export function scheduleSyncToCloud(email: string, getData: () => object) {
       const token = await getAuthToken();
       if (!token) return; // skip sync if not authenticated
       const ts = Date.now();
-      try { localStorage.setItem('despensa_local_ts', String(ts)); } catch {}
       const data = getData();
       await fetch('/api/sync-data', {
         method: 'POST',

@@ -69,18 +69,47 @@ const TITLES_EN: Record<Section, string> = {
   nutri: 'Nutrition', gastos: 'Spending Summary',
 };
 
+/**
+ * One-time migration: copies old un-prefixed localStorage keys to new
+ * user-prefixed keys so existing users keep their data after the update.
+ */
+function migrateUserData(uid: string) {
+  const migrationKey = `u_${uid}_migrated`;
+  if (localStorage.getItem(migrationKey)) return;
+
+  const KEY_PAIRS = [
+    ['despensa_plan_v4',      `u_${uid}_despensa_plan_v4`],
+    ['despensa_tickets_v4',   `u_${uid}_despensa_tickets_v4`],
+    ['despensa_prices_v4',    `u_${uid}_despensa_prices_v4`],
+    ['despensa_learned_v1',   `u_${uid}_despensa_learned_v1`],
+    ['despensa_wizard_v1',    `u_${uid}_despensa_wizard_v1`],
+    ['despensa_ings_v4',      `u_${uid}_despensa_ings_v4`],
+    ['despensa_ings_us_v1',   `u_${uid}_despensa_ings_us_v1`],
+    ['despensa_dishes_v4',    `u_${uid}_despensa_dishes_v4`],
+    ['despensa_dishes_us_v1', `u_${uid}_despensa_dishes_us_v1`],
+    ['despensa_local_ts',     `u_${uid}_despensa_local_ts`],
+    ['despensa_pin_hash',     `u_${uid}_despensa_pin_hash`],
+  ];
+
+  for (const [oldKey, newKey] of KEY_PAIRS) {
+    try {
+      const oldVal = localStorage.getItem(oldKey);
+      if (oldVal && !localStorage.getItem(newKey)) {
+        localStorage.setItem(newKey, oldVal);
+      }
+    } catch {}
+  }
+
+  try { localStorage.setItem(migrationKey, '1'); } catch {}
+}
+
 
 export function App() {
-  // ── i18n + market ──────────────────────────────────────────────
-  const { t, i18n } = useTranslation();
-  const { market, isUS, isEN, initIngredients, formatPrice, currency, stripeConfig } = useMarket();
-
   // ── Supabase auth session ─────────────────────────────────────
   const [session, setSession] = useState<Session | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    // Safety timeout: if auth doesn't resolve in 5s, stop waiting and show login
     const timeout = setTimeout(() => setAuthLoading(false), 5000);
 
     supabase.auth.getSession()
@@ -89,7 +118,6 @@ export function App() {
         setAuthLoading(false);
       })
       .catch(() => {
-        // Network error or Supabase unreachable — show login screen
         setAuthLoading(false);
       })
       .finally(() => clearTimeout(timeout));
@@ -104,21 +132,60 @@ export function App() {
     };
   }, []);
 
+  // ── Auth guard ────────────────────────────────────────────────
+  if (authLoading) {
+    return (
+      <div style={{
+        minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: '#f8faf9',
+      }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 48, height: 48, borderRadius: '50%', border: '3px solid #e2e8f0', borderTopColor: '#0d9488', animation: 'spin 0.8s linear infinite' }} />
+          <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>Cargando...</span>
+        </div>
+      </div>
+    );
+  }
+  if (!session) return <LoginScreen />;
+
+  // key={session.user.id} forces React to fully remount when a different user logs in,
+  // so all hooks re-initialize with the new user's localStorage keys.
+  return <AuthenticatedApp key={session.user.id} session={session} />;
+}
+
+
+function AuthenticatedApp({ session }: { session: Session }) {
+  // ── i18n + market ──────────────────────────────────────────────
+  const { t, i18n } = useTranslation();
+  const { market, isUS, isEN, initIngredients, formatPrice, currency, stripeConfig } = useMarket();
+
+  // ── Per-user localStorage key prefix ──────────────────────────
+  const uid = session.user.id.slice(0, 8);
+
+  // Run migration SYNCHRONOUSLY before useLS hooks read from localStorage.
+  // This ensures existing un-prefixed data gets copied to the new prefixed keys
+  // before useState initializers read them.
+  const migrationDoneRef = useRef(false);
+  if (!migrationDoneRef.current) {
+    migrationDoneRef.current = true;
+    migrateUserData(uid);
+  }
+
+  // ── Data state (keys prefixed with uid for per-account isolation) ──
   const [section, setSection] = useLS<Section>('despensa_section_v1', 'plan');
-  // Use market-specific ingredient key so US and ES users have separate pantries
-  const ingKey = isUS ? 'despensa_ings_us_v1' : 'despensa_ings_v4';
+  const ingKey = isUS ? `u_${uid}_despensa_ings_us_v1` : `u_${uid}_despensa_ings_v4`;
   const [ingredients, setIngredients] = useLS<Ingredient[]>(ingKey, initIngredients);
-  const dishKey = isUS ? 'despensa_dishes_us_v1' : 'despensa_dishes_v4';
+  const dishKey = isUS ? `u_${uid}_despensa_dishes_us_v1` : `u_${uid}_despensa_dishes_v4`;
   const [dishes, setDishes] = useLS<Dish[]>(dishKey, isUS ? INIT_DISHES_US : INIT_DISHES_ES);
-  const [plan, setPlan] = useLS<Plan>('despensa_plan_v4', {});
-  const [tickets, setTickets] = useLS<Ticket[]>('despensa_tickets_v4', []);
-  const [priceHistory, setPriceHistory] = useLS<PriceHistory>('despensa_prices_v4', {});
-  const [learnedMappings, setLearnedMappings] = useLS<Record<string,string>>('despensa_learned_v1', {});
+  const [plan, setPlan] = useLS<Plan>(`u_${uid}_despensa_plan_v4`, {});
+  const [tickets, setTickets] = useLS<Ticket[]>(`u_${uid}_despensa_tickets_v4`, []);
+  const [priceHistory, setPriceHistory] = useLS<PriceHistory>(`u_${uid}_despensa_prices_v4`, {});
+  const [learnedMappings, setLearnedMappings] = useLS<Record<string,string>>(`u_${uid}_despensa_learned_v1`, {});
   // isPro is derived exclusively from the cloud tier — never from localStorage
   const [isPro, setIsPro] = useState<boolean>(false);
   const [isTrial, setIsTrial] = useState<boolean>(false);
   const [trialEnd, setTrialEnd] = useState<number | null>(null);
-  const [wizardDone, setWizardDone] = useLS<boolean>('despensa_wizard_v1', false);
+  const [wizardDone, setWizardDone] = useLS<boolean>(`u_${uid}_despensa_wizard_v1`, false);
   const [userEmail, setUserEmail] = useLS<string>('despensa_email_v1', '');
   const [syncStatus, setSyncStatus] = useState('');
   const [recoverEmail, setRecoverEmail] = useState('');
@@ -162,7 +229,7 @@ export function App() {
         markMigrationOffered();
         return;
       }
-      const localTs = parseInt(localStorage.getItem('despensa_local_ts') || '0');
+      const localTs = parseInt(localStorage.getItem(`u_${uid}_despensa_local_ts`) || '0');
       const cloudTs = cloud.updated_at || 0;
 
       // Always apply tier/trial from cloud regardless of timestamp
@@ -216,8 +283,8 @@ export function App() {
   useEffect(() => {
     if (!userEmail) return;
     const ts = Date.now();
-    try { localStorage.setItem('despensa_local_ts', String(ts)); } catch {}
-    const savedPinHash = (() => { try { return localStorage.getItem('despensa_pin_hash') || undefined; } catch { return undefined; } })();
+    try { localStorage.setItem(`u_${uid}_despensa_local_ts`, String(ts)); } catch {}
+    const savedPinHash = (() => { try { return localStorage.getItem(`u_${uid}_despensa_pin_hash`) || undefined; } catch { return undefined; } })();
     scheduleSyncToCloud(userEmail, () => ({
       dishes, ingredients, tickets, price_history: priceHistory, plan, updated_at: ts,
       ...(savedPinHash ? { recovery_pin_hash: savedPinHash } : {}),
@@ -258,22 +325,7 @@ export function App() {
 
   const resetWizard = () => { setWizardDone(false); setShowSettings(false); };
 
-  // ── Auth guard ────────────────────────────────────────────────
-  if (authLoading) {
-    return (
-      <div style={{
-        minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        background: '#f8faf9',
-      }}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 48, height: 48, borderRadius: '50%', border: '3px solid #e2e8f0', borderTopColor: '#0d9488', animation: 'spin 0.8s linear infinite' }} />
-          <span style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>Cargando...</span>
-        </div>
-      </div>
-    );
-  }
-  if (!session) return <LoginScreen />;
-
+  // ── Onboarding wizard ─────────────────────────────────────────
   if (!wizardDone) {
     return (
       <OnboardingWizard
@@ -403,7 +455,7 @@ export function App() {
             const token = s?.access_token;
             if (!token) return;
             const ts = Date.now();
-            try { localStorage.setItem('despensa_local_ts', String(ts)); } catch {}
+            try { localStorage.setItem(`u_${uid}_despensa_local_ts`, String(ts)); } catch {}
             await fetch('/api/sync-data', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
