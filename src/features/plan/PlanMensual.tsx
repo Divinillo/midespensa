@@ -993,8 +993,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                     )}
                     {hasFood&&(
                       <button onClick={e=>{e.stopPropagation();clearDay(d);}}
-                        className="absolute top-1 right-1 w-4 h-4 rounded-full items-center justify-center transition-all hidden group-hover:flex"
-                        style={{background:'#f1f5f9',color:'#94a3b8',border:'1px solid #e2e8f0'}}>
+                        className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center transition-all"
+                        style={{background:'rgba(241,245,249,.85)',color:'#94a3b8',border:'1px solid #e2e8f0'}}>
                         <X size={8}/>
                       </button>
                     )}
@@ -1041,8 +1041,8 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                     )}
                     {hasFood&&(
                       <button onClick={e=>{e.stopPropagation();setPlan(p=>{const n={...p};delete n[ky];return n;});}}
-                        className="absolute top-1 right-1 w-4 h-4 rounded-full items-center justify-center transition-all hidden group-hover:flex"
-                        style={{background:'#f1f5f9',color:'#94a3b8',border:'1px solid #e2e8f0'}}>
+                        className="absolute top-1 right-1 w-4 h-4 rounded-full flex items-center justify-center transition-all"
+                        style={{background:'rgba(241,245,249,.85)',color:'#94a3b8',border:'1px solid #e2e8f0'}}>
                         <X size={8}/>
                       </button>
                     )}
@@ -1259,17 +1259,26 @@ export function PlanMensual({plan,setPlan,dishes,ingredients,setIngredients,tick
                 return (
                   <div key={k}>
                     <label style={{display:'block',fontSize:'0.7rem',fontWeight:700,textTransform:'uppercase',letterSpacing:'.06em',color:'#94a3b8',marginBottom:6}}>{label}</label>
-                    <select value={dayMeal[k]||''} onChange={e=>setDayMeal(m=>({...m,[k]:e.target.value}))}
-                      style={{width:'100%',borderRadius:14,padding:'12px 14px',fontSize:'0.85rem',border:'1.5px solid #e2e8f0',background:'#f8fafc',outline:'none',appearance:'auto'}}>
-                      <option value="">— {isEN?'Not assigned':'Sin asignar'} —</option>
-                      {dishes
-                        .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : k==='dinner' ? d.id!==dayMeal.lunch : d.id!==dayMeal.lunch&&d.id!==dayMeal.dinner)
-                        .map(d=>{
-                          const isRepeat = isExcessive(d.id);
-                          return <option key={d.id} value={d.id}>{d.name}</option>;
-                        })
-                      }
-                    </select>
+                    <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                      <select value={dayMeal[k]||''} onChange={e=>setDayMeal(m=>({...m,[k]:e.target.value}))}
+                        style={{flex:1,borderRadius:14,padding:'12px 14px',fontSize:'0.85rem',border:'1.5px solid #e2e8f0',background:'#f8fafc',outline:'none',appearance:'auto'}}>
+                        <option value="">— {isEN?'Not assigned':'Sin asignar'} —</option>
+                        {dishes
+                          .filter(d=> k==='lunch' ? d.id!==dayMeal.dinner : k==='dinner' ? d.id!==dayMeal.lunch : d.id!==dayMeal.lunch&&d.id!==dayMeal.dinner)
+                          .map(d=>{
+                            const isRepeat = isExcessive(d.id);
+                            return <option key={d.id} value={d.id}>{d.name}</option>;
+                          })
+                        }
+                      </select>
+                      {dayMeal[k] && (
+                        <button onClick={()=>setDayMeal(m=>({...m,[k]:''})) }
+                          style={{width:36,height:36,borderRadius:10,background:'#fef2f2',border:'1.5px solid #fecaca',color:'#ef4444',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}
+                          title={isEN?'Remove':'Quitar'}>
+                          <X size={14} weight="bold"/>
+                        </button>
+                      )}
+                    </div>
                     {macros && (
                       <div style={{display:'flex',gap:6,marginTop:6,flexWrap:'wrap'}}>
                         {[['🔥',macros.kcal,'kcal'],['💪',macros.prot,isEN?'g protein':'g prot'],['🍞',macros.carbs,'g carbs'],['🧈',macros.fat,isEN?'g fat':'g grasa']].map(([ic,val,unit])=>(
