@@ -45,13 +45,15 @@ export const onRequest: PagesFunction<Env> = async (context) => {
       );
       const existingRows = await existingRes.json() as any[];
       const existingTrialEnd = existingRows[0]?.data?.trial_end as number | undefined;
+      const existingPromo = existingRows[0]?.data?.promo;
 
       // New user: assign trial_end = now + 7 days. Existing user: preserve original value.
       const trialEnd = existingTrialEnd ?? (Date.now() + TRIAL_MS);
 
-      // Always strip client-supplied trial_end and replace with server value
-      const { trial_end: _clientTrialEnd, ...restClean } = rest;
-      const dataToSave = { ...restClean, trial_end: trialEnd };
+      // Always strip client-supplied trial_end/promo and replace with server values
+      const { trial_end: _clientTrialEnd, promo: _clientPromo, ...restClean } = rest;
+      const dataToSave: any = { ...restClean, trial_end: trialEnd };
+      if (existingPromo) dataToSave.promo = existingPromo;
 
       const res = await fetch(`${env.SUPABASE_URL}/rest/v1/despensa_data`, {
         method: 'POST',

@@ -21,6 +21,8 @@ import { PWAInstallWizard } from './components/PWAInstallWizard';
 import MigrationModal, { hasLocalDataToMigrate, markMigrationOffered } from './components/MigrationModal';
 import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
+import { getPromoState, redeemReferral, type PromoState } from './utils/promoApi';
+import { ReviewPromptModal } from './components/ReviewPromptModal';
 import { supabase } from './utils/supabase';
 import { useMarket } from './i18n/useMarket';
 import { SettingsPanel } from './features/settings/SettingsPanel';
@@ -103,6 +105,14 @@ function migrateUserData(uid: string) {
   try { localStorage.setItem(migrationKey, '1'); } catch {}
 }
 
+
+// Capture referral code from URL as early as possible (before auth redirects)
+try {
+  const _ref = new URLSearchParams(window.location.search).get('ref');
+  if (_ref && /^[A-Za-z2-9]{8}$/i.test(_ref)) {
+    localStorage.setItem('despensa_pending_ref', _ref.toUpperCase());
+  }
+} catch {}
 
 export function App() {
   // ── Supabase auth session ─────────────────────────────────────
@@ -200,6 +210,8 @@ function AuthenticatedApp({ session }: { session: Session }) {
   const [importError, setImportError] = useState('');
   const [upgradeModal, setUpgradeModal] = useState<string | null>(null);
   const [showMigration, setShowMigration] = useState(false);
+  const [promoState, setPromoState] = useState<PromoState | null>(null);
+  const [showReviewPrompt, setShowReviewPrompt] = useState(false);
   const importRef = useRef<HTMLInputElement>(null);
 
   // Sync session email → userEmail + load cloud data when session is ready
@@ -256,6 +268,55 @@ function AuthenticatedApp({ session }: { session: Session }) {
     setIsPro(paidPro || trialActive);
     setIsTrial(trialActive && !paidPro);
     setTrialEnd(cloud.trial_end ?? null);
+  }
+
+  // ── Promo: load state, redeem pending referral, review prompt ──
+  const promoLoadedRef = useRef(false);
+  useEffect(() => {
+    if (!session?.user?.email || promoLoadedRef.current) return;
+    promoLoadedRef.current = true;
+    (async () => {
+      // Small delay so the first sync (new users) creates the data row first
+      await new Promise(r => setTimeout(r, 4000));
+      let res = await getPromoState();
+      // Redeem pending referral code captured from a share link (?ref=CODE)
+      try {
+        const pending = localStorage.getItem('despensa_pending_ref');
+        if (pending && res?.ok && res.promo && pending !== res.promo.ref_code) {
+          const redeemed = await redeemReferral(pending);
+          if (redeemed?.ok || ['Already redeemed', 'Code not found', 'Own code'].includes(redeemed?.error ?? '')) {
+            localStorage.removeItem('despensa_pending_ref');
+          }
+          if (redeemed?.ok && redeemed.promo) res = redeemed;
+        } else if (pending && res?.ok && res.promo && pending === res.promo.ref_code) {
+          localStorage.removeItem('despensa_pending_ref');
+        }
+      } catch {}
+      if (res?.ok && res.promo) setPromoState(res.promo);
+      // Review prompt: once per user, from the 3rd app open, if not yet reviewed
+      try {
+        const opensKey = `u_${uid}_promo_opens`;
+        const opens = parseInt(localStorage.getItem(opensKey) || '0') + 1;
+        localStorage.setItem(opensKey, String(opens));
+        const promptedKey = `u_${uid}_review_prompted`;
+        if (opens >= 3 && !localStorage.getItem(promptedKey) && res?.ok && res.promo && !res.promo.review_claimed) {
+          localStorage.setItem(promptedKey, '1');
+          setShowReviewPrompt(true);
+        }
+      } catch {}
+    })();
+  }, [session]);
+
+  async function refreshTierFromCloud() {
+    const email = session?.user?.email;
+    if (!email) return;
+    const cloud = await loadFromCloud(email);
+    if (cloud && !cloud.error) applyTier(cloud);
+  }
+
+  function handlePromoUpdate(p: PromoState, grantedDays: number) {
+    setPromoState(p);
+    if (grantedDays > 0) refreshTierFromCloud();
   }
 
   // Stripe activation URL cleanup on mount
@@ -435,8 +496,21 @@ function AuthenticatedApp({ session }: { session: Session }) {
           isStandalone={isStandaloneApp()}
           onUpgrade={(reason) => { setShowSettings(false); setUpgradeModal(reason); }}
           onClose={() => setShowSettings(false)}
+          promo={promoState}
+          onPromoUpdate={handlePromoUpdate}
         />
       </Modal>
+
+      {showReviewPrompt && (
+        <ReviewPromptModal
+          isEN={isEN}
+          onClose={() => setShowReviewPrompt(false)}
+          onClaimed={(days) => {
+            setPromoState(p => p ? { ...p, review_claimed: true } : p);
+            if (days > 0) refreshTierFromCloud();
+          }}
+        />
+      )}
 
       <UpgradeModal
         open={!!upgradeModal}

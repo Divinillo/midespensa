@@ -2,6 +2,8 @@ import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../../utils/supabase';
+import { LogrosCard } from '../../components/LogrosCard';
+import type { PromoState } from '../../utils/promoApi';
 
 /* ── Phosphor-style inline icons (SVG paths) ─────────────────────── */
 const Icon = ({ d, size = 18, color = 'currentColor' }: { d: string; size?: number; color?: string }) => (
@@ -47,6 +49,8 @@ interface SettingsPanelProps {
   isStandalone: boolean;
   onUpgrade: (reason: string) => void;
   onClose: () => void;
+  promo: PromoState | null;
+  onPromoUpdate: (p: PromoState, grantedDays: number) => void;
 }
 
 /* ── Styles ───────────────────────────────────────────────────────── */
@@ -122,6 +126,7 @@ export function SettingsPanel({
   exportData, importData, importError,
   resetWizard, onInstallPWA, isStandalone,
   onUpgrade, onClose,
+  promo, onPromoUpdate,
 }: SettingsPanelProps) {
   const { i18n } = useTranslation();
   const importRef = useRef<HTMLInputElement>(null);
@@ -184,6 +189,9 @@ export function SettingsPanel({
           </>
         )}
       </div>
+
+      {/* ─── Achievements / Logros ───────────────────────────────── */}
+      <LogrosCard isEN={isEN} promo={promo} onPromoUpdate={onPromoUpdate} />
 
       {/* ─── Account ─────────────────────────────────────────────── */}
       <div>
