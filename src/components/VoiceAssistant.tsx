@@ -12,6 +12,7 @@ interface AssistantAction {
   names?: string[];
   menu?: { date: string; lunch?: string; dinner?: string }[];
   dishes?: { name: string; ingredients?: string[]; mealType?: string; steps?: string[] }[];
+  dates?: string[];
 }
 
 interface VoiceAssistantProps {
@@ -255,6 +256,30 @@ export function VoiceAssistant({
             ? `⚠ Free plan limit (${freeDishLimit} dishes) — upgrade to Pro for unlimited dishes`
             : `⚠ Límite del plan gratis (${freeDishLimit} platos) — pásate a Pro para platos ilimitados`);
         }
+      }
+
+      if (a.type === 'delete_dish' && a.names?.length) {
+        const targets = a.names.map(norm);
+        setDishes(prev => prev.filter(d => !targets.includes(norm(d.name))));
+        done.push((isEN ? '✓ Dish deleted: ' : '✓ Plato borrado: ') + a.names.join(', '));
+      }
+
+      if (a.type === 'remove_ingredients' && a.names?.length) {
+        const targets = a.names.map(norm);
+        setIngredients(prev => prev.filter(i =>
+          !targets.includes(norm(i.name)) &&
+          !(i.nameEs && targets.includes(norm(i.nameEs))) &&
+          !(i.nameEn && targets.includes(norm(i.nameEn)))));
+        done.push((isEN ? '✓ Removed from pantry: ' : '✓ Quitado de la despensa: ') + a.names.join(', '));
+      }
+
+      if (a.type === 'plan_clear' && a.dates?.length) {
+        setPlan(prev => {
+          const next = { ...prev };
+          for (const d of a.dates!) if (/^\d{4}-\d{2}-\d{2}$/.test(d)) delete next[d];
+          return next;
+        });
+        done.push((isEN ? `✓ Cleared ${a.dates.length} day(s) from the plan` : `✓ ${a.dates.length} día(s) del plan limpiado(s)`));
       }
 
       if (a.type === 'plan_week' && a.menu?.length) {
