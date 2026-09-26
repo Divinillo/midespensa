@@ -37,7 +37,12 @@ export function VoiceAssistant({
   const [transcript, setTranscript] = useState('');
   const [reply, setReply] = useState('');
   const [summary, setSummary] = useState<string[]>([]);
+  const [typed, setTyped] = useState('');
   const recRef = useRef<any>(null);
+  const finalTextRef = useRef('');
+  const processedRef = useRef(false);
+  const silenceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const maxTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const ingredientsRef = useRef(ingredients);
   ingredientsRef.current = ingredients;
 
@@ -62,29 +67,75 @@ export function VoiceAssistant({
   }
 
   function start() {
-    if (!SR) { setOpen(true); setStatus('error'); setReply(isEN ? 'Voice is not supported on this browser.' : 'Este navegador no soporta voz.'); return; }
     if (!isPro && usesThisMonth() >= FREE_VOICE_MONTHLY) { setOpen(true); setStatus('quota'); return; }
+    if (!SR) {
+      // iOS standalone PWAs sometimes lack SpeechRecognition — fall back to typing
+      setOpen(true); setStatus('idle');
+      setReply(isEN ? 'Voice input is not available here — type your command below.' : 'La voz no está disponible aquí — escribe tu orden abajo.');
+      return;
+    }
     setOpen(true); setStatus('listening'); setTranscript(''); setReply(''); setSummary([]);
+    finalTextRef.current = '';
+    processedRef.current = false;
     const rec = new SR();
     recRef.current = rec;
     rec.lang = isEN ? 'en-US' : 'es-ES';
     rec.interimResults = true;
     rec.continuous = false;
+
+    const clearTimers = () => {
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    };
+    const finish = () => {
+      // Process once, whatever path ended the recognition (Android often
+      // never flags isFinal, so onend is the reliable trigger).
+      clearTimers();
+      if (processedRef.current) return;
+      processedRef.current = true;
+      const text = finalTextRef.current.trim();
+      if (text) handleCommand(text);
+      else {
+        setStatus('error');
+        setReply(isEN ? 'I could not hear you. Try again.' : 'No te he oído bien. Prueba otra vez.');
+      }
+    };
+
     rec.onresult = (e: any) => {
       let text = '';
       for (const r of e.results) text += r[0].transcript;
+      finalTextRef.current = text;
       setTranscript(text);
-      if (e.results[e.results.length - 1].isFinal) { rec.stop(); handleCommand(text); }
+      // Silence detection: no new words for 1.8s → stop and process
+      if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = setTimeout(() => { try { rec.stop(); } catch {} }, 1800);
+      if (e.results[e.results.length - 1].isFinal) { try { rec.stop(); } catch {} }
     };
-    rec.onerror = () => { setStatus('error'); setReply(isEN ? 'I could not hear you. Try again.' : 'No te he oído bien. Prueba otra vez.'); };
-    rec.onend = () => { setStatus(s => (s === 'listening' ? 'idle' : s)); };
+    rec.onerror = (e: any) => {
+      if (e?.error === 'no-speech' || e?.error === 'aborted') return; // onend will handle it
+      clearTimers();
+      processedRef.current = true;
+      setStatus('error');
+      setReply(isEN ? 'I could not hear you. Try again.' : 'No te he oído bien. Prueba otra vez.');
+    };
+    rec.onend = finish;
+    // Hard cap: never listen more than 12s
+    maxTimerRef.current = setTimeout(() => { try { rec.stop(); } catch {} }, 12000);
     rec.start();
   }
 
   function stop() {
-    try { recRef.current?.stop(); } catch {}
+    if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
+    if (maxTimerRef.current) clearTimeout(maxTimerRef.current);
+    processedRef.current = true; // discard anything captured
+    try { recRef.current?.abort?.(); recRef.current?.stop?.(); } catch {}
     window.speechSynthesis?.cancel();
     setOpen(false); setStatus('idle');
+  }
+
+  /** Tap while listening = "I'm done talking": stop mic and process now. */
+  function stopAndProcess() {
+    try { recRef.current?.stop(); } catch {}
   }
 
   async function handleCommand(text: string) {
@@ -201,7 +252,7 @@ export function VoiceAssistant({
     <>
       {/* Floating mic button */}
       <button
-        onClick={() => (open ? stop() : start())}
+        onClick={() => (status === 'listening' ? stopAndProcess() : open ? stop() : start())}
         aria-label={isEN ? 'Voice assistant' : 'Asistente de voz'}
         style={{
           position: 'fixed', right: 16, bottom: 88, zIndex: 55,
@@ -248,12 +299,12 @@ export function VoiceAssistant({
           ) : (
             <>
               <p style={{ fontSize: '0.78rem', color: '#475569', lineHeight: 1.5, margin: 0, minHeight: 20 }}>
-                {status === 'listening' && (transcript || (isEN ? 'Listening… speak now.' : 'Escuchando… habla ahora.'))}
+                {status === 'listening' && (transcript || (isEN ? 'Listening… speak now. Tap the mic when you finish.' : 'Escuchando… habla ahora. Toca el micro al terminar.'))}
                 {status === 'thinking' && (isEN ? 'Thinking…' : 'Pensando…')}
                 {(status === 'done' || status === 'error') && reply}
-                {status === 'idle' && !reply && (isEN
+                {status === 'idle' && (reply || (isEN
                   ? 'Try: "I have milk, eggs and chicken in the fridge" or "Plan my meals for the week".'
-                  : 'Prueba: "Tengo leche, huevos y pollo en la nevera" o "Hazme el menú de la semana".')}
+                  : 'Prueba: "Tengo leche, huevos y pollo en la nevera" o "Hazme el menú de la semana".'))}
               </p>
               {transcript && status !== 'listening' && (
                 <p style={{ fontSize: '0.68rem', color: '#94a3b8', margin: '8px 0 0', fontStyle: 'italic' }}>«{transcript}»</p>
@@ -264,6 +315,30 @@ export function VoiceAssistant({
                     <div key={i} style={{ fontSize: '0.7rem', color: '#047857', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: 8, padding: '4px 8px' }}>{s}</div>
                   ))}
                 </div>
+              )}
+              {/* Typed fallback — always available (iOS PWAs may lack speech) */}
+              {status !== 'listening' && status !== 'thinking' && (
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    const t = typed.trim();
+                    if (!t) return;
+                    if (!isPro && usesThisMonth() >= FREE_VOICE_MONTHLY) { setStatus('quota'); return; }
+                    setTyped(''); setTranscript(t); setReply(''); setSummary([]);
+                    handleCommand(t);
+                  }}
+                  style={{ display: 'flex', gap: 6, marginTop: 10 }}
+                >
+                  <input
+                    value={typed}
+                    onChange={e => setTyped(e.target.value)}
+                    placeholder={isEN ? 'Or type it…' : 'O escríbelo…'}
+                    style={{ flex: 1, fontSize: '0.75rem', padding: '8px 10px', borderRadius: 10, border: '1px solid #e2e8f0', outline: 'none' }}
+                  />
+                  <button type="submit" style={{ border: 'none', borderRadius: 10, background: '#0d9488', color: '#fff', fontWeight: 700, fontSize: '0.72rem', padding: '0 12px', cursor: 'pointer' }}>
+                    {isEN ? 'Go' : 'Ir'}
+                  </button>
+                </form>
               )}
               {!isPro && (
                 <p style={{ fontSize: '0.62rem', color: '#94a3b8', margin: '10px 0 0' }}>
