@@ -23,6 +23,8 @@ import { useLS } from './hooks/useLS';
 import { scheduleSyncToCloud, loadFromCloud, hashPin } from './utils/cloud';
 import { getPromoState, redeemReferral, type PromoState } from './utils/promoApi';
 import { ReviewPromptModal } from './components/ReviewPromptModal';
+import { VoiceAssistant } from './components/VoiceAssistant';
+import { CATEGORIES, CATEGORIES_US } from './data/categories';
 import { supabase } from './utils/supabase';
 import { useMarket } from './i18n/useMarket';
 import { SettingsPanel } from './features/settings/SettingsPanel';
@@ -542,6 +544,19 @@ function AuthenticatedApp({ session }: { session: Session }) {
           onSkip={() => setShowMigration(false)}
         />
       )}
+
+      <VoiceAssistant
+        isEN={isEN}
+        isUS={isUS}
+        userKey={uid}
+        isPro={isPro}
+        categories={isUS ? CATEGORIES_US : CATEGORIES}
+        ingredients={ingredients}
+        setIngredients={setIngredients}
+        dishes={dishes}
+        setPlan={setPlan}
+        onUpgrade={(reason) => setUpgradeModal(reason)}
+      />
 
       <CookieBanner />
       <PWAInstallWizard />
