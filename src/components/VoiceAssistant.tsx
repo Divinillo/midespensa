@@ -11,6 +11,7 @@ interface AssistantAction {
   items?: { name: string; category?: string }[];
   names?: string[];
   menu?: { date: string; lunch?: string; dinner?: string }[];
+  dishes?: { name: string; ingredients?: string[]; mealType?: string; steps?: string[] }[];
 }
 
 interface VoiceAssistantProps {
@@ -22,6 +23,8 @@ interface VoiceAssistantProps {
   ingredients: Ingredient[];
   setIngredients: (fn: (prev: Ingredient[]) => Ingredient[]) => void;
   dishes: Dish[];
+  setDishes: (fn: (prev: Dish[]) => Dish[]) => void;
+  freeDishLimit: number;
   setPlan: (fn: (prev: Plan) => Plan) => void;
   onUpgrade: (reason: string) => void;
 }
@@ -30,7 +33,7 @@ type Status = 'idle' | 'listening' | 'thinking' | 'done' | 'error' | 'quota';
 
 export function VoiceAssistant({
   isEN, isUS, userKey, isPro, categories,
-  ingredients, setIngredients, dishes, setPlan, onUpgrade,
+  ingredients, setIngredients, dishes, setDishes, freeDishLimit, setPlan, onUpgrade,
 }: VoiceAssistantProps) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<Status>('idle');
@@ -229,6 +232,29 @@ export function VoiceAssistant({
             ? (isEN ? '✓ Shopping list: ' : '✓ Lista de compra: ')
             : (isEN ? '✓ Off the list: ' : '✓ Fuera de la lista: ');
         done.push(label + a.names.join(', '));
+      }
+
+      if (a.type === 'add_dish' && a.dishes?.length) {
+        const canAdd = isPro ? a.dishes.length : Math.max(0, freeDishLimit - dishes.length);
+        const toAdd = a.dishes.filter(d => d?.name).slice(0, Math.max(0, canAdd));
+        if (toAdd.length) {
+          setDishes(prev => ([
+            ...prev,
+            ...toAdd.map(d => ({
+              id: makeId(),
+              name: d.name.trim(),
+              ingredients: Array.isArray(d.ingredients) ? d.ingredients.map(s => String(s).trim()).filter(Boolean).slice(0, 15) : [],
+              steps: Array.isArray(d.steps) ? d.steps.map(s => String(s).trim()).filter(Boolean).slice(0, 10) : undefined,
+              mealType: (d.mealType === 'lunch' || d.mealType === 'dinner' ? d.mealType : 'both') as Dish['mealType'],
+            })),
+          ]));
+          done.push((isEN ? '✓ New dish saved: ' : '✓ Plato guardado: ') + toAdd.map(d => d.name).join(', '));
+        }
+        if (toAdd.length < a.dishes.length) {
+          done.push(isEN
+            ? `⚠ Free plan limit (${freeDishLimit} dishes) — upgrade to Pro for unlimited dishes`
+            : `⚠ Límite del plan gratis (${freeDishLimit} platos) — pásate a Pro para platos ilimitados`);
+        }
       }
 
       if (a.type === 'plan_week' && a.menu?.length) {

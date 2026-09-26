@@ -88,7 +88,8 @@ export const onRequestPost: PagesFunction<Env> = async ({ request, env }) => {
     `- {"type":"consume","names":["..."]} → user used up / finished / ran out of something: mark not available AND add to shopping list for the next purchase.\n` +
     `- {"type":"add_to_list","names":["..."]} → user wants to buy something (without saying they ran out).\n` +
     `- {"type":"remove_from_list","names":["..."]} → user already bought it or doesn't want it. Also mark it available if they bought it.\n` +
-    `- {"type":"plan_week","menu":[{"date":"YYYY-MM-DD","lunch":"dish name","dinner":"dish name"}]} → user asks for a menu/meal plan. Build 7 days starting TODAY (or the range they ask). STRONGLY prefer the user's saved dishes that use available pantry ingredients; you may propose simple new dishes when needed.\n\n` +
+    `- {"type":"plan_week","menu":[{"date":"YYYY-MM-DD","lunch":"dish name","dinner":"dish name"}]} → user asks for a menu/meal plan. Build 7 days starting TODAY (or the range they ask). STRONGLY prefer the user's saved dishes that use available pantry ingredients; you may propose simple new dishes when needed.\n` +
+  `- {"type":"add_dish","dishes":[{"name":"...","ingredients":["..."],"mealType":"lunch|dinner|both","steps":["step 1","step 2"]}]} → user asks to create/save a dish or recipe (e.g. "créame un plato de macarrones"). Invent a sensible simple recipe: 3-8 ingredients (reuse pantry names when possible), 3-6 short preparation steps in the user's language.\n\n` +
     `Rules:\n` +
     `- Ingredient names: singular, lowercase, in the user's language, no brands.\n` +
     `- If the command is a question about the pantry (e.g. "what do I have?", "what's missing?"), answer it in "reply" with actions:[] — summarize, don't list more than ~10 items.\n` +

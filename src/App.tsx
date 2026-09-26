@@ -554,6 +554,8 @@ function AuthenticatedApp({ session }: { session: Session }) {
         ingredients={ingredients}
         setIngredients={setIngredients}
         dishes={dishes}
+        setDishes={setDishes}
+        freeDishLimit={FREE_DISH_LIMIT}
         setPlan={setPlan}
         onUpgrade={(reason) => setUpgradeModal(reason)}
       />
